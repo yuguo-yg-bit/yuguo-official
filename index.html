@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>玉国公司 - 官方网站</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
     tailwind.config = {
       theme: {
@@ -21,18 +21,20 @@
     }
   </script>
   <style type="text/tailwindcss">
-    .card-hover { @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1; }
-    .nav-link { @apply px-4 py-2 text-gray-600 hover:text-primary transition-colors; }
-    .btn-primary { @apply bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors; }
+    @layer utilities {
+      .card-hover { @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1; }
+      .nav-link { @apply px-4 py-2 text-gray-600 hover:text-primary transition-colors; }
+      .btn-primary { @apply bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors; }
+    }
   </style>
 </head>
 
 <body class="bg-light text-dark">
-
+<!-- 导航栏 -->
 <header class="fixed w-full bg-white shadow-sm z-50">
   <div class="container mx-auto px-4 py-3 flex justify-between items-center">
     <a href="#" class="flex items-center gap-3">
-      <img src="https://你的github地址/logo.png" class="h-10 rounded">
+      <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/logo.png" class="h-10 rounded">
       <span class="text-xl font-bold text-primary">玉国公司</span>
     </a>
     <nav class="hidden md:flex gap-1">
@@ -47,6 +49,7 @@
   </div>
 </header>
 
+<!-- 首页 -->
 <section id="home" class="pt-28 pb-16 bg-gradient-to-br from-primary/5 to-secondary/5">
   <div class="container mx-auto px-4 text-center">
     <h1 class="text-4xl font-bold mb-4">玉国公司官方网站</h1>
@@ -54,6 +57,7 @@
   </div>
 </section>
 
+<!-- 公司简介 -->
 <section id="about" class="py-16 bg-white">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-6">公司简介</h2>
@@ -65,6 +69,7 @@
   </div>
 </section>
 
+<!-- 电影（无） -->
 <section id="movies" class="py-16 bg-light">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">主流电影</h2>
@@ -74,6 +79,7 @@
   </div>
 </section>
 
+<!-- 商品（3D打印蛋仔 3元） -->
 <section id="products" class="py-16 bg-white">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">商品专区</h2>
@@ -87,15 +93,17 @@
   </div>
 </section>
 
+<!-- 吉祥物：兔兔小飞飞 -->
 <section id="mascots" class="py-16 bg-light">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">品牌吉祥物</h2>
-    <img src="https://你的github地址/xiaofeifei.png" class="h-60 mx-auto rounded-xl shadow-md">
+    <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/xiaofeifei.png" class="h-60 mx-auto rounded-xl shadow-md">
     <h3 class="mt-4 text-xl font-semibold">兔兔小飞飞</h3>
-    <p class="gray-500">玉国公司吉祥物</p>
+    <p class="text-gray-500">玉国公司吉祥物</p>
   </div>
 </section>
 
+<!-- 留言箱 -->
 <section id="message" class="py-16 bg-white">
   <div class="container mx-auto px-4">
     <h2 class="text-3xl font-bold text-center mb-10">留言箱</h2>
@@ -108,6 +116,7 @@
   </div>
 </section>
 
+<!-- 猜数字小游戏 -->
 <section id="games" class="py-16 bg-light">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">趣味小游戏</h2>
@@ -126,19 +135,23 @@
 </footer>
 
 <script>
+// 猜数字游戏
 let ans = Math.floor(Math.random()*100)+1;
 function guess(){
   let g = document.getElementById("guess").value;
   let t = document.getElementById("gInfo");
   if(g>ans) t.textContent="大了";
   else if(g<ans) t.textContent="小了";
-  else { t.textContent="猜对啦！"; ans = Math.floor(Math.random()*100)+1; }
+  else { 
+    t.textContent="恭喜猜对！"; 
+    ans = Math.floor(Math.random()*100)+1; 
+  }
 }
 
-// 真实微信支付（弹出收款码）
+// 微信真实支付（跳转到你的收款码）
 function pay(){
-  alert("请扫码支付 3 元");
-  window.open("https://你的github地址/wechat-pay.png", "_blank");
+  alert("请扫码支付 3 元，支付后联系发货");
+  window.open("https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/wechat.png", "_blank");
 }
 </script>
 </body>
