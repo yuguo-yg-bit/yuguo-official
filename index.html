@@ -42,6 +42,70 @@
             }
         }
     </style>
+    <style>
+        /* 小游戏通用样式 */
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .game-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #165DFF;
+        }
+        /* 猜数字游戏 */
+        #guessInput {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            width: 120px;
+            margin-right: 0.5rem;
+        }
+        /* 打地鼠游戏 */
+        .mole-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .mole-hole {
+            width: 80px;
+            height: 80px;
+            background: #8B4513;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .mole {
+            position: absolute;
+            bottom: -80px;
+            left: 10px;
+            width: 60px;
+            height: 60px;
+            background: #D2691E;
+            border-radius: 50% 50% 0 0;
+            transition: bottom 0.2s;
+        }
+        .mole.up {
+            bottom: 0;
+        }
+        /* 贪吃蛇游戏 */
+        #snakeCanvas {
+            border: 2px solid #165DFF;
+            border-radius: 0.5rem;
+            background: #f0f0f0;
+        }
+    </style>
 </head>
 <body class="font-sans text-dark bg-light">
     <!-- 导航栏 -->
@@ -59,6 +123,7 @@
                 <a href="#products" class="nav-link">商品专区</a>
                 <a href="#mascots" class="nav-link">品牌吉祥物</a>
                 <a href="#message" class="nav-link">留言箱</a>
+                <a href="#games" class="nav-link">趣味游戏</a>
             </nav>
             <!-- 移动端菜单按钮 -->
             <button class="md:hidden text-gray-600 text-xl" id="menuBtn">
@@ -73,7 +138,8 @@
                 <a href="#movies" class="nav-link py-3 border-b border-gray-100">主流电影</a>
                 <a href="#products" class="nav-link py-3 border-b border-gray-100">商品专区</a>
                 <a href="#mascots" class="nav-link py-3 border-b border-gray-100">品牌吉祥物</a>
-                <a href="#message" class="nav-link py-3">留言箱</a>
+                <a href="#message" class="nav-link py-3 border-b border-gray-100">留言箱</a>
+                <a href="#games" class="nav-link py-3">趣味游戏</a>
             </div>
         </div>
     </header>
@@ -243,4 +309,325 @@
     </section>
 
     <!-- 品牌吉祥物 -->
-    <section id="mas
+    <section id="mascots" class="py-16 bg-light">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">品牌吉祥物</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 兔兔小飞飞 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm flex flex-col items-center text-center card-hover">
+                    <div class="w-32 h-32 bg-pink-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-rabbit text-5xl text-pink-400"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">兔兔小飞飞</h3>
+                    <p class="text-gray-600">活泼灵动，代表玉国公司的创新与活力，是品牌温暖亲和的象征。</p>
+                </div>
+                <!-- 道奇 -->
+                <div class="bg-white rounded-xl p-6 shadow-sm flex flex-col items-center text-center card-hover">
+                    <div class="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-dog text-5xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">道奇</h3>
+                    <p class="text-gray-600">忠诚可靠，象征公司的专业与担当，是陪伴用户的忠实伙伴。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 留言箱 -->
+    <section id="message" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">留言箱</h2>
+            <div class="max-w-2xl mx-auto bg-light rounded-2xl p-8 shadow-sm">
+                <form id="messageForm" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">您的姓名</label>
+                        <input type="text" class="w-full p-3 rounded-lg border border-gray-200" placeholder="请输入姓名" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">联系邮箱</label>
+                        <input type="email" class="w-full p-3 rounded-lg border border-gray-200" placeholder="请输入邮箱" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">留言内容</label>
+                        <textarea class="w-full p-3 rounded-lg border border-gray-200 h-32" placeholder="请输入您的留言或建议" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">提交留言</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 趣味游戏区 -->
+    <section id="games" class="py-16 bg-light">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">趣味游戏</h2>
+            <div class="game-container">
+                <!-- 猜数字游戏 -->
+                <div class="game-card">
+                    <h3 class="game-title">🎮 猜数字小游戏</h3>
+                    <p>我已经想好了一个 1-100 之间的数字，来猜猜看吧！</p>
+                    <div class="mt-4">
+                        <input type="number" id="guessInput" min="1" max="100" placeholder="输入数字">
+                        <button id="guessBtn" class="btn-primary">猜一下</button>
+                    </div>
+                    <p id="guessResult" class="mt-2 text-gray-600"></p>
+                    <p id="guessAttempts" class="text-sm text-gray-500"></p>
+                </div>
+
+                <!-- 打地鼠游戏 -->
+                <div class="game-card">
+                    <h3 class="game-title">🐹 打地鼠</h3>
+                    <p>点击冒出来的地鼠，看看你能打多少分！</p>
+                    <div class="flex items-center gap-4 mb-2">
+                        <button id="startMoleBtn" class="btn-primary">开始游戏</button>
+                        <span>得分: <span id="moleScore">0</span></span>
+                        <span>时间: <span id="moleTime">30</span>秒</span>
+                    </div>
+                    <div class="mole-grid">
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                        <div class="mole-hole"><div class="mole"></div></div>
+                    </div>
+                </div>
+
+                <!-- 贪吃蛇游戏 -->
+                <div class="game-card">
+                    <h3 class="game-title">🐍 贪吃蛇</h3>
+                    <p>用方向键控制蛇，吃到食物得分，撞墙或撞到自己游戏结束！</p>
+                    <div class="flex items-center gap-4 mb-2">
+                        <button id="startSnakeBtn" class="btn-primary">开始游戏</button>
+                        <span>得分: <span id="snakeScore">0</span></span>
+                    </div>
+                    <canvas id="snakeCanvas" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2">© 2025 玉国公司 版权所有</p>
+            <p class="text-sm text-gray-400">地址：广东省珠海市香洲区 | 联系电话：+86 15913650169</p>
+        </div>
+    </footer>
+
+    <script>
+        // 移动端菜单切换
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 留言表单提交
+        const messageForm = document.getElementById('messageForm');
+        messageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('留言提交成功！我们会尽快回复您。');
+            messageForm.reset();
+        });
+
+        // --------------------------
+        // 猜数字游戏
+        // --------------------------
+        let randomNum = Math.floor(Math.random() * 100) + 1;
+        let attempts = 0;
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const guessResult = document.getElementById('guessResult');
+        const guessAttempts = document.getElementById('guessAttempts');
+
+        guessBtn.addEventListener('click', () => {
+            const guess = parseInt(guessInput.value);
+            attempts++;
+            if (guess === randomNum) {
+                guessResult.textContent = `🎉 恭喜你猜对了！用了 ${attempts} 次。`;
+                guessResult.style.color = '#165DFF';
+                randomNum = Math.floor(Math.random() * 100) + 1;
+                attempts = 0;
+            } else if (guess > randomNum) {
+                guessResult.textContent = '📈 太大了，再小一点！';
+                guessResult.style.color = '#FF4D4F';
+            } else {
+                guessResult.textContent = '📉 太小了，再大一点！';
+                guessResult.style.color = '#FF4D4F';
+            }
+            guessAttempts.textContent = `已尝试 ${attempts} 次`;
+            guessInput.value = '';
+        });
+
+        // --------------------------
+        // 打地鼠游戏
+        // --------------------------
+        const moleHoles = document.querySelectorAll('.mole-hole');
+        const moleScore = document.getElementById('moleScore');
+        const moleTime = document.getElementById('moleTime');
+        const startMoleBtn = document.getElementById('startMoleBtn');
+        let moleGameActive = false;
+        let moleCurrentScore = 0;
+        let moleCurrentTime = 30;
+        let moleTimer;
+        let molePopTimer;
+
+        function randomHole() {
+            const index = Math.floor(Math.random() * moleHoles.length);
+            return moleHoles[index];
+        }
+
+        function popUp() {
+            if (!moleGameActive) return;
+            const hole = randomHole();
+            hole.querySelector('.mole').classList.add('up');
+            setTimeout(() => {
+                hole.querySelector('.mole').classList.remove('up');
+                if (moleGameActive) popUp();
+            }, 800);
+        }
+
+        moleHoles.forEach(hole => {
+            hole.addEventListener('click', () => {
+                if (!moleGameActive) return;
+                if (hole.querySelector('.mole').classList.contains('up')) {
+                    moleCurrentScore++;
+                    moleScore.textContent = moleCurrentScore;
+                    hole.querySelector('.mole').classList.remove('up');
+                }
+            });
+        });
+
+        startMoleBtn.addEventListener('click', () => {
+            if (moleGameActive) return;
+            moleGameActive = true;
+            moleCurrentScore = 0;
+            moleCurrentTime = 30;
+            moleScore.textContent = 0;
+            moleTime.textContent = 30;
+            startMoleBtn.disabled = true;
+            popUp();
+            moleTimer = setInterval(() => {
+                moleCurrentTime--;
+                moleTime.textContent = moleCurrentTime;
+                if (moleCurrentTime <= 0) {
+                    clearInterval(moleTimer);
+                    clearTimeout(molePopTimer);
+                    moleGameActive = false;
+                    startMoleBtn.disabled = false;
+                    alert(`游戏结束！你的得分是：${moleCurrentScore}`);
+                }
+            }, 1000);
+        });
+
+        // --------------------------
+        // 贪吃蛇游戏
+        // --------------------------
+        const snakeCanvas = document.getElementById('snakeCanvas');
+        const snakeCtx = snakeCanvas.getContext('2d');
+        const snakeScoreEl = document.getElementById('snakeScore');
+        const startSnakeBtn = document.getElementById('startSnakeBtn');
+        const gridSize = 20;
+        const tileCount = snakeCanvas.width / gridSize;
+        let snake = [{x: 10, y: 10}];
+        let food = {x: 15, y: 15};
+        let dx = 1;
+        let dy = 0;
+        let snakeScore = 0;
+        let snakeGameActive = false;
+        let snakeGameLoop;
+
+        function drawGame() {
+            snakeCtx.fillStyle = '#f0f0f0';
+            snakeCtx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+            
+            // 画蛇
+            snakeCtx.fillStyle = '#165DFF';
+            snake.forEach(segment => {
+                snakeCtx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+            });
+            
+            // 画食物
+            snakeCtx.fillStyle = '#FF4D4F';
+            snakeCtx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            
+            // 撞墙检测
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                endSnakeGame();
+                return;
+            }
+            
+            // 撞自己检测
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    endSnakeGame();
+                    return;
+                }
+            }
+            
+            snake.unshift(head);
+            
+            // 吃到食物
+            if (head.x === food.x && head.y === food.y) {
+                snakeScore += 10;
+                snakeScoreEl.textContent = snakeScore;
+                // 生成新食物
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+            } else {
+                snake.pop();
+            }
+        }
+
+        function endSnakeGame() {
+            clearInterval(snakeGameLoop);
+            snakeGameActive = false;
+            startSnakeBtn.disabled = false;
+            alert(`游戏结束！你的得分是：${snakeScore}`);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!snakeGameActive) return;
+            if (e.key === 'ArrowLeft' && dx !== 1) {
+                dx = -1;
+                dy = 0;
+            } else if (e.key === 'ArrowRight' && dx !== -1) {
+                dx = 1;
+                dy = 0;
+            } else if (e.key === 'ArrowUp' && dy !== 1) {
+                dx = 0;
+                dy = -1;
+            } else if (e.key === 'ArrowDown' && dy !== -1) {
+                dx = 0;
+                dy = 1;
+            }
+        });
+
+        startSnakeBtn.addEventListener('click', () => {
+            if (snakeGameActive) return;
+            snake = [{x: 10, y: 10}];
+            food = {x: 15, y: 15};
+            dx = 1;
+            dy = 0;
+            snakeScore = 0;
+            snakeScoreEl.textContent = 0;
+            snakeGameActive = true;
+            startSnakeBtn.disabled = true;
+            snakeGameLoop = setInterval(() => {
+                moveSnake();
+                drawGame();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
