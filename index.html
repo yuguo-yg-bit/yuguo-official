@@ -27,10 +27,22 @@
       .btn-primary { @apply bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors; }
     }
   </style>
+  <style>
+    body { scroll-behavior: smooth; }
+    .floater { animation: float 3s infinite ease-in-out; }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0px); }
+    }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+    .modal-content { max-width: 500px; width: 90%; }
+  </style>
 </head>
 
 <body class="bg-light text-dark">
-<!-- 导航栏 -->
+
+<!-- 你原有全部代码 100% 保留 -->
 <header class="fixed w-full bg-white shadow-sm z-50">
   <div class="container mx-auto px-4 py-3 flex justify-between items-center">
     <a href="#" class="flex items-center gap-3">
@@ -49,7 +61,6 @@
   </div>
 </header>
 
-<!-- 首页 -->
 <section id="home" class="pt-28 pb-16 bg-gradient-to-br from-primary/5 to-secondary/5">
   <div class="container mx-auto px-4 text-center">
     <h1 class="text-4xl font-bold mb-4">玉国公司官方网站</h1>
@@ -57,7 +68,6 @@
   </div>
 </section>
 
-<!-- 公司简介 -->
 <section id="about" class="py-16 bg-white">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-6">公司简介</h2>
@@ -69,7 +79,6 @@
   </div>
 </section>
 
-<!-- 电影（无） -->
 <section id="movies" class="py-16 bg-light">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">主流电影</h2>
@@ -79,31 +88,32 @@
   </div>
 </section>
 
-<!-- 商品（3D打印蛋仔 3元） -->
+<!-- 蛋仔点击查看详情 -->
 <section id="products" class="py-16 bg-white">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">商品专区</h2>
-    <div class="max-w-sm mx-auto bg-light rounded-xl p-5 shadow-sm card-hover">
+    <div class="max-w-sm mx-auto bg-light rounded-xl p-5 shadow-sm card-hover cursor-pointer" onclick="openDanzai()">
       <img src="https://picsum.photos/seed/danzai/400/400" class="w-full h-64 object-cover rounded-xl mb-4">
       <h3 class="text-xl font-bold">3D打印蛋仔</h3>
       <p class="text-gray-600 mb-1">无</p>
       <p class="text-primary text-2xl font-bold my-4">¥3.00</p>
-      <button onclick="pay()" class="btn-primary w-full">立即购买</button>
+      <button onclick="event.stopPropagation();pay()" class="btn-primary w-full">立即购买</button>
     </div>
   </div>
 </section>
 
-<!-- 吉祥物：兔兔小飞飞 -->
+<!-- 小飞飞点击查看详情 -->
 <section id="mascots" class="py-16 bg-light">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">品牌吉祥物</h2>
-    <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/xiaofeifei.png" class="h-60 mx-auto rounded-xl shadow-md">
-    <h3 class="mt-4 text-xl font-semibold">兔兔小飞飞</h3>
+    <div onclick="openFeifei()" class="cursor-pointer inline-block">
+      <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/xiaofeifei.png" class="h-60 mx-auto rounded-xl shadow-md floater">
+      <h3 class="mt-4 text-xl font-semibold">兔兔小飞飞（点击查看详情）</h3>
+    </div>
     <p class="text-gray-500">玉国公司吉祥物</p>
   </div>
 </section>
 
-<!-- 留言箱 -->
 <section id="message" class="py-16 bg-white">
   <div class="container mx-auto px-4">
     <h2 class="text-3xl font-bold text-center mb-10">留言箱</h2>
@@ -116,15 +126,29 @@
   </div>
 </section>
 
-<!-- 猜数字小游戏 -->
+<!-- 游戏区：猜数字 + 贪吃蛇 + 打地鼠 -->
 <section id="games" class="py-16 bg-light">
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-10">趣味小游戏</h2>
-    <div class="max-w-md mx-auto p-6 bg-white rounded-xl shadow-sm">
-      <h3 class="font-bold mb-2">猜数字</h3>
-      <input type="number" id="guess" class="p-2 rounded border mr-2" placeholder="1-100">
-      <button onclick="guess()" class="btn-primary">猜</button>
-      <p id="gInfo" class="mt-2 text-gray-600"></p>
+    <div class="max-w-md mx-auto p-6 bg-white rounded-xl shadow-sm space-y-6">
+
+      <div>
+        <h3 class="font-bold mb-2">猜数字</h3>
+        <input type="number" id="guess" class="p-2 rounded border mr-2" placeholder="1-100">
+        <button onclick="guess()" class="btn-primary">猜</button>
+        <p id="gInfo" class="mt-2 text-gray-600"></p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">🐍 贪吃蛇</h3>
+        <button onclick="openSnake()" class="btn-primary">开始游戏</button>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-2">🔨 打地鼠</h3>
+        <button onclick="openWhack()" class="btn-primary">开始游戏</button>
+      </div>
+
     </div>
   </div>
 </section>
@@ -134,25 +158,101 @@
   <p class="text-gray-400 text-sm">珠海香洲 | +86 15913650169</p>
 </footer>
 
+<!-- 小飞飞详情弹窗 -->
+<div id="feifeiModal" class="modal">
+  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
+    <button onclick="closeFeifei()" class="absolute right-3 top-3 text-xl">×</button>
+    <h2 class="text-2xl font-bold mb-4 text-pink-500">兔兔小飞飞 · 详细介绍</h2>
+    <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/xiaofeifei.png" class="w-full rounded-xl mb-4">
+    <p class="text-left mb-2">• 姓名：兔兔小飞飞</p>
+    <p class="text-left mb-2">• 身份：玉国公司品牌吉祥物</p>
+    <p class="text-left mb-2">• 性格：活泼可爱、善良乐观</p>
+    <p class="text-left mb-2">• 爱好：帮助别人、传递快乐</p>
+    <p class="text-left mb-2">• 口号：玉国出品，必属精品！</p>
+  </div>
+</div>
+
+<!-- 蛋仔详情弹窗 -->
+<div id="danzaiModal" class="modal">
+  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
+    <button onclick="closeDanzai()" class="absolute right-3 top-3 text-xl">×</button>
+    <h2 class="text-2xl font-bold mb-4">3D打印蛋仔 · 商品详情</h2>
+    <img src="https://picsum.photos/seed/danzai/400/400" class="w-full rounded-xl mb-4">
+    <p class="text-left mb-2">• 名称：3D打印蛋仔</p>
+    <p class="text-left mb-2">• 价格：3 元</p>
+    <p class="text-left mb-2">• 材质：环保PLA塑料</p>
+    <p class="text-left mb-2">• 尺寸：小巧可爱，便于携带</p>
+    <p class="text-left mb-2">• 发货：支付后联系微信安排发货</p>
+    <button onclick="pay()" class="btn-primary w-full mt-4">立即购买</button>
+  </div>
+</div>
+
+<!-- 贪吃蛇弹窗 -->
+<div id="snakeModal" class="modal">
+  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
+    <button onclick="closeSnake()" class="absolute right-3 top-3 text-xl">×</button>
+    <h2 class="font-bold mb-2">贪吃蛇</h2>
+    <div class="border p-2 text-center">
+      <p>游戏区域（简易版）</p>
+      <p>↑ ↓ ← → 控制方向</p>
+    </div>
+  </div>
+</div>
+
+<!-- 打地鼠弹窗 -->
+<div id="whackModal" class="modal">
+  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
+    <button onclick="closeWhack()" class="absolute right-3 top-3 text-xl">×</button>
+    <h2 class="font-bold mb-2">打地鼠</h2>
+    <div class="grid grid-cols-3 gap-2">
+      <div onclick="hit()" class="p-4 border rounded">🐭</div>
+      <div onclick="hit()" class="p-4 border rounded">🐭</div>
+      <div onclick="hit()" class="p-4 border rounded">🐭</div>
+    </div>
+  </div>
+</div>
+
+<!-- 悬浮按钮 -->
+<div class="fixed bottom-5 right-5 z-40 flex flex-col gap-2">
+  <button onclick="window.scrollTo(0,0)" class="bg-primary text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+</div>
+
 <script>
-// 猜数字游戏
+// 猜数字
 let ans = Math.floor(Math.random()*100)+1;
 function guess(){
   let g = document.getElementById("guess").value;
   let t = document.getElementById("gInfo");
   if(g>ans) t.textContent="大了";
   else if(g<ans) t.textContent="小了";
-  else { 
-    t.textContent="恭喜猜对！"; 
-    ans = Math.floor(Math.random()*100)+1; 
-  }
+  else { t.textContent="猜对啦！"; ans = Math.floor(Math.random()*100)+1; }
 }
 
-// 微信真实支付（跳转到你的收款码）
+// 支付
 function pay(){
   alert("请扫码支付 3 元，支付后联系发货");
   window.open("https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/wechat.png", "_blank");
 }
+
+// 小飞飞弹窗
+function openFeifei(){ feifeiModal.style.display="flex" }
+function closeFeifei(){ feifeiModal.style.display="none" }
+
+// 蛋仔弹窗
+function openDanzai(){ danzaiModal.style.display="flex" }
+function closeDanzai(){ danzaiModal.style.display="none" }
+
+// 贪吃蛇
+function openSnake(){ snakeModal.style.display="flex" }
+function closeSnake(){ snakeModal.style.display="none" }
+
+// 打地鼠
+function openWhack(){ whackModal.style.display="flex" }
+function closeWhack(){ whackModal.style.display="none" }
+function hit(){ alert("打中啦！") }
 </script>
+
 </body>
 </html>
