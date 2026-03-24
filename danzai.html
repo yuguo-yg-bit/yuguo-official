@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D打印蛋仔 - 玉国科技商品详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050505',
+                        gold: '#FFD700',
+                        glass: 'rgba(20, 20, 20, 0.85)',
+                        card: '#121212',
+                        border: '#222222'
+                    },
+                    fontFamily: {
+                        tech: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto { content-visibility: auto; }
+            .text-shadow { text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
+            .glow { box-shadow: 0 0 12px rgba(255, 215, 0, 0.3); }
+            .fade-up {
+                opacity: 0;
+                transform: translateY(50px);
+                transition: opacity 0.9s ease, transform 0.9s ease;
+            }
+            .fade-up.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <style>
+        * { scroll-behavior: smooth; }
+        body { background-color: #0A0A0A; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; }
+        .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px); z-index: 999;
+            display: none; place-items: center;
+        }
+        .modal-box {
+            transform: scale(0.8); opacity: 0;
+            transition: 0.3s ease;
+        }
+        .modal-box.show { transform: scale(1); opacity: 1; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+
+<!-- 导航栏（和首页统一） -->
+<nav id="navbar" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-4 px-6">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="index.html" class="flex items-center gap-2">
+            <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>
+            <span class="text-xl font-bold text-gold text-shadow">玉国科技</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a href="index.html#home" class="hover:text-gold transition-colors">首页</a>
+            <a href="index.html#product" class="hover:text-gold transition-colors">商品区</a>
+            <a href="index.html#movie" class="hover:text-gold transition-colors">电影区</a>
+            <a href="index.html#feifei" class="hover:text-gold transition-colors">兔兔小飞飞</a>
+            <a href="index.html#games" class="hover:text-gold transition-colors">小游戏</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="pay-record.html" class="text-sm hover:text-gold transition-colors">付款记录</a>
+            <button class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gold/90 transition-colors glow">
+                登录账户
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- 商品详情头部 -->
+<section class="pt-36 pb-10 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <a href="index.html#product" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
+            <i class="fa-solid fa-arrow-left"></i> 返回商品区
+        </a>
+        <h1 class="text-3xl md:text-4xl font-bold text-gold mb-2">3D打印蛋仔</h1>
+        <p class="text-gray-400">黑金科技潮玩摆件 | 环保PLA材质 | 精致收藏级</p>
+    </div>
+</section>
+
+<!-- 商品主图 -->
+<section class="py-6 px-6 fade-up">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div class="relative">
+            <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
+            <img src="https://picsum.photos/id/49/800/800" 
+                 class="w-full rounded-2xl relative z-10 border border-border animate-float" 
+                 alt="3D打印蛋仔主图">
+        </div>
+        <div class="bg-card p-8 rounded-2xl border border-border">
+            <span class="bg-gold text-black text-xs px-3 py-1 rounded-full inline-block mb-4">热卖单品</span>
+            <h2 class="text-2xl font-bold mb-4">3D打印蛋仔 · 黑金科技版</h2>
+            <p class="text-gold text-3xl font-bold mb-6">¥ 3.00</p>
+            <p class="text-gray-300 mb-6 leading-relaxed">
+                本商品为玉国科技独家设计3D打印潮玩摆件，采用高端黑金配色，融合未来科技感与可爱萌系造型，
+                适合桌面摆放、收藏、送礼。成品无毛刺、质感细腻，支持长期保存。
+            </p>
+            <div class="flex flex-col gap-3">
+                <button onclick="showPayModal()" class="bg-gold text-black py-3 rounded-lg font-medium hover:bg-gold/90 transition-colors glow">
+                    <i class="fa-brands fa-weixin mr-2"></i> 微信支付
+                </button>
+                <button class="border border-gray-600 text-gray-400 py-3 rounded-lg cursor-not-allowed">
+                    支付宝（暂未开通）
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-4 text-center">仅支持微信支付，付款后可查看记录</p>
+        </div>
+    </div>
+</section>
+
+<!-- 商品详细介绍（长篇图文） -->
+<section class="py-16 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-bold text-gold mb-8">商品详细介绍</h2>
+        <div class="bg-card p-8 rounded-2xl border border-border space-y-6">
+            <p class="text-gray-300 leading-relaxed">
+                3D打印蛋仔是玉国科技面向文创潮玩市场推出的第一款实体产品，整体造型以经典蛋仔形象为基础，
+                结合品牌标志性黑金科技风格，通过高精度FDM 3D打印技术制作，层层固化，保证模型坚固不易损坏。
+            </p>
+            <p class="text-gray-300 leading-relaxed">
+                外观采用哑光黑色基底搭配金色线条点缀，视觉高级不浮夸，无论是电竞桌面、办公书桌、卧室摆件
+                都能完美融入环境。产品整体高度约6-8厘米，单手可握，小巧精致却极具分量感。
+            </p>
+            <p class="text-gray-300 leading-relaxed">
+                原材料采用进口环保PLA塑料，无毒无异味，不伤手、不氧化，适合各类人群收藏。
+                每一件蛋仔均经过人工打磨、修边、上色检查，确保无瑕疵后发货。
+            </p>
+            <p class="text-gray-300 leading-relaxed">
+                购买后将通过微信人工核对订单，付款完成后1-3个工作日内安排发货，
+                发货后会提供打包实拍与发货状态，用户可在付款记录页查看自己的订单状态。
+            </p>
+            <p class="text-gray-300 leading-relaxed">
+                未来我们还将推出蛋仔系列异色版、发光版、联动IP版等多款产品，
+                首批黑金版属于限量入门款，极具收藏与纪念意义。
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- 商品参数 -->
+<section class="py-6 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-bold text-gold mb-8">商品参数</h2>
+        <div class="bg-card p-8 rounded-2xl border border-border">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4">
+                <div>
+                    <p class="text-gray-400 text-sm">产品名称</p>
+                    <p class="text-white">3D打印蛋仔（黑金版）</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">材质</p>
+                    <p class="text-white">环保PLA塑料</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">价格</p>
+                    <p class="text-white">3元/个</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">工艺</p>
+                    <p class="text-white">高精度3D打印 + 人工打磨</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">尺寸</p>
+                    <p class="text-white">约6-8cm</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">支付方式</p>
+                    <p class="text-white">仅支持微信支付</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">发货时间</p>
+                    <p class="text-white">付款后1-3个工作日</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">订单查询</p>
+                    <p class="text-white">付款记录页</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 微信支付弹窗 -->
+<div class="modal-backdrop" id="payModal">
+    <div class="modal-box bg-card p-6 rounded-2xl border border-gold/30 w-full max-w-sm">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gold">微信支付</h3>
+            <button onclick="hidePayModal()" class="text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="mb-4">
+            <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/wechat.png" 
+                 class="w-full rounded-xl border border-border" alt="微信收款码">
+        </div>
+        <p class="text-sm text-gray-300 text-center mb-4">请扫码支付 3 元，付款后点击下方查看记录</p>
+        <a href="pay-record.html" class="block w-full bg-gold text-black text-center py-2 rounded-lg font-medium">
+            查看付款记录
+        </a>
+    </div>
+</div>
+
+<!-- 底部 -->
+<footer class="py-10 px-6 bg-darker border-t border-border mt-10">
+    <div class="max-w-7xl mx-auto text-center">
+        <div class="flex items-center justify-center gap-2 mb-4">
+            <i class="fa-solid fa-atom text-gold text-xl"></i>
+            <span class="text-gold font-bold">玉国科技</span>
+        </div>
+        <p class="text-gray-500 text-sm">© 2025 玉国科技 版权所有 | 黑金科技 · 创新未来</p>
+    </div>
+</footer>
+
+<!-- 回到顶部 -->
+<button id="backToTop" class="fixed bottom-6 right-6 bg-gold text-black w-12 h-12 rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+
+<script>
+    // 滚动动画
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        const backToTop = document.getElementById('backToTop');
+        const fadeElements = document.querySelectorAll('.fade-up');
+
+        if (window.scrollY > 50) {
+            navbar.classList.add('glass');
+            navbar.classList.add('py-3');
+            navbar.classList.remove('py-4');
+        } else {
+            navbar.classList.remove('glass');
+            navbar.classList.add('py-4');
+            navbar.classList.remove('py-3');
+        }
+
+        if (window.scrollY > 300) {
+            backToTop.classList.remove('opacity-0', 'invisible');
+            backToTop.classList.add('opacity-100', 'visible');
+        } else {
+            backToTop.classList.add('opacity-0', 'invisible');
+            backToTop.classList.remove('opacity-100', 'visible');
+        }
+
+        fadeElements.forEach(el => {
+            if (el.getBoundingClientRect().top < window.innerHeight * 0.85) el.classList.add('show');
+        });
+    });
+
+    // 支付弹窗
+    const modal = document.getElementById('payModal');
+    const modalBox = document.querySelector('.modal-box');
+    function showPayModal() {
+        modal.style.display = 'grid';
+        setTimeout(() => modalBox.classList.add('show'), 10);
+    }
+    function hidePayModal() {
+        modalBox.classList.remove('show');
+        setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    // 回到顶部
+    document.getElementById('backToTop').onclick = () => window.scrollTo({ top:0, behavior:'smooth' });
+    window.dispatchEvent(new Event('scroll'));
+</script>
+
+</body>
+</html>
