@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实用工具 - 玉国科技</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050505',
+                        gold: '#FFD700',
+                        glass: 'rgba(20,20,20,0.85)',
+                        card: '#121212',
+                        border: '#222222',
+                        glowGold: 'rgba(255,215,0,0.3)',
+                    },
+                    fontFamily: {
+                        tech: ['Inter','system-ui','sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'breath': 'breath 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        },
+                        breath: {
+                            '0%, 100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
+                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+            .glow { box-shadow: 0 0 15px rgba(255,215,0,0.3); animation: breath 4s ease-in-out infinite; }
+            .fade-up { opacity:0; transform:translateY(40px); transition:.8s ease; }
+            .fade-up.show { opacity:1; transform:translateY(0); }
+            .card-hover { transition: all .3s ease; }
+            .card-hover:hover { transform: translateY(-4px); border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+        }
+    </style>
+    <style>
+        * { scroll-behavior: smooth; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background:#0A0A0A; color:#fff; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+        .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<script>
+const GITHUB_CONFIG = {
+    username: "yuguo-yg-bit",
+    repo: "yuguo-official",
+    token: "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"
+};
+</script>
+
+<!-- 统一导航栏（完全对齐手绘+所有页面） -->
+<nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all duration-500">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
+      <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>玉国科技
+    </a>
+    <div class="hidden md:flex gap-6 text-sm font-medium">
+      <a href="index.html" class="hover:text-gold transition-colors">首页</a>
+      <a href="index.html#product" class="hover:text-gold transition-colors">商品区</a>
+      <a href="index.html#movie" class="hover:text-gold transition-colors">电影区</a>
+      <a href="feifei.html" class="hover:text-gold transition-colors">兔兔小飞飞</a>
+      <a href="tools.html" class="hover:text-gold transition-colors">实用工具</a>
+      <a href="index.html#games" class="hover:text-gold transition-colors">小游戏</a>
+      <a href="pay-record.html" class="hover:text-gold transition-colors">购买记录</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="register.html" class="text-sm hover:text-gold transition-colors">注册</a>
+      <a href="login.html" class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gold/90 transition-colors glow">
+        登录账户
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- 页面头部 -->
+<section class="pt-36 pb-10 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <a href="index.html#tools" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
+            <i class="fa-solid fa-arrow-left"></i> 返回首页
+        </a>
+        <h1 class="text-3xl md:text-4xl font-bold text-gold mb-2">实用工具</h1>
+        <p class="text-gray-400">免费在线工具，无需下载，即用即走，高效便捷</p>
+    </div>
+</section>
+
+<!-- 核心工具区（手绘要求：PNG转JPG + MP3转WAV） -->
+<section class="py-12 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-bold text-gold mb-8">格式转换工具</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- PNG转JPG -->
+            <div class="bg-card rounded-2xl border border-border p-8 card-hover">
+                <div class="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mb-6 animate-float">
+                    <i class="fa-solid fa-image text-gold text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-4">PNG 转 JPG</h3>
+                <p class="text-gray-300 mb-6 leading-relaxed">
+                    免费在线图片格式转换，支持批量处理，无水印、无压缩损失，转换后直接下载，完全免费使用。
+                </p>
+                <a href="https://cloudconvert.com/png-to-jpg" target="_blank" class="block w-full bg-gold text-black text-center py-3 rounded-lg font-medium glow">
+                    立即使用
+                </a>
+            </div>
+            <!-- MP3转WAV -->
+            <div class="bg-card rounded-2xl border border-border p-8 card-hover">
+                <div class="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mb-6 animate-float">
+                    <i class="fa-solid fa-music text-gold text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-4">MP3 转 WAV</h3>
+                <p class="text-gray-300 mb-6 leading-relaxed">
+                    高保真音频格式转换，无损音质，支持大文件上传，转换速度快，无需注册，永久免费使用。
+                </p>
+                <a href="https://cloudconvert.com/mp3-to-wav" target="_blank" class="block w-full bg-gold text-black text-center py-3 rounded-lg font-medium glow">
+                    立即使用
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 扩展实用工具 -->
+<section class="py-12 px-6 bg-darker fade-up">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-bold text-gold mb-8">日常便捷工具</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
+                <i class="fa-solid fa-calculator text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">科学计算器</h3>
+                <p class="text-gray-400 text-sm mb-6">支持加减乘除、函数运算</p>
+                <a href="#" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">立即使用</a>
+            </div>
+            <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
+                <i class="fa-solid fa-clock-rotate-left text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">日期计算</h3>
+                <p class="text-gray-400 text-sm mb-6">天数差、纪念日倒计时</p>
+                <a href="#" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">立即使用</a>
+            </div>
+            <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
+                <i class="fa-solid fa-text-height text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">文字计数</h3>
+                <p class="text-gray-400 text-sm mb-6">字数、字符、段落统计</p>
+                <a href="#" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">立即使用</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 工具说明 -->
+<section class="py-12 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <div class="bg-card rounded-2xl border border-border p-8">
+            <h3 class="text-xl font-bold text-gold mb-4">工具使用说明</h3>
+            <ul class="text-gray-300 space-y-3 leading-relaxed">
+                <li>• 所有工具均为免费在线版，无需下载客户端，打开即用</li>
+                <li>• 格式转换工具由第三方稳定服务提供，安全无广告</li>
+                <li>• 工具数据仅在浏览器本地处理，不会上传至服务器</li>
+                <li>• 若工具无法使用，可刷新页面或切换浏览器重试</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- 底部 -->
+<footer class="py-10 text-center text-sm text-gray-500 border-t border-border bg-darker">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-center gap-2 mb-4">
+      <i class="fa-solid fa-atom text-gold text-xl"></i>
+      <span class="text-gold font-bold">玉国科技</span>
+    </div>
+    <p class="mb-2">© 2025 玉国科技 版权所有</p>
+    <p>所有工具免费使用，数据安全可靠</p>
+  </div>
+</footer>
+
+<!-- 回到顶部 -->
+<button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gold text-black rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
+  <i class="fa-solid fa-arrow-up"></i>
+</button>
+
+<script>
+// 滚动动画
+window.addEventListener('scroll', () => {
+  const navbar = document.getElementById('navbar');
+  if (window.scrollY > 50) {
+    navbar.classList.add('glass');
+    navbar.classList.add('py-3');
+    navbar.classList.remove('py-4');
+  } else {
+    navbar.classList.remove('glass');
+    navbar.classList.add('py-4');
+    navbar.classList.remove('py-3');
+  }
+
+  const backToTop = document.getElementById('backToTop');
+  if (window.scrollY > 300) {
+    backToTop.classList.remove('opacity-0','invisible');
+    backToTop.classList.add('opacity-100','visible');
+  } else {
+    backToTop.classList.add('opacity-0','invisible');
+    backToTop.classList.remove('opacity-100','visible');
+  }
+
+  document.querySelectorAll('.fade-up').forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) {
+      el.classList.add('show');
+    }
+  });
+});
+
+// 回到顶部
+document.getElementById('backToTop').onclick = () => window.scrollTo({ top:0, behavior:'smooth' });
+
+// 页面加载动画
+window.addEventListener('load', () => {
+  document.querySelectorAll('.fade-up').forEach(el => el.classList.add('show'));
+});
+</script>
+
+</body>
+</html>
