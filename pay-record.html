@@ -22,17 +22,7 @@
                         pending: '#3B82F6'
                     },
                     fontFamily: {
-                        tech: ['Inter', 'system-ui', 'sans-serif']
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'float': 'float 3s ease-in-out infinite'
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        }
+                        tech: ['Inter','system-ui','sans-serif']
                     }
                 }
             }
@@ -40,282 +30,185 @@
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            .content-auto { content-visibility: auto; }
-            .text-shadow { text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
-            .glow { box-shadow: 0 0 12px rgba(255, 215, 0, 0.3); }
-            .fade-up {
-                opacity: 0;
-                transform: translateY(50px);
-                transition: opacity 0.9s ease, transform 0.9s ease;
-            }
-            .fade-up.show {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            .badge-success { background-color: rgba(16, 185, 129, 0.2); color: #10B981; }
-            .badge-warning { background-color: rgba(245, 158, 11, 0.2); color: #F59E0B; }
-            .badge-pending { background-color: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+            .text-shadow { text-shadow: 0 0 8px rgba(255,215,0,0.5); }
+            .glow { box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+            .fade-up { opacity:0; transform:translateY(40px); transition:.6s ease; }
+            .fade-up.show { opacity:1; transform:translateY(0); }
+            .badge-success { background:rgba(16,185,129,0.2); color:#10B981; }
+            .badge-pending { background:rgba(59,130,246,0.2); color:#3B82F6; }
+            .badge-warning { background:rgba(245,158,11,0.2); color:#F59E0B; }
         }
     </style>
     <style>
-        * { scroll-behavior: smooth; }
-        body { background-color: #0A0A0A; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; }
-        .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        .record-item { transition: all 0.3s ease; }
-        .record-item:hover { transform: translateX(4px); border-color: #FFD700; }
+        * { scroll-behavior:smooth }
+        body { background:#0A0A0A; color:#fff }
+        .glass { backdrop-filter:blur(12px) }
+        .record-item { transition:.25s ease }
+        .record-item:hover { transform:translateX(4px); border-color:#FFD700 }
     </style>
 </head>
-<body class="overflow-x-hidden">
 
-<!-- 导航栏（与全站统一） -->
-<nav id="navbar" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-4 px-6">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <a href="index.html" class="flex items-center gap-2">
-            <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>
-            <span class="text-xl font-bold text-gold text-shadow">玉国科技</span>
-        </a>
-        <div class="hidden md:flex items-center gap-8 text-sm font-medium">
-            <a href="index.html#home" class="hover:text-gold transition-colors">首页</a>
-            <a href="index.html#product" class="hover:text-gold transition-colors">商品区</a>
-            <a href="index.html#movie" class="hover:text-gold transition-colors">电影区</a>
-            <a href="index.html#feifei" class="hover:text-gold transition-colors">兔兔小飞飞</a>
-            <a href="index.html#games" class="hover:text-gold transition-colors">小游戏</a>
-        </div>
-        <div class="flex items-center gap-4">
-            <a href="pay-record.html" class="text-gold font-medium">付款记录</a>
-            <button class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gold/90 transition-colors glow">
-                登录账户
-            </button>
-        </div>
+<body>
+
+<script>
+const GITHUB_CONFIG = {
+  username: "yuguo-yg-bit",
+  repo: "yuguo-official",
+  token: "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"
+};
+</script>
+
+<nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <a class="flex items-center gap-2 text-xl font-bold text-gold">
+      <i class="fa-solid fa-atom"></i>玉国科技
+    </a>
+    <div class="hidden md:flex gap-6 text-sm">
+      <a href="index.html">首页</a>
+      <a href="index.html#product">商品区</a>
+      <a href="index.html#movie">电影区</a>
+      <a href="index.html#feifei">兔兔小飞飞</a>
     </div>
+    <div class="flex items-center gap-4">
+      <a class="text-gold">付款记录</a>
+      <button class="bg-gold text-black px-4 py-2 rounded-full text-sm">登录</button>
+    </div>
+  </div>
 </nav>
 
-<!-- 页面头部 -->
 <section class="pt-36 pb-10 px-6 fade-up">
-    <div class="max-w-6xl mx-auto">
-        <a href="index.html#product" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
-            <i class="fa-solid fa-arrow-left"></i> 返回购物
-        </a>
-        <h1 class="text-3xl md:text-4xl font-bold text-gold mb-2">付款记录</h1>
-        <p class="text-gray-400">查看您的商品与电影购买记录，实时追踪订单状态</p>
-    </div>
+  <div class="max-w-6xl mx-auto">
+    <a href="index.html#product" class="inline-flex items-center gap-2 text-gold mb-4">
+      <i class="fa-solid fa-arrow-left"></i> 返回购物
+    </a>
+    <h1 class="text-3xl font-bold text-gold mb-2">付款记录</h1>
+    <p class="text-gray-400">数据全部来自 GitHub Issues，无任何本地假数据</p>
+  </div>
 </section>
 
-<!-- 筛选栏 -->
-<section class="py-4 px-6 fade-up">
-    <div class="max-w-6xl mx-auto">
-        <div class="flex flex-wrap gap-3">
-            <button class="filter-btn bg-gold text-black px-4 py-2 rounded-lg text-sm font-medium" data-type="all">全部记录</button>
-            <button class="filter-btn bg-card text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-card/80 transition-colors" data-type="product">商品订单</button>
-            <button class="filter-btn bg-card text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-card/80 transition-colors" data-type="movie">电影订单</button>
-        </div>
-    </div>
+<section class="px-6 pb-4 fade-up">
+  <div class="max-w-6xl mx-auto flex flex-wrap gap-3">
+    <button class="filter-btn bg-gold text-black px-4 py-2 rounded-lg text-sm" data-status="all">全部</button>
+    <button class="bg-card text-white px-4 py-2 rounded-lg text-sm" data-status="待发货">待发货</button>
+    <button class="bg-card text-white px-4 py-2 rounded-lg text-sm" data-status="已完成">已完成</button>
+  </div>
 </section>
 
-<!-- 记录列表 -->
 <section class="py-8 px-6 fade-up">
-    <div class="max-w-6xl mx-auto">
-        <div id="recordList" class="space-y-4">
-            <!-- 记录1：3D打印蛋仔（商品） -->
-            <div class="record-item bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4" data-type="product">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                        <img src="https://picsum.photos/id/49/100/100" class="w-full h-full object-cover" alt="3D打印蛋仔">
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-white">3D打印蛋仔（黑金版）</h3>
-                        <p class="text-sm text-gray-400">订单号：YG20250324001 | 类型：商品</p>
-                    </div>
-                </div>
-                <div class="text-right md:text-left">
-                    <p class="text-gold font-bold">¥ 3.00</p>
-                    <p class="text-xs text-gray-400">支付时间：2025-03-24 14:30:25</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="badge-pending px-2 py-1 rounded-full text-xs font-medium">待发货</span>
-                    <button onclick="alert('将跳转到订单详情页')" class="text-gold text-sm hover:underline">查看详情</button>
-                </div>
-            </div>
-
-            <!-- 记录2：电影预售（电影） -->
-            <div class="record-item bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4" data-type="movie">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gold/10 flex items-center justify-center">
-                        <i class="fa-solid fa-film text-gold"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-white">未知电影（预售）</h3>
-                        <p class="text-sm text-gray-400">订单号：YG20250320001 | 类型：电影</p>
-                    </div>
-                </div>
-                <div class="text-right md:text-left">
-                    <p class="text-gold font-bold">¥ 0.00</p>
-                    <p class="text-xs text-gray-400">支付时间：2025-03-20 10:15:42</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="badge-warning px-2 py-1 rounded-full text-xs font-medium">待上映</span>
-                    <button onclick="alert('电影暂未上线，详情将在上线后开放')" class="text-gold text-sm hover:underline">查看详情</button>
-                </div>
-            </div>
-
-            <!-- 记录3：3D打印蛋仔（商品，已完成） -->
-            <div class="record-item bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4" data-type="product">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                        <img src="https://picsum.photos/id/49/100/100" class="w-full h-full object-cover" alt="3D打印蛋仔">
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-white">3D打印蛋仔（黑金版）</h3>
-                        <p class="text-sm text-gray-400">订单号：YG20250310001 | 类型：商品</p>
-                    </div>
-                </div>
-                <div class="text-right md:text-left">
-                    <p class="text-gold font-bold">¥ 3.00</p>
-                    <p class="text-xs text-gray-400">支付时间：2025-03-10 09:20:10</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="badge-success px-2 py-1 rounded-full text-xs font-medium">已完成</span>
-                    <button onclick="alert('将跳转到订单详情页')" class="text-gold text-sm hover:underline">查看详情</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 空状态（默认隐藏，筛选无结果时显示） -->
-        <div id="emptyState" class="hidden bg-card rounded-xl border border-border p-12 text-center">
-            <i class="fa-solid fa-inbox text-gold/50 text-5xl mb-4"></i>
-            <h3 class="text-xl font-bold mb-2">暂无付款记录</h3>
-            <p class="text-gray-400 mb-6">您还没有购买任何商品或电影</p>
-            <a href="index.html#product" class="bg-gold text-black px-6 py-2 rounded-lg font-medium hover:bg-gold/90 transition-colors glow">
-                去逛逛商品
-            </a>
-        </div>
+  <div class="max-w-6xl mx-auto">
+    <div id="recordList" class="space-y-4">
+      <!-- 初始只显示加载中，无任何记录 -->
+      <div class="bg-card rounded-xl p-10 text-center">
+        <i class="fa-solid fa-spinner fa-spin text-gold text-2xl mb-4"></i>
+        <p>正在从 GitHub Issues 加载真实记录...</p>
+      </div>
     </div>
+
+    <div id="emptyState" class="hidden bg-card rounded-xl border border-border p-12 text-center">
+      <i class="fa-solid fa-inbox text-gold/40 text-5xl mb-4"></i>
+      <h3 class="text-xl font-bold mb-2">暂无付款记录</h3>
+      <p class="text-gray-400 mb-6">只有支付成功后才会在这里显示</p>
+      <a href="danzai.html" class="bg-gold text-black px-6 py-2 rounded-lg font-medium">去购买</a>
+    </div>
+  </div>
 </section>
 
-<!-- 订单说明 -->
-<section class="py-12 px-6 fade-up">
-    <div class="max-w-6xl mx-auto">
-        <h2 class="text-2xl font-bold text-gold mb-6">订单状态说明</h2>
-        <div class="bg-card rounded-xl border border-border p-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="flex items-start gap-3">
-                    <span class="badge-pending px-2 py-1 rounded-full text-xs">待发货</span>
-                    <p class="text-sm text-gray-300">付款成功，商品正在准备中，1-3个工作日内将安排发货</p>
-                </div>
-                <div class="flex items-start gap-3">
-                    <span class="badge-success px-2 py-1 rounded-full text-xs">已完成</span>
-                    <p class="text-sm text-gray-300">商品已签收或电影已上映，订单完成</p>
-                </div>
-                <div class="flex items-start gap-3">
-                    <span class="badge-warning px-2 py-1 rounded-full text-xs">待上映</span>
-                    <p class="text-sm text-gray-300">电影预售阶段，上映后自动更新状态</p>
-                </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-6">* 若有疑问，请联系客服：15913650169</p>
-        </div>
-    </div>
-</section>
-
-<!-- 底部 -->
-<footer class="py-10 px-6 bg-darker border-t border-border mt-10">
-    <div class="max-w-7xl mx-auto text-center">
-        <div class="flex items-center justify-center gap-2 mb-4">
-            <i class="fa-solid fa-atom text-gold text-xl"></i>
-            <span class="text-gold font-bold">玉国科技</span>
-        </div>
-        <p class="text-gray-500 text-sm">© 2025 玉国科技 版权所有 | 黑金科技 · 创新未来</p>
-        <div class="flex justify-center gap-6 text-sm text-gray-500 mt-4">
-            <a href="#" class="hover:text-gold transition-colors">隐私政策</a>
-            <a href="#" class="hover:text-gold transition-colors">服务条款</a>
-            <a href="#" class="hover:text-gold transition-colors">联系客服</a>
-        </div>
-    </div>
+<footer class="py-10 text-center text-sm text-gray-500 border-t border-border mt-10">
+  <p>© 2025 玉国科技</p>
+  <p class="mt-1">所有订单真实存储于 GitHub Issues</p>
 </footer>
 
-<!-- 回到顶部按钮 -->
-<button id="backToTop" class="fixed bottom-6 right-6 bg-gold text-black w-12 h-12 rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
-    <i class="fa-solid fa-arrow-up"></i>
+<button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gold text-black rounded-full flex items-center justify-center opacity-0 invisible transition-all">
+  <i class="fa-solid fa-arrow-up"></i>
 </button>
 
 <script>
-    // 滚动动画与导航栏效果
-    window.addEventListener('scroll', function() {
-        const navbar = document.getElementById('navbar');
-        const backToTop = document.getElementById('backToTop');
-        const fadeElements = document.querySelectorAll('.fade-up');
+let allRecords = [];
 
-        // 导航栏磨砂效果
-        if (window.scrollY > 50) {
-            navbar.classList.add('glass');
-            navbar.classList.add('py-3');
-            navbar.classList.remove('py-4');
-        } else {
-            navbar.classList.remove('glass');
-            navbar.classList.add('py-4');
-            navbar.classList.remove('py-3');
-        }
+window.addEventListener('scroll', () => {
+  const navbar = document.getElementById('navbar');
+  if (window.scrollY > 50) navbar.classList.add('glass');
+  else navbar.classList.remove('glass');
 
-        // 回到顶部按钮显示/隐藏
-        if (window.scrollY > 300) {
-            backToTop.classList.remove('opacity-0', 'invisible');
-            backToTop.classList.add('opacity-100', 'visible');
-        } else {
-            backToTop.classList.add('opacity-0', 'invisible');
-            backToTop.classList.remove('opacity-100', 'visible');
-        }
+  const btn = document.getElementById('backToTop');
+  if (window.scrollY > 300) btn.classList.remove('opacity-0','invisible');
+  else btn.classList.add('opacity-0','invisible');
 
-        // 元素淡入上浮
-        fadeElements.forEach(el => {
-            if (el.getBoundingClientRect().top < window.innerHeight * 0.85) {
-                el.classList.add('show');
-            }
-        });
+  document.querySelectorAll('.fade-up').forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) el.classList.add('show');
+  });
+});
+
+document.getElementById('backToTop').onclick = () => window.scrollTo({ top:0 });
+
+async function loadRecords() {
+  const list = document.getElementById('recordList');
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=payment-record`,
+      { headers: { Authorization: `token ${GITHUB_CONFIG.token}` }}
+    );
+    const issues = await res.json();
+    allRecords = issues;
+    render(issues);
+    if (issues.length === 0) {
+      list.classList.add('hidden');
+      document.getElementById('emptyState').classList.remove('hidden');
+    }
+  } catch (e) {
+    list.innerHTML = `<div class="bg-card p-8 rounded-xl text-center text-red-400">加载失败</div>`;
+  }
+}
+
+function render(list) {
+  const container = document.getElementById('recordList');
+  container.innerHTML = '';
+  list.forEach(issue => {
+    const b = issue.body || '';
+    const o = (b.match(/订单号：(\S+)/)||[])[1] || '';
+    const n = (b.match(/商品名称：(.+)/)||[])[1] || '';
+    const a = (b.match(/支付金额：(\S+)/)||[])[1] || '';
+    const t = (b.match(/支付时间：(.+)/)||[])[1] || '';
+    const s = (b.match(/订单状态：(.+)/)||[])[1] || '';
+
+    let cls = 'badge-pending';
+    if (s === '已完成') cls = 'badge-success';
+    if (s === '待上映') cls = 'badge-warning';
+
+    container.innerHTML += `
+<div class="record-item bg-card border border-border rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div class="flex items-center gap-4">
+    <div class="w-12 h-12 rounded-lg bg-gold/10 flex items-center justify-center">
+      <i class="fa-solid fa-box text-gold"></i>
+    </div>
+    <div>
+      <div class="font-bold">${n}</div>
+      <div class="text-sm text-gray-400">${o}</div>
+    </div>
+  </div>
+  <div class="font-bold text-gold">${a}</div>
+  <div class="flex items-center gap-3">
+    <span class="${cls} px-2 py-1 rounded-full text-xs">${s}</span>
+    <a href="${issue.html_url}" target="_blank" class="text-gold text-sm">查看</a>
+  </div>
+</div>`;
+  });
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('bg-gold','text-black');
+      b.classList.add('bg-card','text-white');
     });
+    this.classList.add('bg-gold','text-black');
+    const v = this.dataset.status;
+    if (v === 'all') render(allRecords);
+    else render(allRecords.filter(i => (i.body||'').includes(`订单状态：${v}`)));
+  });
+});
 
-    // 筛选功能
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const recordItems = document.querySelectorAll('.record-item');
-    const emptyState = document.getElementById('emptyState');
-
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // 重置按钮样式
-            filterBtns.forEach(b => {
-                b.classList.remove('bg-gold', 'text-black');
-                b.classList.add('bg-card', 'text-white');
-            });
-            this.classList.remove('bg-card', 'text-white');
-            this.classList.add('bg-gold', 'text-black');
-
-            const type = this.dataset.type;
-            let hasVisible = false;
-
-            // 筛选记录
-            recordItems.forEach(item => {
-                if (type === 'all' || item.dataset.type === type) {
-                    item.classList.remove('hidden');
-                    hasVisible = true;
-                } else {
-                    item.classList.add('hidden');
-                }
-            });
-
-            // 显示/隐藏空状态
-            if (!hasVisible) {
-                emptyState.classList.remove('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-            }
-        });
-    });
-
-    // 回到顶部
-    document.getElementById('backToTop').addEventListener('click', function() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // 初始化触发滚动事件
-    window.dispatchEvent(new Event('scroll'));
+window.onload = loadRecords;
 </script>
 
 </body>
