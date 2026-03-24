@@ -1,257 +1,444 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>玉国公司 - 官方网站</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#165DFF',
-            secondary: '#36CFC9',
-            dark: '#1D2129',
-            light: '#F2F3F5'
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玉国科技 - 官方网站</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050505',
+                        gold: '#FFD700',
+                        glass: 'rgba(20, 20, 20, 0.85)',
+                        card: '#121212',
+                        border: '#222222'
+                    },
+                    fontFamily: {
+                        tech: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
         }
-      }
-    }
-  </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      .card-hover { @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1; }
-      .nav-link { @apply px-4 py-2 text-gray-600 hover:text-primary transition-colors; }
-      .btn-primary { @apply bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors; }
-    }
-  </style>
-  <style>
-    body { scroll-behavior: smooth; }
-    .floater { animation: float 3s infinite ease-in-out; }
-    @keyframes float {
-      0% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
-      100% { transform: translateY(0px); }
-    }
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
-    .modal-content { max-width: 500px; width: 90%; }
-  </style>
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+            }
+            .glow {
+                box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+            }
+            .fade-up {
+                opacity: 0;
+                transform: translateY(50px);
+                transition: opacity 0.9s ease, transform 0.9s ease;
+            }
+            .fade-up.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <style>
+        * {
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #0A0A0A;
+            color: #ffffff;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .glass {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .breath-light {
+            animation: breath 4s ease-in-out infinite;
+        }
+        @keyframes breath {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+    </style>
 </head>
+<body class="overflow-x-hidden">
 
-<body class="bg-light text-dark">
-
-<!-- 你原有全部代码 100% 保留 -->
-<header class="fixed w-full bg-white shadow-sm z-50">
-  <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-    <a href="#" class="flex items-center gap-3">
-      <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/logo.png" class="h-10 rounded">
-      <span class="text-xl font-bold text-primary">玉国公司</span>
-    </a>
-    <nav class="hidden md:flex gap-1">
-      <a href="#home" class="nav-link">首页</a>
-      <a href="#about" class="nav-link">公司简介</a>
-      <a href="#movies" class="nav-link">电影</a>
-      <a href="#products" class="nav-link">商品</a>
-      <a href="#mascots" class="nav-link">吉祥物</a>
-      <a href="#message" class="nav-link">留言箱</a>
-      <a href="#games" class="nav-link">小游戏</a>
-    </nav>
-  </div>
-</header>
-
-<section id="home" class="pt-28 pb-16 bg-gradient-to-br from-primary/5 to-secondary/5">
-  <div class="container mx-auto px-4 text-center">
-    <h1 class="text-4xl font-bold mb-4">玉国公司官方网站</h1>
-    <p class="text-gray-600 max-w-xl mx-auto">文创 · 3D打印 · 趣味周边</p>
-  </div>
-</section>
-
-<section id="about" class="py-16 bg-white">
-  <div class="container mx-auto px-4 text-center">
-    <h2 class="text-3xl font-bold mb-6">公司简介</h2>
-    <div class="max-w-xl mx-auto p-6 bg-light rounded-2xl shadow-sm">
-      <p>地址：广东省珠海市香洲区</p>
-      <p>电话：+86 15913650169</p>
-      <p class="mt-2 text-gray-600">专注文创产品、3D打印模型开发</p>
+<!-- 固定导航栏 -->
+<nav id="navbar" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-4 px-6">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="#" class="flex items-center gap-2">
+            <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>
+            <span class="text-xl font-bold text-gold text-shadow">玉国科技</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+            <a href="#home" class="hover:text-gold transition-colors duration-300">首页</a>
+            <a href="#about" class="hover:text-gold transition-colors duration-300">公司介绍</a>
+            <a href="#product" class="hover:text-gold transition-colors duration-300">商品区</a>
+            <a href="#movie" class="hover:text-gold transition-colors duration-300">电影区</a>
+            <a href="#feifei" class="hover:text-gold transition-colors duration-300">兔兔小飞飞</a>
+            <a href="#tools" class="hover:text-gold transition-colors duration-300">实用工具</a>
+            <a href="#games" class="hover:text-gold transition-colors duration-300">小游戏</a>
+            <a href="#contact" class="hover:text-gold transition-colors duration-300">联系我们</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="alert('登录功能开发中，将跳转到登录页')" class="text-sm hover:text-gold transition-colors">登录</button>
+            <button onclick="alert('注册功能开发中，将跳转到注册页')" class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gold/90 transition-colors glow">注册</button>
+        </div>
+        <button class="md:hidden text-gold">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
     </div>
-  </div>
-</section>
+</nav>
 
-<section id="movies" class="py-16 bg-light">
-  <div class="container mx-auto px-4 text-center">
-    <h2 class="text-3xl font-bold mb-10">主流电影</h2>
-    <div class="max-w-sm mx-auto p-8 bg-white rounded-xl shadow-sm">
-      <p class="text-gray-500 text-lg">无</p>
+<!-- 首屏Banner -->
+<section id="home" class="min-h-screen flex items-center justify-center px-6 pt-32 pb-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-darker to-dark opacity-90"></div>
+    <div class="absolute inset-0 bg-[url('https://picsum.photos/id/1/1920/1080')] bg-cover bg-center opacity-20"></div>
+    <div class="max-w-7xl mx-auto relative z-10 text-center">
+        <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-bold text-gold text-shadow mb-6 breath-light">
+            黑金科技 · 创新未来
+        </h1>
+        <p class="text-[clamp(1rem,3vw,1.25rem)] text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+            专注数字IP孵化、3D打印文创、影视项目与互动游戏开发，打造高端沉浸式体验
+        </p>
+        <div class="flex flex-wrap justify-center gap-6">
+            <a href="#product" class="bg-gold text-black px-8 py-3 rounded-full text-lg font-medium hover:scale-105 transition-all glow">
+                浏览商品
+            </a>
+            <a href="#feifei" class="border border-gold text-gold px-8 py-3 rounded-full text-lg font-medium hover:bg-gold hover:text-black transition-all">
+                品牌IP
+            </a>
+            <a href="#games" class="bg-card text-white px-8 py-3 rounded-full text-lg font-medium hover:bg-card/80 transition-all">
+                游戏中心
+            </a>
+        </div>
     </div>
-  </div>
-</section>
-
-<!-- 蛋仔点击查看详情 -->
-<section id="products" class="py-16 bg-white">
-  <div class="container mx-auto px-4 text-center">
-    <h2 class="text-3xl font-bold mb-10">商品专区</h2>
-    <div class="max-w-sm mx-auto bg-light rounded-xl p-5 shadow-sm card-hover cursor-pointer" onclick="openDanzai()">
-      <img src="https://picsum.photos/seed/danzai/400/400" class="w-full h-64 object-cover rounded-xl mb-4">
-      <h3 class="text-xl font-bold">3D打印蛋仔</h3>
-      <p class="text-gray-600 mb-1">无</p>
-      <p class="text-primary text-2xl font-bold my-4">¥3.00</p>
-      <button onclick="event.stopPropagation();pay()" class="btn-primary w-full">立即购买</button>
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
+        <i class="fa-solid fa-chevron-down text-gold text-2xl"></i>
     </div>
-  </div>
 </section>
 
-<!-- 小飞飞点击查看详情 -->
-<section id="mascots" class="py-16 bg-light">
-  <div class="container mx-auto px-4 text-center">
-    <h2 class="text-3xl font-bold mb-10">品牌吉祥物</h2>
-    <div onclick="openFeifei()" class="cursor-pointer inline-block">
-      <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/xiaofeifei.png" class="h-60 mx-auto rounded-xl shadow-md floater">
-      <h3 class="mt-4 text-xl font-semibold">兔兔小飞飞（点击查看详情）</h3>
+<!-- 公司介绍 -->
+<section id="about" class="py-24 px-6 bg-dark fade-up">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gold mb-4">公司介绍</h2>
+            <div class="w-20 h-1 bg-gold mx-auto"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="bg-card p-8 rounded-2xl border border-border">
+                <h3 class="text-2xl font-bold text-gold mb-6">关于玉国科技</h3>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    玉国科技成立于2025年，是一家以创意为核心的科技文化公司，业务涵盖数字IP孵化、3D打印实体产品、影视项目策划、互动游戏开发与实用工具服务。
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    我们坚持「黑金科技」视觉风格，以高端、未来、精致为设计理念，为用户提供沉浸式的数字体验与实体文创产品。
+                </p>
+                <p class="text-gray-300 leading-relaxed">
+                    目前旗下拥有品牌吉祥物「兔兔小飞飞」、潮玩产品「3D打印蛋仔」，并逐步拓展影视与游戏业务，致力于成为国内领先的科技文化品牌。
+                </p>
+            </div>
+            <div class="relative">
+                <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
+                <img src="https://picsum.photos/id/180/600/400" class="w-full h-auto rounded-2xl relative z-10 border border-border" alt="公司场景">
+            </div>
+        </div>
     </div>
-    <p class="text-gray-500">玉国公司吉祥物</p>
-  </div>
 </section>
 
-<section id="message" class="py-16 bg-white">
-  <div class="container mx-auto px-4">
-    <h2 class="text-3xl font-bold text-center mb-10">留言箱</h2>
-    <div class="max-w-md mx-auto p-6 bg-light rounded-2xl shadow-sm">
-      <input placeholder="姓名" class="w-full p-3 rounded-lg border mb-3">
-      <input placeholder="联系方式" class="w-full p-3 rounded-lg border mb-3">
-      <textarea placeholder="留言内容" class="w-full p-3 rounded-lg border h-32 mb-3"></textarea>
-      <button class="btn-primary w-full" onclick="alert('提交成功')">提交留言</button>
+<!-- 商品区 -->
+<section id="product" class="py-24 px-6 bg-darker fade-up">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gold mb-4">商品区</h2>
+            <div class="w-20 h-1 bg-gold mx-auto"></div>
+            <p class="text-gray-400 mt-4">当前仅上架「3D打印蛋仔」，更多商品即将上线</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- 现有商品：3D打印蛋仔 -->
+            <div class="bg-card rounded-2xl overflow-hidden border border-border hover:scale-105 transition-all duration-300 group">
+                <div class="relative h-64 overflow-hidden">
+                    <img src="https://picsum.photos/id/49/600/400" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="3D打印蛋仔">
+                    <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent"></div>
+                    <span class="absolute top-4 left-4 bg-gold text-black px-3 py-1 rounded-full text-xs font-medium">新品</span>
+                </div>
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2">3D打印蛋仔</h3>
+                    <p class="text-gray-400 text-sm mb-4">黑金科技风潮玩摆件，环保PLA材质</p>
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-gold text-2xl font-bold">¥3.00</span>
+                        <span class="text-gray-400 text-sm">库存充足</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="alert('将跳转到商品详情页')" class="flex-1 bg-gold text-black py-2 rounded-lg font-medium hover:bg-gold/90 transition-colors">
+                            查看详情
+                        </button>
+                        <button onclick="alert('将跳转到购买页面，支持二维码支付')" class="flex-1 border border-gold text-gold py-2 rounded-lg font-medium hover:bg-gold hover:text-black transition-colors">
+                            立即购买
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- 预留商品位1 -->
+            <div class="bg-card rounded-2xl border border-dashed border-border flex flex-col items-center justify-center p-8 h-[400px]">
+                <i class="fa-solid fa-box-open text-gold/50 text-4xl mb-4"></i>
+                <p class="text-gray-500 text-center">即将上架<br>敬请期待</p>
+            </div>
+            <!-- 预留商品位2 -->
+            <div class="bg-card rounded-2xl border border-dashed border-border flex flex-col items-center justify-center p-8 h-[400px]">
+                <i class="fa-solid fa-gift text-gold/50 text-4xl mb-4"></i>
+                <p class="text-gray-500 text-center">即将上架<br>敬请期待</p>
+            </div>
+        </div>
     </div>
-  </div>
 </section>
 
-<!-- 游戏区：猜数字 + 贪吃蛇 + 打地鼠 -->
-<section id="games" class="py-16 bg-light">
-  <div class="container mx-auto px-4 text-center">
-    <h2 class="text-3xl font-bold mb-10">趣味小游戏</h2>
-    <div class="max-w-md mx-auto p-6 bg-white rounded-xl shadow-sm space-y-6">
-
-      <div>
-        <h3 class="font-bold mb-2">猜数字</h3>
-        <input type="number" id="guess" class="p-2 rounded border mr-2" placeholder="1-100">
-        <button onclick="guess()" class="btn-primary">猜</button>
-        <p id="gInfo" class="mt-2 text-gray-600"></p>
-      </div>
-
-      <div>
-        <h3 class="font-bold mb-2">🐍 贪吃蛇</h3>
-        <button onclick="openSnake()" class="btn-primary">开始游戏</button>
-      </div>
-
-      <div>
-        <h3 class="font-bold mb-2">🔨 打地鼠</h3>
-        <button onclick="openWhack()" class="btn-primary">开始游戏</button>
-      </div>
-
+<!-- 电影区 -->
+<section id="movie" class="py-24 px-6 bg-dark fade-up">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gold mb-4">电影区</h2>
+            <div class="w-20 h-1 bg-gold mx-auto"></div>
+        </div>
+        <div class="bg-card p-12 rounded-2xl border border-border text-center">
+            <i class="fa-solid fa-film text-gold/50 text-5xl mb-6"></i>
+            <h3 class="text-2xl font-bold mb-4">暂无正在上映项目</h3>
+            <p class="text-gray-400 max-w-xl mx-auto">
+                我们正在筹备优质影视内容，未来将上线原创电影与短片作品，敬请关注官方公告。
+            </p>
+        </div>
     </div>
-  </div>
 </section>
 
-<footer class="bg-dark text-white py-6 text-center">
-  <p>© 2025 玉国公司 版权所有</p>
-  <p class="text-gray-400 text-sm">珠海香洲 | +86 15913650169</p>
+<!-- 兔兔小飞飞 -->
+<section id="feifei" class="py-24 px-6 bg-darker fade-up">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gold mb-4">兔兔小飞飞</h2>
+            <div class="w-20 h-1 bg-gold mx-auto"></div>
+            <p class="text-gray-400 mt-4">玉国科技官方品牌吉祥物</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="relative">
+                <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
+                <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/xiaofeifei.png" class="w-full h-auto rounded-2xl relative z-10 border border-border animate-float" alt="兔兔小飞飞">
+            </div>
+            <div class="bg-card p-8 rounded-2xl border border-border">
+                <h3 class="text-2xl font-bold text-gold mb-6">小飞飞介绍</h3>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    「兔兔小飞飞」是玉国科技的核心IP形象，以灵动、活泼、充满科技感的兔子为原型，象征着创新与活力。
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-4">
+                    小飞飞的设计融合了黑金科技风格，以黑色为基底、金色为点缀，展现高端未来感，同时保留可爱亲切的特质。
+                </p>
+                <p class="text-gray-300 leading-relaxed mb-6">
+                    未来将推出小飞飞系列表情包、壁纸、周边产品，成为连接用户与品牌的情感纽带。
+                </p>
+                <button onclick="alert('将跳转到小飞飞详情页，包含长篇图文与趣事')" class="w-full bg-gold text-black py-3 rounded-lg font-medium hover:bg-gold/90 transition-colors glow">
+                    查看完整介绍
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 实用工具 -->
+<section id="tools" class="py-24 px-6 bg-dark fade-up">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gold mb-4">实用工具</h2>
+            <div class="w-20 h-1 bg-gold mx-auto"></div>
+            <p class="text-gray-400 mt-4">免费格式转换工具，便捷高效</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-card p-6 rounded-2xl border border-border hover:scale-105 transition-all">
+                <i class="fa-solid fa-image text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">JPG转JPEG</h3>
+                <p class="text-gray-400 text-sm mb-6">免费在线转换，无损画质</p>
+                <button onclick="alert('将跳转到工具页，包含免费转换网址')" class="w-full border border-gold text-gold py-2 rounded-lg hover:bg-gold hover:text-black transition-colors">
+                    立即使用
+                </button>
+            </div>
+            <div class="bg-card p-6 rounded-2xl border border-border hover:scale-105 transition-all">
+                <i class="fa-solid fa-music text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">MP3转WAV</h3>
+                <p class="text-gray-400 text-sm mb-6">免费在线转换，高清音质</p>
+                <button onclick="alert('将跳转到工具页，包含免费转换网址')" class="w-full border border-gold text-gold py-2 rounded-lg hover:bg-gold hover:text-black transition-colors">
+                    立即使用
+                </button>
+            </div>
+            <div class="bg-card p-6 rounded-2xl border border-border hover:scale-105 transition-all">
+                <i class="fa-solid fa-file text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">更多工具</h3>
+                <p class="text-gray-400 text-sm mb-6">持续更新中，敬请期待</p>
+                <button class="w-full border border-gray-600 text-gray-400 py-2 rounded-lg cursor-not-allowed">
+                    即将上线
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 小游戏区 -->
+<section id="games" class="py-24 px-6 bg-darker fade-up">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gold mb-4">小游戏</h2>
+            <div class="w-20 h-1 bg-gold mx-auto"></div>
+            <p class="text-gray-400 mt-4">休闲娱乐，轻松解压</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-card p-6 rounded-2xl border border-border hover:scale-105 transition-all">
+                <i class="fa-solid fa-dice text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">猜数字</h3>
+                <p class="text-gray-400 text-sm mb-6">经典猜数字游戏，挑战你的直觉</p>
+                <button onclick="alert('将跳转到游戏中心页')" class="w-full border border-gold text-gold py-2 rounded-lg hover:bg-gold hover:text-black transition-colors">
+                    开始游戏
+                </button>
+            </div>
+            <div class="bg-card p-6 rounded-2xl border border-border hover:scale-105 transition-all">
+                <i class="fa-solid fa snake text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">贪吃蛇</h3>
+                <p class="text-gray-400 text-sm mb-6">怀旧经典，挑战高分</p>
+                <button onclick="alert('将跳转到游戏中心页')" class="w-full border border-gold text-gold py-2 rounded-lg hover:bg-gold hover:text-black transition-colors">
+                    开始游戏
+                </button>
+            </div>
+            <div class="bg-card p-6 rounded-2xl border border-border hover:scale-105 transition-all">
+                <i class="fa-solid fa-hammer text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">打地鼠</h3>
+                <p class="text-gray-400 text-sm mb-6">轻松解压，锻炼反应</p>
+                <button onclick="alert('将跳转到游戏中心页')" class="w-full border border-gold text-gold py-2 rounded-lg hover:bg-gold hover:text-black transition-colors">
+                    开始游戏
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 联系我们 -->
+<section id="contact" class="py-24 px-6 bg-dark fade-up">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gold mb-4">联系我们</h2>
+            <div class="w-20 h-1 bg-gold mx-auto"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="bg-card p-8 rounded-2xl border border-border">
+                <h3 class="text-2xl font-bold text-gold mb-6">联系方式</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-phone text-gold text-xl"></i>
+                        <span class="text-gray-300">电话：15913650169</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-location-dot text-gold text-xl"></i>
+                        <span class="text-gray-300">地址：广东省珠海市香洲区</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-envelope text-gold text-xl"></i>
+                        <span class="text-gray-300">邮箱：contact@yuguo-tech.com</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-card p-8 rounded-2xl border border-border">
+                <h3 class="text-2xl font-bold text-gold mb-6">留言咨询</h3>
+                <div class="space-y-4">
+                    <input type="text" placeholder="您的姓名" class="w-full bg-darker border border-border rounded-lg px-4 py-3 text-gray-300 focus:outline-none focus:border-gold transition-colors">
+                    <input type="email" placeholder="您的邮箱" class="w-full bg-darker border border-border rounded-lg px-4 py-3 text-gray-300 focus:outline-none focus:border-gold transition-colors">
+                    <textarea placeholder="您的留言" rows="4" class="w-full bg-darker border border-border rounded-lg px-4 py-3 text-gray-300 focus:outline-none focus:border-gold transition-colors"></textarea>
+                    <button class="w-full bg-gold text-black py-3 rounded-lg font-medium hover:bg-gold/90 transition-colors glow">
+                        提交留言
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 底部信息 -->
+<footer class="py-10 px-6 bg-darker border-t border-border">
+    <div class="max-w-7xl mx-auto text-center">
+        <div class="flex items-center justify-center gap-2 mb-4">
+            <i class="fa-solid fa-atom text-gold text-xl"></i>
+            <span class="text-gold font-bold">玉国科技</span>
+        </div>
+        <p class="text-gray-500 text-sm mb-4">© 2025 玉国科技 版权所有 | 黑金科技 · 创新未来</p>
+        <div class="flex justify-center gap-6 text-sm text-gray-500">
+            <a href="#" class="hover:text-gold transition-colors">隐私政策</a>
+            <a href="#" class="hover:text-gold transition-colors">服务条款</a>
+            <a href="#" class="hover:text-gold transition-colors">购买记录</a>
+        </div>
+    </div>
 </footer>
 
-<!-- 小飞飞详情弹窗 -->
-<div id="feifeiModal" class="modal">
-  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
-    <button onclick="closeFeifei()" class="absolute right-3 top-3 text-xl">×</button>
-    <h2 class="text-2xl font-bold mb-4 text-pink-500">兔兔小飞飞 · 详细介绍</h2>
-    <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/xiaofeifei.png" class="w-full rounded-xl mb-4">
-    <p class="text-left mb-2">• 姓名：兔兔小飞飞</p>
-    <p class="text-left mb-2">• 身份：玉国公司品牌吉祥物</p>
-    <p class="text-left mb-2">• 性格：活泼可爱、善良乐观</p>
-    <p class="text-left mb-2">• 爱好：帮助别人、传递快乐</p>
-    <p class="text-left mb-2">• 口号：玉国出品，必属精品！</p>
-  </div>
-</div>
-
-<!-- 蛋仔详情弹窗 -->
-<div id="danzaiModal" class="modal">
-  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
-    <button onclick="closeDanzai()" class="absolute right-3 top-3 text-xl">×</button>
-    <h2 class="text-2xl font-bold mb-4">3D打印蛋仔 · 商品详情</h2>
-    <img src="https://picsum.photos/seed/danzai/400/400" class="w-full rounded-xl mb-4">
-    <p class="text-left mb-2">• 名称：3D打印蛋仔</p>
-    <p class="text-left mb-2">• 价格：3 元</p>
-    <p class="text-left mb-2">• 材质：环保PLA塑料</p>
-    <p class="text-left mb-2">• 尺寸：小巧可爱，便于携带</p>
-    <p class="text-left mb-2">• 发货：支付后联系微信安排发货</p>
-    <button onclick="pay()" class="btn-primary w-full mt-4">立即购买</button>
-  </div>
-</div>
-
-<!-- 贪吃蛇弹窗 -->
-<div id="snakeModal" class="modal">
-  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
-    <button onclick="closeSnake()" class="absolute right-3 top-3 text-xl">×</button>
-    <h2 class="font-bold mb-2">贪吃蛇</h2>
-    <div class="border p-2 text-center">
-      <p>游戏区域（简易版）</p>
-      <p>↑ ↓ ← → 控制方向</p>
-    </div>
-  </div>
-</div>
-
-<!-- 打地鼠弹窗 -->
-<div id="whackModal" class="modal">
-  <div class="modal-content bg-white mx-auto my-10 p-6 rounded-xl relative">
-    <button onclick="closeWhack()" class="absolute right-3 top-3 text-xl">×</button>
-    <h2 class="font-bold mb-2">打地鼠</h2>
-    <div class="grid grid-cols-3 gap-2">
-      <div onclick="hit()" class="p-4 border rounded">🐭</div>
-      <div onclick="hit()" class="p-4 border rounded">🐭</div>
-      <div onclick="hit()" class="p-4 border rounded">🐭</div>
-    </div>
-  </div>
-</div>
-
-<!-- 悬浮按钮 -->
-<div class="fixed bottom-5 right-5 z-40 flex flex-col gap-2">
-  <button onclick="window.scrollTo(0,0)" class="bg-primary text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
+<!-- 回到顶部按钮 -->
+<button id="backToTop" class="fixed bottom-6 right-6 bg-gold text-black w-12 h-12 rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
     <i class="fa-solid fa-arrow-up"></i>
-  </button>
-</div>
+</button>
 
 <script>
-// 猜数字
-let ans = Math.floor(Math.random()*100)+1;
-function guess(){
-  let g = document.getElementById("guess").value;
-  let t = document.getElementById("gInfo");
-  if(g>ans) t.textContent="大了";
-  else if(g<ans) t.textContent="小了";
-  else { t.textContent="猜对啦！"; ans = Math.floor(Math.random()*100)+1; }
-}
+    // 滚动监听：导航栏样式 + 元素淡入上浮
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        const backToTop = document.getElementById('backToTop');
+        const fadeElements = document.querySelectorAll('.fade-up');
 
-// 支付
-function pay(){
-  alert("请扫码支付 3 元，支付后联系发货");
-  window.open("https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/wechat.png", "_blank");
-}
+        // 导航栏磨砂效果
+        if (window.scrollY > 50) {
+            navbar.classList.add('glass');
+            navbar.classList.add('py-3');
+            navbar.classList.remove('py-4');
+        } else {
+            navbar.classList.remove('glass');
+            navbar.classList.add('py-4');
+            navbar.classList.remove('py-3');
+        }
 
-// 小飞飞弹窗
-function openFeifei(){ feifeiModal.style.display="flex" }
-function closeFeifei(){ feifeiModal.style.display="none" }
+        // 回到顶部按钮显示/隐藏
+        if (window.scrollY > 300) {
+            backToTop.classList.remove('opacity-0', 'invisible');
+            backToTop.classList.add('opacity-100', 'visible');
+        } else {
+            backToTop.classList.add('opacity-0', 'invisible');
+            backToTop.classList.remove('opacity-100', 'visible');
+        }
 
-// 蛋仔弹窗
-function openDanzai(){ danzaiModal.style.display="flex" }
-function closeDanzai(){ danzaiModal.style.display="none" }
+        // 元素淡入上浮动画
+        fadeElements.forEach(element => {
+            const elementTop = element.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+            if (elementTop < windowHeight * 0.85) {
+                element.classList.add('show');
+            }
+        });
+    });
 
-// 贪吃蛇
-function openSnake(){ snakeModal.style.display="flex" }
-function closeSnake(){ snakeModal.style.display="none" }
+    // 回到顶部功能
+    document.getElementById('backToTop').addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
-// 打地鼠
-function openWhack(){ whackModal.style.display="flex" }
-function closeWhack(){ whackModal.style.display="none" }
-function hit(){ alert("打中啦！") }
+    // 页面加载完成后触发一次滚动事件，初始化动画
+    window.dispatchEvent(new Event('scroll'));
 </script>
 
 </body>
