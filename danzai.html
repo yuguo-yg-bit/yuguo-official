@@ -69,7 +69,14 @@
 </head>
 <body class="overflow-x-hidden">
 
-<!-- 导航栏（和首页统一） -->
+<script>
+    const GITHUB_CONFIG = {
+        username: "yuguo-yg-bit",
+        repo: "yuguo-official",
+        token: "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"
+    };
+</script>
+
 <nav id="navbar" class="fixed top-0 left-0 w-full z-50 transition-all duration-500 py-4 px-6">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <a href="index.html" class="flex items-center gap-2">
@@ -92,7 +99,6 @@
     </div>
 </nav>
 
-<!-- 商品详情头部 -->
 <section class="pt-36 pb-10 px-6 fade-up">
     <div class="max-w-6xl mx-auto">
         <a href="index.html#product" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
@@ -103,7 +109,6 @@
     </div>
 </section>
 
-<!-- 商品主图 -->
 <section class="py-6 px-6 fade-up">
     <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
         <div class="relative">
@@ -128,12 +133,11 @@
                     支付宝（暂未开通）
                 </button>
             </div>
-            <p class="text-xs text-gray-500 mt-4 text-center">仅支持微信支付，付款后可查看记录</p>
+            <p class="text-xs text-gray-500 mt-4 text-center">仅支持微信支付，付款后记录将同步至GitHub Issues</p>
         </div>
     </div>
 </section>
 
-<!-- 商品详细介绍（长篇图文） -->
 <section class="py-16 px-6 fade-up">
     <div class="max-w-6xl mx-auto">
         <h2 class="text-2xl font-bold text-gold mb-8">商品详细介绍</h2>
@@ -154,15 +158,10 @@
                 购买后将通过微信人工核对订单，付款完成后1-3个工作日内安排发货，
                 发货后会提供打包实拍与发货状态，用户可在付款记录页查看自己的订单状态。
             </p>
-            <p class="text-gray-300 leading-relaxed">
-                未来我们还将推出蛋仔系列异色版、发光版、联动IP版等多款产品，
-                首批黑金版属于限量入门款，极具收藏与纪念意义。
-            </p>
         </div>
     </div>
 </section>
 
-<!-- 商品参数 -->
 <section class="py-6 px-6 fade-up">
     <div class="max-w-6xl mx-auto">
         <h2 class="text-2xl font-bold text-gold mb-8">商品参数</h2>
@@ -197,17 +196,16 @@
                     <p class="text-white">付款后1-3个工作日</p>
                 </div>
                 <div>
-                    <p class="text-gray-400 text-sm">订单查询</p>
-                    <p class="text-white">付款记录页</p>
+                    <p class="text-gray-400 text-sm">数据存储</p>
+                    <p class="text-white">GitHub Issues</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- 微信支付弹窗 -->
 <div class="modal-backdrop" id="payModal">
-    <div class="modal-box bg-card p-6 rounded-2xl border border-gold/30 w-full max-w-sm">
+    <div class="modal-box bg-card p-6 rounded-2xl border border-gold/30 w-full max-w-sm" id="modalBox">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-gold">微信支付</h3>
             <button onclick="hidePayModal()" class="text-gray-400 hover:text-white">
@@ -218,14 +216,13 @@
             <img src="https://raw.githubusercontent.com/yuguo-yg-bit/yuguo-official/main/wechat.png" 
                  class="w-full rounded-xl border border-border" alt="微信收款码">
         </div>
-        <p class="text-sm text-gray-300 text-center mb-4">请扫码支付 3 元，付款后点击下方查看记录</p>
-        <a href="pay-record.html" class="block w-full bg-gold text-black text-center py-2 rounded-lg font-medium">
-            查看付款记录
-        </a>
+        <p class="text-sm text-gray-300 text-center mb-4">请扫码支付 3 元，付款后点击下方按钮生成订单</p>
+        <button onclick="createPaymentRecord()" class="block w-full bg-gold text-black text-center py-2 rounded-lg font-medium">
+            我已付款，生成订单记录
+        </button>
     </div>
 </div>
 
-<!-- 底部 -->
 <footer class="py-10 px-6 bg-darker border-t border-border mt-10">
     <div class="max-w-7xl mx-auto text-center">
         <div class="flex items-center justify-center gap-2 mb-4">
@@ -236,13 +233,11 @@
     </div>
 </footer>
 
-<!-- 回到顶部 -->
 <button id="backToTop" class="fixed bottom-6 right-6 bg-gold text-black w-12 h-12 rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
     <i class="fa-solid fa-arrow-up"></i>
 </button>
 
 <script>
-    // 滚动动画
     window.addEventListener('scroll', function() {
         const navbar = document.getElementById('navbar');
         const backToTop = document.getElementById('backToTop');
@@ -271,9 +266,8 @@
         });
     });
 
-    // 支付弹窗
     const modal = document.getElementById('payModal');
-    const modalBox = document.querySelector('.modal-box');
+    const modalBox = document.getElementById('modalBox');
     function showPayModal() {
         modal.style.display = 'grid';
         setTimeout(() => modalBox.classList.add('show'), 10);
@@ -283,7 +277,48 @@
         setTimeout(() => modal.style.display = 'none', 300);
     }
 
-    // 回到顶部
+    async function createPaymentRecord() {
+        const orderNo = "YG" + new Date().getTime();
+        const payTime = new Date().toLocaleString('zh-CN');
+        const productName = "3D打印蛋仔（黑金版）";
+        const amount = "3.00";
+        const status = "待发货";
+
+        const issueData = {
+            title: `付款订单 | ${orderNo} | ${productName}`,
+            body: `### 订单信息
+- 订单号：${orderNo}
+- 商品名称：${productName}
+- 支付金额：¥${amount}
+- 支付时间：${payTime}
+- 订单状态：${status}`,
+            labels: ["payment-record"]
+        };
+
+        try {
+            const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `token ${GITHUB_CONFIG.token}`,
+                    "Content-Type": "application/json",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                body: JSON.stringify(issueData)
+            });
+
+            if (response.ok) {
+                alert("订单记录已成功同步至GitHub Issues！即将跳转到付款记录页");
+                hidePayModal();
+                window.location.href = "pay-record.html";
+            } else {
+                const error = await response.json();
+                alert(`创建订单失败：${error.message || "请检查GitHub配置是否正确"}`);
+            }
+        } catch (error) {
+            alert(`网络错误：${error.message}`);
+        }
+    }
+
     document.getElementById('backToTop').onclick = () => window.scrollTo({ top:0, behavior:'smooth' });
     window.dispatchEvent(new Event('scroll'));
 </script>
