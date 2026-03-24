@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>兔兔小飞飞 - 玉国科技</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050505',
+                        gold: '#FFD700',
+                        glass: 'rgba(20,20,20,0.85)',
+                        card: '#121212',
+                        border: '#222222',
+                        glowGold: 'rgba(255,215,0,0.3)',
+                    },
+                    fontFamily: {
+                        tech: ['Inter','system-ui','sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'breath': 'breath 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        },
+                        breath: {
+                            '0%, 100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
+                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+            .glow { box-shadow: 0 0 15px rgba(255,215,0,0.3); animation: breath 4s ease-in-out infinite; }
+            .fade-up { opacity:0; transform:translateY(40px); transition:.8s ease; }
+            .fade-up.show { opacity:1; transform:translateY(0); }
+            .card-hover { transition: all .3s ease; }
+            .card-hover:hover { transform: translateY(-4px); border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+        }
+    </style>
+    <style>
+        * { scroll-behavior: smooth; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background:#0A0A0A; color:#fff; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+        .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<script>
+const GITHUB_CONFIG = {
+    username: "yuguo-yg-bit",
+    repo: "yuguo-official",
+    token: "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"
+};
+</script>
+
+<!-- 统一导航栏 -->
+<nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all duration-500">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
+      <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>玉国科技
+    </a>
+    <div class="hidden md:flex gap-6 text-sm font-medium">
+      <a href="index.html" class="hover:text-gold transition-colors">首页</a>
+      <a href="index.html#product" class="hover:text-gold transition-colors">商品区</a>
+      <a href="index.html#movie" class="hover:text-gold transition-colors">电影区</a>
+      <a href="feifei.html" class="hover:text-gold transition-colors">兔兔小飞飞</a>
+      <a href="tools.html" class="hover:text-gold transition-colors">实用工具</a>
+      <a href="index.html#games" class="hover:text-gold transition-colors">小游戏</a>
+      <a href="pay-record.html" class="hover:text-gold transition-colors">购买记录</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="register.html" class="text-sm hover:text-gold transition-colors">注册</a>
+      <a href="login.html" class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gold/90 transition-colors glow">
+        登录账户
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- 页面头部 -->
+<section class="pt-36 pb-10 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <a href="index.html#feifei" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
+            <i class="fa-solid fa-arrow-left"></i> 返回首页
+        </a>
+        <h1 class="text-3xl md:text-4xl font-bold text-gold mb-2">兔兔小飞飞</h1>
+        <p class="text-gray-400">玉国科技官方吉祥物 | 科技感萌系兔子形象</p>
+    </div>
+</section>
+
+<!-- 形象主图+基础介绍 -->
+<section class="py-12 px-6 fade-up">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div class="relative">
+            <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
+            <img src="https://picsum.photos/id/237/800/800" 
+                 class="w-full rounded-2xl relative z-10 border border-border animate-float" 
+                 alt="兔兔小飞飞主形象">
+        </div>
+        <div class="bg-card p-8 rounded-2xl border border-border card-hover">
+            <h2 class="text-2xl font-bold text-gold mb-4">形象介绍</h2>
+            <p class="text-gray-300 leading-relaxed mb-6">
+                兔兔小飞飞是玉国科技专属IP吉祥物，以灵动可爱的兔子为原型，融入黑金科技元素，
+                象征着创新、活力与未来感，是品牌文化的核心载体。
+            </p>
+            <p class="text-gray-300 leading-relaxed">
+                它诞生于2025年，陪伴玉国科技成长，未来将推出表情包、壁纸、周边文创等系列内容，
+                走进每一位用户的数字生活。
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- 详细特征 -->
+<section class="py-12 px-6 bg-darker fade-up">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-bold text-gold mb-8">详细特征</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-card rounded-2xl border border-border p-6 card-hover">
+                <i class="fa-solid fa-rabbit-running text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">外形特征</h3>
+                <p class="text-gray-400 leading-relaxed">
+                    雪白绒毛+黑金科技纹路，长耳朵可接收科技信号，金色眼眸闪烁科技光效，身形小巧灵动。
+                </p>
+            </div>
+            <div class="bg-card rounded-2xl border border-border p-6 card-hover">
+                <i class="fa-solid fa-lightbulb text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">性格设定</h3>
+                <p class="text-gray-400 leading-relaxed">
+                    活泼开朗、聪明勇敢，热爱探索科技奥秘，乐于助人，总是充满正能量，治愈感拉满。
+                </p>
+            </div>
+            <div class="bg-card rounded-2xl border border-border p-6 card-hover">
+                <i class="fa-solid fa-rocket text-gold text-3xl mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">专属技能</h3>
+                <p class="text-gray-400 leading-relaxed">
+                    科技信号感知、创意灵感传递、快乐能量散播，能快速解决各类数字生活小难题。
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 趣味故事 -->
+<section class="py-12 px-6 fade-up">
+    <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-bold text-gold mb-8">小飞飞的趣味故事</h2>
+        <div class="bg-card rounded-2xl border border-border p-8 card-hover">
+            <p class="text-gray-300 leading-relaxed mb-4">
+                小飞飞原本是科技实验室里的一只实验兔，意外接触了未来科技能量，获得了感知科技信号的能力，
+                耳朵变成了科技天线，眼睛闪烁着金色光芒。
+            </p>
+            <p class="text-gray-300 leading-relaxed mb-4">
+                它逃出实验室后，在数字世界里四处探索，帮助人们解决各类科技小麻烦，慢慢成为了大家的暖心伙伴，
+                最终被玉国科技收为官方吉祥物。
+            </p>
+            <p class="text-gray-300 leading-relaxed">
+                现在的小飞飞，每天穿梭在玉国科技的各个板块，守护商品、工具、游戏，给每一位用户带来快乐与便捷。
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- 未来计划 -->
+<section class="py-12 px-6 bg-darker fade-up">
+    <div class="max-w-6xl mx-auto">
+        <div class="bg-card rounded-2xl border border-border p-8 text-center">
+            <h3 class="text-xl font-bold text-gold mb-4">小飞飞未来计划</h3>
+            <p class="text-gray-300 mb-6 leading-relaxed">
+                后续将推出小飞飞专属表情包、高清壁纸、3D打印周边、互动小游戏，敬请期待！
+            </p>
+            <a href="index.html" class="bg-gold text-black px-6 py-2 rounded-lg font-medium glow">
+                关注最新动态
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- 底部 -->
+<footer class="py-10 text-center text-sm text-gray-500 border-t border-border bg-darker">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-center gap-2 mb-4">
+      <i class="fa-solid fa-atom text-gold text-xl"></i>
+      <span class="text-gold font-bold">玉国科技</span>
+    </div>
+    <p class="mb-2">© 2025 玉国科技 版权所有</p>
+    <p>兔兔小飞飞 © 品牌形象 侵权必究</p>
+  </div>
+</footer>
+
+<!-- 回到顶部 -->
+<button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gold text-black rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
+  <i class="fa-solid fa-arrow-up"></i>
+</button>
+
+<script>
+// 滚动动画
+window.addEventListener('scroll', () => {
+  const navbar = document.getElementById('navbar');
+  if (window.scrollY > 50) {
+    navbar.classList.add('glass');
+    navbar.classList.add('py-3');
+    navbar.classList.remove('py-4');
+  } else {
+    navbar.classList.remove('glass');
+    navbar.classList.add('py-4');
+    navbar.classList.remove('py-3');
+  }
+
+  const backToTop = document.getElementById('backToTop');
+  if (window.scrollY > 300) {
+    backToTop.classList.remove('opacity-0','invisible');
+    backToTop.classList.add('opacity-100','visible');
+  } else {
+    backToTop.classList.add('opacity-0','invisible');
+    backToTop.classList.remove('opacity-100','visible');
+  }
+
+  document.querySelectorAll('.fade-up').forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) {
+      el.classList.add('show');
+    }
+  });
+});
+
+// 回到顶部
+document.getElementById('backToTop').onclick = () => window.scrollTo({ top:0, behavior:'smooth' });
+
+// 页面加载动画
+window.addEventListener('load', () => {
+  document.querySelectorAll('.fade-up').forEach(el => el.classList.add('show'));
+});
+</script>
+
+</body>
+</html>
