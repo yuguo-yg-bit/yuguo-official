@@ -31,7 +31,7 @@
                     keyframes: {
                         breath: {
                             '0%, 100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
-                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' }
+                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' },
                         }
                     }
                 }
@@ -66,8 +66,28 @@
 const GITHUB_CONFIG = {
     username: "yuguo-yg-bit",
     repo: "yuguo-official",
-    token:"ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
+    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
 };
+
+const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+if (!currentUser) {
+    alert('你未登录！请登录！');
+    window.location.href = 'login.html';
+}
+
+function checkLoginNav() {
+    const userArea = document.getElementById('userArea');
+    userArea.innerHTML = `
+        <span class="text-gold mr-3">${currentUser.phone}</span>
+        <a href="index.html" class="text-sm hover:text-gold transition-colors">首页</a>
+        <button onclick="logout()" class="text-sm text-gray-400 hover:text-white">退出</button>
+    `;
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
+}
 </script>
 
 <nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all duration-500">
@@ -84,22 +104,17 @@ const GITHUB_CONFIG = {
       <a href="index.html#games" class="hover:text-gold transition-colors">小游戏</a>
       <a href="pay-record.html" class="hover:text-gold transition-colors">购买记录</a>
     </div>
-    <div class="flex items-center gap-4">
-      <a href="register.html" class="text-sm hover:text-gold transition-colors">注册</a>
-      <a href="login.html" class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gold/90 transition-colors glow">
-        登录账户
-      </a>
-    </div>
+    <div id="userArea" class="flex items-center gap-4"></div>
   </div>
 </nav>
 
 <section class="pt-36 pb-10 px-6 fade-up">
     <div class="max-w-6xl mx-auto">
-        <a href="index.html#product" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
-            <i class="fa-solid fa-arrow-left"></i> 返回购物
+        <a href="danzai.html" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
+            <i class="fa-solid fa-arrow-left"></i> 继续购物
         </a>
         <h1 class="text-3xl md:text-4xl font-bold text-gold mb-2">购买记录</h1>
-        <p class="text-gray-400">所有记录均从GitHub Issues实时读取，无本地假数据</p>
+        <p class="text-gray-400">当前用户：${currentUser?.phone}，数据从GitHub Issues实时加载</p>
     </div>
 </section>
 
@@ -116,16 +131,14 @@ const GITHUB_CONFIG = {
         <div id="recordList" class="space-y-4">
             <div class="bg-card rounded-xl p-10 text-center">
                 <i class="fa-solid fa-spinner fa-spin text-gold text-2xl mb-4"></i>
-                <p>正在从GitHub Issues加载真实记录...</p>
+                <p>正在从GitHub加载你的订单记录...</p>
             </div>
         </div>
         <div id="emptyState" class="hidden bg-card rounded-xl border border-border p-12 text-center">
             <i class="fa-solid fa-inbox text-gold/40 text-5xl mb-4"></i>
             <h3 class="text-xl font-bold mb-2">暂无购买记录</h3>
             <p class="text-gray-400 mb-6">只有支付成功后才会在这里显示</p>
-            <a href="danzai.html" class="bg-gold text-black px-6 py-2 rounded-lg font-medium glow">
-                去购买商品
-            </a>
+            <a href="danzai.html" class="bg-gold text-black px-6 py-2 rounded-lg font-medium glow">去购买商品</a>
         </div>
     </div>
 </section>
@@ -137,7 +150,7 @@ const GITHUB_CONFIG = {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="flex items-start gap-3">
                     <span class="badge-pending px-2 py-1 rounded-full text-xs">待发货</span>
-                    <p class="text-sm text-gray-300">付款成功，商品正在准备中，1-3个工作日内将安排发货</p>
+                    <p class="text-sm text-gray-300">付款成功，商品准备中，1-3个工作日内发货</p>
                 </div>
                 <div class="flex items-start gap-3">
                     <span class="badge-success px-2 py-1 rounded-full text-xs">已完成</span>
@@ -145,10 +158,10 @@ const GITHUB_CONFIG = {
                 </div>
                 <div class="flex items-start gap-3">
                     <span class="badge-warning px-2 py-1 rounded-full text-xs">待上映</span>
-                    <p class="text-sm text-gray-300">电影预售阶段，上映后自动更新状态</p>
+                    <p class="text-sm text-gray-300">电影预售，上映后自动更新</p>
                 </div>
             </div>
-            <p class="text-xs text-gray-500 mt-6">* 所有订单数据均存储于GitHub Issues，不本地存储，真实可查</p>
+            <p class="text-xs text-gray-500 mt-6">* 所有订单数据均存储于GitHub Issues，真实可查</p>
         </div>
     </div>
 </section>
@@ -200,81 +213,74 @@ window.addEventListener('scroll', () => {
 });
 
 async function loadPaymentRecords() {
-  const recordList = document.getElementById('recordList');
-  const emptyState = document.getElementById('emptyState');
-
+  const list = document.getElementById('recordList');
+  const empty = document.getElementById('emptyState');
   try {
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=payment-record&state=all`, {
-      method: "GET",
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=payment-record&state=all`, {
       headers: {
         "Authorization": `token ${GITHUB_CONFIG.token}`,
         "Accept": "application/vnd.github.v3+json"
       }
     });
-
-    if (response.ok) {
-      const issues = await response.json();
-      allRecords = issues;
-      renderRecords(issues);
-
-      if (issues.length === 0) {
-        recordList.classList.add('hidden');
-        emptyState.classList.remove('hidden');
+    if (res.ok) {
+      const issues = await res.json();
+      // 只显示当前用户的订单
+      const myOrders = issues.filter(issue => {
+          const body = issue.body || "";
+          return body.includes(currentUser.phone);
+      });
+      allRecords = myOrders;
+      renderRecords(myOrders);
+      if (myOrders.length === 0) {
+          list.classList.add('hidden');
+          empty.classList.remove('hidden');
       } else {
-        recordList.classList.remove('hidden');
-        emptyState.classList.add('hidden');
+          list.classList.remove('hidden');
+          empty.classList.add('hidden');
       }
-    } else {
-      recordList.innerHTML = `<div class="bg-card rounded-xl p-8 text-center text-red-400">加载失败，请检查GitHub配置是否正确</div>`;
     }
-  } catch (error) {
-    recordList.innerHTML = `<div class="bg-card rounded-xl p-8 text-center text-red-400">网络错误：${error.message}</div>`;
+  } catch (e) {
+    list.innerHTML = `<div class="bg-card p-8 text-center text-red-400">加载失败：${e.message}</div>`;
   }
 }
 
 function renderRecords(records) {
-  const recordList = document.getElementById('recordList');
-  if (records.length === 0) {
-    recordList.innerHTML = '';
-    return;
-  }
-
-  let html = '';
+  const list = document.getElementById('recordList');
+  let html = "";
   records.forEach(issue => {
-    const body = issue.body || '';
-    const orderNo = body.match(/订单号：(\S+)/)?.[1] || '未知';
-    const productName = body.match(/商品名称：(.+)/)?.[1] || '未知商品';
-    const amount = body.match(/支付金额：(\S+)/)?.[1] || '¥0.00';
-    const payTime = body.match(/支付时间：(.+)/)?.[1] || '未知时间';
-    const status = body.match(/订单状态：(.+)/)?.[1] || '未知';
+    const body = issue.body || "";
+    const orderNo = body.match(/订单号：(\S+)/)?.[1] || "未知";
+    const product = body.match(/商品名称：(.+)/)?.[1] || "未知商品";
+    const amount = body.match(/支付金额：(\S+)/)?.[1] || "¥0.00";
+    const time = body.match(/支付时间：(.+)/)?.[1] || "未知";
+    const status = body.match(/订单状态：(.+)/)?.[1] || "未知";
 
-    let badgeClass = 'badge-pending';
-    if (status === '已完成') badgeClass = 'badge-success';
-    if (status === '待上映') badgeClass = 'badge-warning';
+    let cls = "badge-pending";
+    if (status === "已完成") cls = "badge-success";
+    if (status === "待上映") cls = "badge-warning";
 
     html += `
-<div class="record-item bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4" data-status="${status}">
+<div class="record-item bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
   <div class="flex items-center gap-4">
-    <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gold/10 flex items-center justify-center">
+    <div class="w-12 h-12 rounded-lg bg-gold/10 flex items-center justify-center">
       <i class="fa-solid fa-box text-gold"></i>
     </div>
     <div>
-      <h3 class="font-bold text-white">${productName}</h3>
-      <p class="text-sm text-gray-400">订单号：${orderNo} | 支付时间：${payTime}</p>
+      <h3 class="font-bold">${product}</h3>
+      <p class="text-sm text-gray-400">订单：${orderNo} | ${time}</p>
     </div>
   </div>
   <div class="text-right md:text-left">
     <p class="text-gold font-bold">${amount}</p>
   </div>
   <div class="flex items-center gap-3">
-    <span class="${badgeClass} px-2 py-1 rounded-full text-xs font-medium">${status}</span>
-    <a href="${issue.html_url}" target="_blank" class="text-gold text-sm hover:underline">查看GitHub源</a>
+    <span class="${cls} px-2 py-1 rounded-full text-xs">${status}</span>
+    <a href="${issue.html_url}" target="_blank" class="text-xs text-gold hover:underline">查看源</a>
   </div>
 </div>
     `;
   });
-
-  recordList.innerHTML = html;
+  list.innerHTML = html;
 }
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -284,20 +290,20 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
       b.classList.add('bg-card','text-white');
     });
     this.classList.add('bg-gold','text-black');
-    const status = this.dataset.status;
-    if (status === 'all') {
-      renderRecords(allRecords);
-    } else {
-      const filtered = allRecords.filter(issue => {
-        const issueStatus = issue.body?.match(/订单状态：(.+)/)?.[1] || '';
-        return issueStatus === status;
+    const s = this.dataset.status;
+    if (s === 'all') renderRecords(allRecords);
+    else {
+      const f = allRecords.filter(r => {
+          const st = r.body?.match(/订单状态：(.+)/)?.[1];
+          return st === s;
       });
-      renderRecords(filtered);
+      renderRecords(f);
     }
   });
 });
 
 window.addEventListener('load', () => {
+  checkLoginNav();
   loadPaymentRecords();
   document.querySelectorAll('.fade-up').forEach(el => el.classList.add('show'));
 });
