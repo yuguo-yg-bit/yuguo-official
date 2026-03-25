@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇 - 玉国科技</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050505',
+                        gold: '#FFD700',
+                        card: '#121212',
+                        border: '#222222',
+                    },
+                    animation: {
+                        'breath': 'breath 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        breath: {
+                            '0%, 100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
+                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+            .glow { box-shadow: 0 0 15px rgba(255,215,0,0.3); animation: breath 4s ease-in-out infinite; }
+            .card-hover { transition: all .3s ease; }
+            .card-hover:hover { transform: translateY(-4px); border-color: #FFD700; }
+        }
+    </style>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0A0A0A; color: #fff; font-family: system-ui, -apple-system, sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0A0A0A; }
+        ::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <!-- 导航栏（和猜数字页面完全一致） -->
+    <nav class="fixed top-0 left-0 w-full py-4 px-6 bg-dark/90 backdrop-blur-md border-b border-border z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
+                <i class="fa-solid fa-atom text-gold text-2xl"></i>玉国科技
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-sm text-gray-400 hover:text-gold transition-colors">返回首页</a>
+                <a href="guess.html" class="text-sm text-gray-400 hover:text-gold transition-colors">猜数字</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 贪吃蛇游戏主区域 -->
+    <main class="pt-32 pb-20 px-6 min-h-screen flex items-center justify-center">
+        <div class="w-full max-w-md bg-card rounded-2xl border border-border p-8 card-hover">
+            <div class="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-snake text-gold text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-center mb-3">黑金贪吃蛇</h1>
+            <p class="text-gray-400 text-sm text-center mb-8">使用方向键 ↑ ↓ ← → 控制蛇身，吃掉金色光点获得分数</p>
+            
+            <div class="space-y-6">
+                <!-- 游戏画布 -->
+                <div class="bg-dark rounded-xl border border-gray-700 p-2">
+                    <canvas id="snakeCanvas" width="280" height="280" class="rounded-lg mx-auto"></canvas>
+                </div>
+                
+                <!-- 得分显示 -->
+                <div class="bg-dark/60 rounded-xl p-3 flex justify-between items-center">
+                    <span class="text-sm text-gray-300">当前得分</span>
+                    <span id="scoreDisplay" class="text-gold font-bold text-lg">0</span>
+                </div>
+                
+                <!-- 重新开始按钮 -->
+                <button 
+                    onclick="restartGame()"
+                    class="w-full bg-gold text-black py-3 rounded-xl font-medium glow hover:bg-gold/90 transition-colors transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                    重新开始游戏
+                </button>
+                
+                <div class="text-xs text-gray-500 text-center">
+                    提示：撞到墙壁或自身则游戏结束，分数越高难度越大
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部信息 -->
+    <footer class="py-6 text-center text-sm text-gray-500 border-t border-border bg-darker">
+        <p>© 2025 玉国科技 | 黑金风格小游戏</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('snakeCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        
+        let snake, dx, dy, food, score, gameLoop;
+
+        // 初始化游戏
+        function initGame() {
+            snake = [{ x: 140, y: 140 }];
+            dx = 10;
+            dy = 0;
+            score = 0;
+            scoreDisplay.textContent = score;
+            spawnFood();
+            clearInterval(gameLoop);
+            gameLoop = setInterval(drawGame, 100);
+        }
+
+        // 生成食物
+        function spawnFood() {
+            food = {
+                x: Math.floor(Math.random() * 28) * 10,
+                y: Math.floor(Math.random() * 28) * 10
+            };
+            // 避免食物生成在蛇身上
+            if (snake.some(seg => seg.x === food.x && seg.y === food.y)) spawnFood();
+        }
+
+        // 绘制游戏
+        function drawGame() {
+            // 清空画布
+            ctx.fillStyle = '#121212';
+            ctx.fillRect(0, 0, 280, 280);
+
+            // 移动蛇头
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+
+            // 碰撞检测
+            if (
+                head.x < 0 || head.x >= 280 ||
+                head.y < 0 || head.y >= 280 ||
+                snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)
+            ) {
+                clearInterval(gameLoop);
+                alert(`游戏结束！最终得分：${score}`);
+                return;
+            }
+
+            // 吃食物检测
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreDisplay.textContent = score;
+                spawnFood();
+            } else {
+                snake.pop();
+            }
+
+            // 绘制蛇身
+            ctx.fillStyle = '#FFD700';
+            snake.forEach(seg => ctx.fillRect(seg.x, seg.y, 8, 8));
+
+            // 绘制食物
+            ctx.fillStyle = '#ff7a00';
+            ctx.fillRect(food.x, food.y, 8, 8);
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            initGame();
+        }
+
+        // 方向键控制
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && dx !== 10) { dx = -10; dy = 0; }
+            if (e.key === 'ArrowRight' && dx !== -10) { dx = 10; dy = 0; }
+            if (e.key === 'ArrowUp' && dy !== 10) { dx = 0; dy = -10; }
+            if (e.key === 'ArrowDown' && dy !== -10) { dx = 0; dy = 10; }
+        });
+
+        // 启动游戏
+        initGame();
+    </script>
+</body>
+</html>
