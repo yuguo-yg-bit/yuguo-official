@@ -30,11 +30,11 @@
                     keyframes: {
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-8px)' }
+                            '50%': { transform: 'translateY(-8px)' },
                         },
                         breath: {
                             '0%, 100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
-                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' }
+                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' },
                         }
                     }
                 }
@@ -71,6 +71,29 @@ const GITHUB_CONFIG = {
     repo: "yuguo-official",
     token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
 };
+
+// 未登录拦截
+const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+if (!currentUser) {
+    alert('你未登录！请登录！');
+    window.location.href = 'login.html';
+}
+
+function checkLoginNav() {
+    const userArea = document.getElementById('userArea');
+    if (currentUser) {
+        userArea.innerHTML = `
+            <span class="text-gold mr-3">${currentUser.phone}</span>
+            <a href="pay-record.html" class="text-sm hover:text-gold transition-colors">购买记录</a>
+            <button onclick="logout()" class="text-sm text-gray-400 hover:text-white">退出</button>
+        `;
+    }
+}
+
+function logout() {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'login.html';
+}
 </script>
 
 <nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all duration-500">
@@ -87,12 +110,7 @@ const GITHUB_CONFIG = {
       <a href="index.html#games" class="hover:text-gold transition-colors">小游戏</a>
       <a href="pay-record.html" class="hover:text-gold transition-colors">购买记录</a>
     </div>
-    <div class="flex items-center gap-4">
-      <a href="register.html" class="text-sm hover:text-gold transition-colors">注册</a>
-      <a href="login.html" class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-gold/90 transition-colors glow">
-        登录账户
-      </a>
-    </div>
+    <div id="userArea" class="flex items-center gap-4"></div>
   </div>
 </nav>
 
@@ -130,7 +148,7 @@ const GITHUB_CONFIG = {
                     支付宝（暂未开通）
                 </button>
             </div>
-            <p class="text-xs text-gray-500 mt-4 text-center">仅支持微信支付，付款后记录将同步至GitHub Issues</p>
+            <p class="text-xs text-gray-500 mt-4 text-center">仅支持微信支付，付款后记录同步至GitHub Issues</p>
         </div>
     </div>
 </section>
@@ -281,11 +299,13 @@ async function createPaymentRecord() {
     const productName = "3D打印蛋仔（黑金版）";
     const amount = "3.00";
     const status = "待发货";
+    const userPhone = currentUser?.phone || "未登录用户";
 
     const issueData = {
-        title: `付款订单 | ${orderNo} | ${productName}`,
+        title: `付款订单 | ${orderNo} | ${userPhone}`,
         body: `### 订单信息
 - 订单号：${orderNo}
+- 用户手机号：${userPhone}
 - 商品名称：${productName}
 - 支付金额：¥${amount}
 - 支付时间：${payTime}
@@ -305,20 +325,21 @@ async function createPaymentRecord() {
         });
 
         if (response.ok) {
-            alert("订单记录已成功同步至GitHub Issues！即将跳转到购买记录页");
+            alert("订单记录已成功同步至GitHub Issues！");
             hidePayModal();
             window.location.href = "pay-record.html";
         } else {
-            const error = await response.json();
-            alert(`创建订单失败：${error.message || "请检查GitHub配置是否正确"}`);
+            const err = await response.json();
+            alert("创建订单失败：" + err.message);
         }
-    } catch (error) {
-        alert(`网络错误：${error.message}`);
+    } catch (e) {
+        alert("网络异常：" + e.message);
     }
 }
 
 document.getElementById('backToTop').onclick = () => window.scrollTo({ top:0, behavior:'smooth' });
 window.addEventListener('load', () => {
+  checkLoginNav();
   document.querySelectorAll('.fade-up').forEach(el => el.classList.add('show'));
 });
 </script>
