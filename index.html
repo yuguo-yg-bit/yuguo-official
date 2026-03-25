@@ -62,7 +62,7 @@
 </head>
 <body>
 
-<!-- 导航栏（完全对齐手绘稿：包含登录/注册 + 7个副页入口） -->
+<!-- 导航栏 -->
 <nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all duration-500">
   <div class="max-w-6xl mx-auto flex justify-between items-center">
     <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
@@ -86,17 +86,16 @@
   </div>
 </nav>
 
-<!-- 首屏（丝滑过渡 + 科技感 + 呼吸灯） -->
+<!-- 首屏（含新增个人小视频） -->
 <section class="min-h-screen flex items-center justify-center px-6 pt-20">
   <div class="max-w-6xl mx-auto text-center fade-up">
     <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-bold text-gold text-shadow mb-6 animate-pulse-slow">
       玉国科技
     </h1>
     <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-      专注数字IP、3D打印文创、影视项目与互动游戏开发<br>
-      whe
+      专注数字IP、3D打印文创、影视项目与互动游戏开发
     </p>
-    <div class="flex flex-wrap justify-center gap-4">
+    <div class="flex flex-wrap justify-center gap-4 mb-10">
       <a href="#product" class="bg-gold text-black px-6 py-3 rounded-full text-lg font-medium hover:scale-105 transition-all glow">
         进入商品区
       </a>
@@ -104,10 +103,31 @@
         实用工具
       </a>
     </div>
+
+    <!-- 新增：个人小视频模块 -->
+    <div class="max-w-2xl mx-auto">
+      <div class="bg-card rounded-2xl border border-border p-4 card-hover relative">
+        <div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl cursor-pointer" 
+             onclick="document.getElementById('personalVideo').requestFullscreen(); document.getElementById('personalVideo').play();">
+          <div class="w-16 h-16 rounded-full bg-gold/80 flex items-center justify-center">
+            <i class="fa-solid fa-play text-black text-2xl"></i>
+          </div>
+        </div>
+        <video id="personalVideo" class="w-full rounded-xl" controls>
+          <source src="your-video.mp4" type="video/mp4">
+          您的浏览器不支持视频播放。
+        </video>
+        <div class="mt-3 text-left">
+          <p class="text-gold font-medium">26年3月14日晚上 更新</p>
+          <p class="text-sm text-gray-400">- 作业记录小视频</p>
+          <p class="text-sm text-gray-400">- 喝了点酒，醉了一点，更费</p>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- 公司介绍区（渐变 + 卡片 + 最新消息） -->
+<!-- 公司介绍区 -->
 <section class="py-20 px-6 bg-gradient-to-b from-dark to-darker fade-up">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-12">
@@ -134,7 +154,7 @@
   </div>
 </section>
 
-<!-- 商品区（完全对齐手绘稿：点击卡片 → 商品详情 → 购买） -->
+<!-- 商品区 -->
 <section id="product" class="py-24 px-6 bg-darker fade-up">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16">
@@ -165,7 +185,7 @@
   </div>
 </section>
 
-<!-- 电影区（手绘稿标注「无电影」，预留结构） -->
+<!-- 电影区 -->
 <section id="movie" class="py-24 px-6 bg-dark fade-up">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16">
@@ -182,7 +202,7 @@
   </div>
 </section>
 
-<!-- 兔兔小飞飞（手绘稿：介绍 + 详细特征 + 趣事） -->
+<!-- 兔兔小飞飞 -->
 <section id="feifei" class="py-24 px-6 bg-darker fade-up">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16">
@@ -192,6 +212,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
       <div class="relative fade-up">
         <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
+        <!-- 图片链接所在行：约第195行 -->
         <img src="https://picsum.photos/id/237/600/400" 
              class="w-full rounded-2xl relative z-10 border border-border animate-float" 
              alt="兔兔小飞飞">
@@ -215,7 +236,7 @@
   </div>
 </section>
 
-<!-- 实用工具（手绘稿：PNG转JPG / MP3转WAV 免费网站） -->
+<!-- 实用工具 -->
 <section id="tools" class="py-24 px-6 bg-dark fade-up">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16">
@@ -251,7 +272,7 @@
   </div>
 </section>
 
-<!-- 小游戏区（手绘稿：点击进入小游戏） -->
+<!-- 小游戏区 -->
 <section id="games" class="py-24 px-6 bg-darker fade-up">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-16">
@@ -263,7 +284,7 @@
         <i class="fa-solid fa-dice text-gold text-3xl mb-4"></i>
         <h3 class="text-xl font-bold mb-2">猜数字</h3>
         <p class="text-gray-400 text-sm mb-6">经典猜数字游戏，挑战你的直觉</p>
-        <a href="caishuzi.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">
+        <a href="guess.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">
           进入游戏
         </a>
       </div>
@@ -271,7 +292,7 @@
         <i class="fa-solid fa-snake text-gold text-3xl mb-4"></i>
         <h3 class="text-xl font-bold mb-2">贪吃蛇</h3>
         <p class="text-gray-400 text-sm mb-6">怀旧经典，挑战高分</p>
-        <a href="tanchishe.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">
+        <a href="snake.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">
           进入游戏
         </a>
       </div>
@@ -279,7 +300,7 @@
         <i class="fa-solid fa-hammer text-gold text-3xl mb-4"></i>
         <h3 class="text-xl font-bold mb-2">打地鼠</h3>
         <p class="text-gray-400 text-sm mb-6">轻松解压，锻炼反应</p>
-        <a href="dadishu.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">
+        <a href="mole.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">
           进入游戏
         </a>
       </div>
@@ -287,7 +308,7 @@
   </div>
 </section>
 
-<!-- 底部信息栏（手绘稿：底部信息） -->
+<!-- 底部信息栏 -->
 <footer class="py-10 text-center text-sm text-gray-500 border-t border-border bg-darker">
   <div class="max-w-6xl mx-auto">
     <div class="flex items-center justify-center gap-2 mb-4">
@@ -299,7 +320,7 @@
   </div>
 </footer>
 
-<!-- 回到顶部按钮（呼吸灯效果） -->
+<!-- 回到顶部按钮 -->
 <button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gold text-black rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
   <i class="fa-solid fa-arrow-up"></i>
 </button>
