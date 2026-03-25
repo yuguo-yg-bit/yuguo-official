@@ -211,8 +211,7 @@ function logout() {
                     <p class="text-white">付款后1-3个工作日</p>
                 </div>
                 <div>
-                    <p class="text-gray-400 text-sm">数据存储</p>
-                    <p class="text-white">GitHub Issues</p>
+                    <p class="text-gray-400 text-sm">安全可靠</p>
                 </div>
             </div>
         </div>
@@ -245,7 +244,6 @@ function logout() {
       <span class="text-gold font-bold">玉国科技</span>
     </div>
     <p class="mb-2">© 2025 玉国科技 版权所有</p>
-    <p>所有订单与用户数据均真实存储于 GitHub Issues，无本地假数据</p>
   </div>
 </footer>
 
@@ -325,7 +323,7 @@ async function createPaymentRecord() {
         });
 
         if (response.ok) {
-            alert("订单记录已成功同步至GitHub Issues！");
+            alert("订单记录已成功同步");
             hidePayModal();
             window.location.href = "pay-record.html";
         } else {
