@@ -102,30 +102,31 @@
       <a href="#tools" class="border border-gold text-gold px-6 py-3 rounded-full text-lg font-medium hover:bg-gold/10 transition-all">
         实用工具
       </a>
-    </div>
-
-    <!-- 新增：个人小视频模块 -->
-    <div class="max-w-2xl mx-auto">
-      <div class="bg-card rounded-2xl border border-border p-4 card-hover relative">
-        <div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl cursor-pointer" 
-             onclick="document.getElementById('personalVideo').requestFullscreen(); document.getElementById('personalVideo').play();">
-          <div class="w-16 h-16 rounded-full bg-gold/80 flex items-center justify-center">
-            <i class="fa-solid fa-play text-black text-2xl"></i>
-          </div>
-        </div>
-        <video id="personalVideo" class="w-full rounded-xl" controls>
-          <source src="your-video.mov" type="video/quicktime">
-          您的浏览器不支持视频播放。
-        </video>
-        <div class="mt-3 text-left">
-          <p class="text-gold font-medium">26年3月14日晚上 更新</p>
-          <p class="text-sm text-gray-400">- 作业记录小视频</p>
-          <p class="text-sm text-gray-400"></p>
+    </div> 
+    <!-- 个人小视频专区 -->
+    <div class="max-w-2xl mx-auto mt-10">
+        <div class="grid grid-cols-1 gap-10 items-center">
+        <a href="video.html" class="relative block">
+        <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
+          <img src="视频封面图.png" 
+               class="w-full rounded-2xl relative z-10 border border-border animate-float" 
+               alt="个人小视频">
+        </a>
+        <div class="bg-card rounded-2xl border border-border p-8">
+          <h3 class="text-2xl font-bold text-gold mb-6">个人小视频</h3>
+          <p class="text-gray-300 leading-relaxed mb-4">
+            记录日常、作业、生活片段，不定期更新。
+          </p>
+          <p class="text-gray-300 leading-relaxed mb-4">
+          26年3月14日晚上更新：作业记录小视频。
+          </p>
+          <a href="video.html" class="block w-full bg-gold text-black text-center py-3 rounded-lg font-medium glow">
+            查看全部视频
+          </a>
         </div>
       </div>
     </div>
-  </div>
-</section>
+ 
 
 <!-- 公司介绍区 -->
 <section class="py-20 px-6 bg-gradient-to-b from-dark to-darker fade-up">
