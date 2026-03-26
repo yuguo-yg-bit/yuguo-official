@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>兔兔小飞飞 - 玉国科技</title>
+    <title>小飞飞 · 成长档案 - 玉国科技</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>
@@ -17,10 +17,6 @@
                         glass: 'rgba(20,20,20,0.85)',
                         card: '#121212',
                         border: '#222222',
-                        glowGold: 'rgba(255,215,0,0.3)',
-                    },
-                    fontFamily: {
-                        tech: ['Inter','system-ui','sans-serif']
                     },
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -29,11 +25,11 @@
                     },
                     keyframes: {
                         float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
+                            '0%,100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-8px)' }
                         },
                         breath: {
-                            '0%, 100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
+                            '0%,100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
                             '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' }
                         }
                     }
@@ -52,25 +48,17 @@
         }
     </style>
     <style>
-        * { scroll-behavior: smooth; margin: 0; padding: 0; box-sizing: border-box; }
-        body { background:#0A0A0A; color:#fff; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
-        .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0A0A0A; }
-        ::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+        * { scroll-behavior: smooth; margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0A0A0A; color:#fff; font-family:system-ui,sans-serif; overflow-x:hidden; }
+        .glass { backdrop-filter: blur(12px); }
+        ::-webkit-scrollbar { width:8px; }
+        ::-webkit-scrollbar-track { background:#0A0A0A; }
+        ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
     </style>
 </head>
 <body>
 
-<script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "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"
-};
-</script>
-
-<!-- 统一导航栏 -->
+<!-- 导航栏 -->
 <nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all duration-500">
   <div class="max-w-6xl mx-auto flex justify-between items-center">
     <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
@@ -80,10 +68,9 @@ const GITHUB_CONFIG = {
       <a href="index.html" class="hover:text-gold transition-colors">首页</a>
       <a href="index.html#product" class="hover:text-gold transition-colors">商品区</a>
       <a href="index.html#movie" class="hover:text-gold transition-colors">电影区</a>
-      <a href="feifei.html" class="hover:text-gold transition-colors">兔兔小飞飞</a>
-      <a href="tools.html" class="hover:text-gold transition-colors">实用工具</a>
+      <a href="feifei.html" class="text-gold transition-colors">兔兔小飞飞</a>
+      <a href="index.html#tools" class="hover:text-gold transition-colors">实用工具</a>
       <a href="index.html#games" class="hover:text-gold transition-colors">小游戏</a>
-      <a href="pay-record.html" class="hover:text-gold transition-colors">购买记录</a>
     </div>
     <div class="flex items-center gap-4">
       <a href="register.html" class="text-sm hover:text-gold transition-colors">注册</a>
@@ -94,159 +81,199 @@ const GITHUB_CONFIG = {
   </div>
 </nav>
 
-<!-- 页面头部 -->
-<section class="pt-36 pb-10 px-6 fade-up">
-    <div class="max-w-6xl mx-auto">
-        <a href="index.html#feifei" class="inline-flex items-center gap-2 text-gold mb-6 hover:underline">
-            <i class="fa-solid fa-arrow-left"></i> 返回首页
-        </a>
-        <h1 class="text-3xl md:text-4xl font-bold text-gold mb-2">兔兔小飞飞</h1>
-        <p class="text-gray-400">玉国科技官方吉祥物 | 科技感萌系兔子形象</p>
-    </div>
+<!-- 头部 -->
+<section class="pt-32 pb-10 px-6 fade-up">
+  <div class="max-w-6xl mx-auto text-center">
+    <h1 class="text-4xl font-bold text-gold mb-3 text-shadow">小飞飞 · 成长档案</h1>
+    <p class="text-gray-400">从奶团到科技萌神的完整进化之路</p>
+  </div>
 </section>
 
-<!-- 形象主图+基础介绍 -->
-<section class="py-12 px-6 fade-up">
-    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-        <div class="relative">
-            <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
-            <img src="https://picsum.photos/id/237/800/800" 
-                 class="w-full rounded-2xl relative z-10 border border-border animate-float" 
-                 alt="兔兔小飞飞主形象">
-        </div>
-        <div class="bg-card p-8 rounded-2xl border border-border card-hover">
-            <h2 class="text-2xl font-bold text-gold mb-4">形象介绍</h2>
-            <p class="text-gray-300 leading-relaxed mb-6">
-                兔兔小飞飞是玉国科技专属IP吉祥物，以灵动可爱的兔子为原型，融入黑金科技元素，
-                象征着创新、活力与未来感，是品牌文化的核心载体。
-            </p>
-            <p class="text-gray-300 leading-relaxed">
-                它诞生于2025年，陪伴玉国科技成长，未来将推出表情包、壁纸、周边文创等系列内容，
-                走进每一位用户的数字生活。
-            </p>
-        </div>
-    </div>
-</section>
+<!-- 内容区 12 个板块 -->
+<div class="max-w-6xl mx-auto px-6 pb-20 space-y-8">
 
-<!-- 详细特征 -->
-<section class="py-12 px-6 bg-darker fade-up">
-    <div class="max-w-6xl mx-auto">
-        <h2 class="text-2xl font-bold text-gold mb-8">详细特征</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-card rounded-2xl border border-border p-6 card-hover">
-                <i class="fa-solid fa-rabbit-running text-gold text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">外形特征</h3>
-                <p class="text-gray-400 leading-relaxed">
-                    雪白绒毛+黑金科技纹路，长耳朵可接收科技信号，金色眼眸闪烁科技光效，身形小巧灵动。
-                </p>
-            </div>
-            <div class="bg-card rounded-2xl border border-border p-6 card-hover">
-                <i class="fa-solid fa-lightbulb text-gold text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">性格设定</h3>
-                <p class="text-gray-400 leading-relaxed">
-                    活泼开朗、聪明勇敢，热爱探索科技奥秘，乐于助人，总是充满正能量，治愈感拉满。
-                </p>
-            </div>
-            <div class="bg-card rounded-2xl border border-border p-6 card-hover">
-                <i class="fa-solid fa-rocket text-gold text-3xl mb-4"></i>
-                <h3 class="text-xl font-bold mb-2">专属技能</h3>
-                <p class="text-gray-400 leading-relaxed">
-                    科技信号感知、创意灵感传递、快乐能量散播，能快速解决各类数字生活小难题。
-                </p>
-            </div>
-        </div>
+  <!-- 1 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 初始形态】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      湿漉漉的绒毛，是它来到世界的第一份印记。蓝盆里的小团子，眼神懵懂，却已带着与生俱来的独特纹路。这是小飞飞的起点，也是故事的开端。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/1.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/2.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
     </div>
-</section>
+  </div>
 
-<!-- 趣味故事 -->
-<section class="py-12 px-6 fade-up">
-    <div class="max-w-6xl mx-auto">
-        <h2 class="text-2xl font-bold text-gold mb-8">小飞飞的趣味故事</h2>
-        <div class="bg-card rounded-2xl border border-border p-8 card-hover">
-            <p class="text-gray-300 leading-relaxed mb-4">
-                小飞飞原本是科技实验室里的一只实验兔，意外接触了未来科技能量，获得了感知科技信号的能力，
-                耳朵变成了科技天线，眼睛闪烁着金色光芒。
-            </p>
-            <p class="text-gray-300 leading-relaxed mb-4">
-                它逃出实验室后，在数字世界里四处探索，帮助人们解决各类科技小麻烦，慢慢成为了大家的暖心伙伴，
-                最终被玉国科技收为官方吉祥物。
-            </p>
-            <p class="text-gray-300 leading-relaxed">
-                现在的小飞飞，每天穿梭在玉国科技的各个板块，守护商品、工具、游戏，给每一位用户带来快乐与便捷。
-            </p>
-        </div>
+  <!-- 2 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 睁眼时刻】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      第一次睁开眼睛看清世界，对一切充满好奇。小小的脑袋四处张望，从此开始认识身边的人与环境，眼神里多了一丝灵动。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/9.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/10.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
     </div>
-</section>
+  </div>
 
-<!-- 未来计划 -->
-<section class="py-12 px-6 bg-darker fade-up">
-    <div class="max-w-6xl mx-auto">
-        <div class="bg-card rounded-2xl border border-border p-8 text-center">
-            <h3 class="text-xl font-bold text-gold mb-4">小飞飞未来计划</h3>
-            <p class="text-gray-300 mb-6 leading-relaxed">
-                后续将推出小飞飞专属表情包、高清壁纸、3D打印周边、互动小游戏，敬请期待！
-            </p>
-            <a href="index.html" class="bg-gold text-black px-6 py-2 rounded-lg font-medium glow">
-                关注最新动态
-            </a>
-        </div>
+  <!-- 3 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 第一次站立】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      摇摇晃晃地撑起身体，迈出成长的第一步。虽然不稳，但勇气十足，标志着它从幼崽开始向活泼的小兔转变。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/11.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/12.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
     </div>
-</section>
+  </div>
+
+  <!-- 4 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 毛发初长成】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      绒毛开始变得浓密柔软，毛色逐渐均匀发亮。标志性的额头纹路开始显现，为后续的科技感形象打下基础。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/13.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/14.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 性格觉醒】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      开始展现活泼好动的天性，喜欢跑跳、探索角落，对新鲜事物充满兴趣。性格逐渐明朗，成为一只阳光开朗的小兔。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/15.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/16.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 形态升级】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      绒毛愈发浓密，线条愈发清晰。标志性的白色纹路贯穿额头，成为它最独特的科技标识。眼神灵动，姿态沉稳，小飞飞正在悄悄进化。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <img src="img/3.jpg" alt="" class="w-full h-44 object-cover rounded-xl border border-border">
+      <img src="img/4.jpg" alt="" class="w-full h-44 object-cover rounded-xl border border-border">
+      <img src="img/5.jpg" alt="" class="w-full h-44 object-cover rounded-xl border border-border">
+      <img src="img/6.jpg" alt="" class="w-full h-44 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 习惯养成】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      形成固定的生活习惯，喜欢固定的休息位置，对熟悉的人产生依赖。乖巧又懂事，成为大家喜爱的暖心小兔。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/17.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/18.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 技能解锁】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      学会听懂简单指令，拥有属于自己的小动作与小技能。反应灵敏，动作轻快，展现出超越同龄小兔的聪慧。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/19.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/20.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 气质成型】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      整体气质逐渐稳定，可爱中带着科技感，温柔中带着灵动。外貌与神态高度统一，IP 形象正式成型。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/21.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/22.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 完全体前夕】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      各方面接近成熟，只差最后一步蜕变。毛发、体态、神态都达到最佳状态，等待最终进化。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/23.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/24.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【202X · 完全体】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      阳光下的灰毛泛着金属光泽，白绒的四肢踏在蓝色科技平台上。此刻的小飞飞，已是灵动、活力、科技感的完美化身。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/7.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/8.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 12 -->
+  <div class="bg-card rounded-2xl border border-border p-6 card-hover fade-up">
+    <h2 class="text-xl font-bold text-gold mb-3">【未来 · 新形态预告】</h2>
+    <p class="text-gray-300 leading-relaxed mb-5">
+      未来将推出更多风格化形象，包括机甲风、赛博风、限定皮肤等，持续进化，陪伴大家走向更长远的数字生活。
+    </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <img src="img/25.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+      <img src="img/26.jpg" alt="" class="w-full h-52 object-cover rounded-xl border border-border">
+    </div>
+  </div>
+
+  <!-- 返回 -->
+  <div class="text-center mt-10 fade-up">
+    <a href="index.html" class="inline-block bg-gold text-black px-8 py-3 rounded-xl font-medium glow hover:scale-105 transition-all">
+      返回首页
+    </a>
+  </div>
+
+</div>
 
 <!-- 底部 -->
 <footer class="py-10 text-center text-sm text-gray-500 border-t border-border bg-darker">
   <div class="max-w-6xl mx-auto">
-    <div class="flex items-center justify-center gap-2 mb-4">
+    <div class="flex items-center justify-center gap-2 mb-3">
       <i class="fa-solid fa-atom text-gold text-xl"></i>
       <span class="text-gold font-bold">玉国科技</span>
     </div>
-    <p class="mb-2">© 2025 玉国科技 版权所有</p>
-    <p>兔兔小飞飞 © 品牌形象 侵权必究</p>
+    <p class="mb-1">小飞飞 · 陪伴你的数字生活</p>
+    <p>灵动 · 活泼 · 充满未来感</p>
+    <p class="mt-3">© 2025 玉国科技 版权所有</p>
   </div>
 </footer>
 
-<!-- 回到顶部 -->
-<button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gold text-black rounded-full flex items-center justify-center opacity-0 invisible transition-all duration-300 glow">
-  <i class="fa-solid fa-arrow-up"></i>
-</button>
-
 <script>
-// 滚动动画
-window.addEventListener('scroll', () => {
-  const navbar = document.getElementById('navbar');
-  if (window.scrollY > 50) {
-    navbar.classList.add('glass');
-    navbar.classList.add('py-3');
-    navbar.classList.remove('py-4');
-  } else {
-    navbar.classList.remove('glass');
-    navbar.classList.add('py-4');
-    navbar.classList.remove('py-3');
-  }
-
-  const backToTop = document.getElementById('backToTop');
-  if (window.scrollY > 300) {
-    backToTop.classList.remove('opacity-0','invisible');
-    backToTop.classList.add('opacity-100','visible');
-  } else {
-    backToTop.classList.add('opacity-0','invisible');
-    backToTop.classList.remove('opacity-100','visible');
-  }
-
-  document.querySelectorAll('.fade-up').forEach(el => {
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) {
-      el.classList.add('show');
-    }
-  });
-});
-
-// 回到顶部
-document.getElementById('backToTop').onclick = () => window.scrollTo({ top:0, behavior:'smooth' });
-
-// 页面加载动画
 window.addEventListener('load', () => {
-  document.querySelectorAll('.fade-up').forEach(el => el.classList.add('show'));
-});
+  document.querySelectorAll('.fade-up').forEach(el => el.classList.add('show'))
+})
+window.addEventListener('scroll', () => {
+  const navbar = document.getElementById('navbar')
+  if (window.scrollY > 50) {
+    navbar.classList.add('glass','py-3')
+    navbar.classList.remove('py-4')
+  } else {
+    navbar.classList.remove('glass','py-3')
+    navbar.classList.add('py-4')
+  }
+})
 </script>
 
 </body>
