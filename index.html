@@ -367,4 +367,44 @@ window.addEventListener('load', () => {
 </script>
 
 </body>
+<script>
+// ==============================================
+// 1. 禁止右键
+// ==============================================
+document.oncontextmenu = function () {
+  return false;
+};
+
+// ==============================================
+// 2. 禁止 F12 / Ctrl+U / Ctrl+Shift+I
+// ==============================================
+document.onkeydown = function (e) {
+  if (
+    e.key === "F12" ||
+    (e.ctrlKey && e.key === "u") ||
+    (e.ctrlKey && e.shiftKey && e.key === "i")
+  ) {
+    return false;
+  }
+};
+
+// ==============================================
+// 3. 反调试：一打开控制台就跳空白页
+// ==============================================
+let originalW = innerWidth;
+let originalH = innerHeight;
+
+setInterval(function () {
+  if (innerWidth < originalW || innerHeight < originalH) {
+    window.location.href = "about:blank";
+  }
+  debugger;
+}, 1000);
+
+// ==============================================
+// 4. 禁用控制台输出
+// ==============================================
+console.log = console.warn = console.error = function () {};
+</script>
+
 </html>
