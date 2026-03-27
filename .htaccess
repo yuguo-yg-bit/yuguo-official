@@ -7,6 +7,9 @@ RewriteCond %{HTTPS} !=on
 RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
 
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
 # 禁止目录浏览
 Options -Indexes
 
