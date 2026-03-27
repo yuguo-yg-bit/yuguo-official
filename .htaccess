@@ -1,1 +1,60 @@
+RewriteEngine On
+Options -Indexes
 DirectoryIndex index.html
+
+# 强制 HTTPS
+RewriteCond %{HTTPS} !=on
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# ==============================================
+# 防 1：所有黑客扫描工具（sqlmap、nmap、burp、awvs、xray 等）
+# ==============================================
+RewriteCond %{HTTP_USER_AGENT} (sqlmap|nmap|burp|awvs|xray|nessus|acunetix|netsparker|masscan|zgrab|httrack|python|curl|wget|perl|ruby|go-|php|bash|powershell|cmd|bot|crawl|spider|scan|attack) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} ^-$ [OR]
+RewriteRule ^.*$ - [F,L]
+
+# ==============================================
+# 防 2：路径穿越、目录遍历、文件读取攻击
+# ==============================================
+RewriteCond %{REQUEST_URI} (\.\./|\.\.|%2e%2e|%252e%252e) [NC,OR]
+RewriteCond %{REQUEST_URI} (etc/passwd|boot.ini|windows|proc/self|root|admin|config|phpinfo) [NC]
+RewriteRule ^.*$ - [F,L]
+
+# ==============================================
+# 防 3：SQL 注入、XSS 脚本、命令执行
+# ==============================================
+RewriteCond %{QUERY_STRING} (union|select|insert|delete|update|concat|alert|script|eval|base64|shell|system|passthru|cmd|bash|nc|ping|%00|%0a|%0d) [NC]
+RewriteRule ^.*$ - [F,L]
+
+# ==============================================
+# 防 4：禁止访问所有敏感文件
+# ==============================================
+<FilesMatch "\.(htaccess|pem|key|crt|json|ini|log|sql|db|sh|bak|tar|gz|zip|rar|exe|dll|so|cfg|md|git|env)$">
+Require all denied
+</FilesMatch>
+
+# ==============================================
+# 防 5：只允许同源请求，防抓包、防盗链
+# ==============================================
+RewriteCond %{HTTP_REFERER} !^https://yuguoguanwang20260326.us.ci(/.*)?$ [NC]
+RewriteCond %{HTTP_REFERER} !^$
+RewriteRule ^.*$ - [F,L]
+
+# ==============================================
+# 安全头部：防点击劫持、XSS、嗅探、篡改
+# ==============================================
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+Header always set X-Content-Type-Options nosniff
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
+Header always set Referrer-Policy strict-origin
+Header always set Permissions-Policy "geolocation=(),microphone=(),camera=(),payment=()"
+
+# ==============================================
+# 错误页面统一伪装，不泄露服务器信息
+# ==============================================
+ErrorDocument 400 /404.html
+ErrorDocument 403 /404.html
+ErrorDocument 404 /404.html
+ErrorDocument 500 /404.html
