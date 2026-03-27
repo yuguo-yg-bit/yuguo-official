@@ -2,59 +2,111 @@ RewriteEngine On
 Options -Indexes
 DirectoryIndex index.html
 
-# 强制 HTTPS
+# 强制 HTTPS + HSTS 永久加密
 RewriteCond %{HTTPS} !=on
 RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+
+# 禁止目录浏览
+Options -Indexes
 
 # ==============================================
-# 防 1：所有黑客扫描工具（sqlmap、nmap、burp、awvs、xray 等）
+# 全局拦截：所有扫描器、黑客工具、爬虫、脚本访问
 # ==============================================
-RewriteCond %{HTTP_USER_AGENT} (sqlmap|nmap|burp|awvs|xray|nessus|acunetix|netsparker|masscan|zgrab|httrack|python|curl|wget|perl|ruby|go-|php|bash|powershell|cmd|bot|crawl|spider|scan|attack) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} (sqlmap|nmap|burp|awvs|xray|nessus|acunetix|netsparker|masscan|zgrab|httrack|python|curl|wget|perl|ruby|go-http|php|bash|powershell|cmd|bot|spider|crawl|scan|exploit|attack|nutch|click|httprequest|felix|curl/|lynx|wget/|libwww|curlclient|feedfetcher|w3c|htmlparser|jakarta|axis|crawler) [NC,OR]
 RewriteCond %{HTTP_USER_AGENT} ^-$ [OR]
+RewriteCond %{HTTP_USER_AGENT} "~" [NC]
 RewriteRule ^.*$ - [F,L]
 
 # ==============================================
-# 防 2：路径穿越、目录遍历、文件读取攻击
+# 防路径穿越、目录遍历、敏感文件读取
 # ==============================================
-RewriteCond %{REQUEST_URI} (\.\./|\.\.|%2e%2e|%252e%252e) [NC,OR]
-RewriteCond %{REQUEST_URI} (etc/passwd|boot.ini|windows|proc/self|root|admin|config|phpinfo) [NC]
+RewriteCond %{REQUEST_URI} (\.\./|\.\.|%2e%2e|%252e%252e|%c0%ae|%c0%9e|%e0%80%ae) [NC,OR]
+RewriteCond %{REQUEST_URI} (etc/passwd|proc/self|boot.ini|windows/system|root|admin|config|phpinfo|web.config|env|git|svn|htpasswd|pem|key|crt) [NC]
 RewriteRule ^.*$ - [F,L]
 
 # ==============================================
-# 防 3：SQL 注入、XSS 脚本、命令执行
+# 防 SQL 注入、XSS、命令执行、代码注入
 # ==============================================
-RewriteCond %{QUERY_STRING} (union|select|insert|delete|update|concat|alert|script|eval|base64|shell|system|passthru|cmd|bash|nc|ping|%00|%0a|%0d) [NC]
+RewriteCond %{QUERY_STRING} (union|select|insert|delete|update|drop|alter|concat|alert|script|javascript|eval|base64|shell|system|passthru|exec|passthru|cmd|bash|nc|ping|%00|%0a|%0d|%09|%27|%22|%3C|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (\;|\&|\||\`|\$|\^|\\|\+|\[|\]|\{|\}) [NC]
 RewriteRule ^.*$ - [F,L]
 
 # ==============================================
-# 防 4：禁止访问所有敏感文件
+# 防盗链 + 禁止非浏览器直接访问资源
 # ==============================================
-<FilesMatch "\.(htaccess|pem|key|crt|json|ini|log|sql|db|sh|bak|tar|gz|zip|rar|exe|dll|so|cfg|md|git|env)$">
+RewriteCond %{HTTP_REFERER} !^https://yuguoguanwang20260326.us.ci(/.*)?$ [NC]
+RewriteCond %{HTTP_REFERER} !^$
+RewriteRule \.(jpg|jpeg|png|gif|svg|js|css|ico)$ - [F,L]
+
+# ==============================================
+# 绝对禁止访问所有敏感后缀
+# ==============================================
+<FilesMatch "\.(htaccess|htpasswd|pem|key|crt|csr|p12|env|json|ini|log|sql|db|sqlite|sh|bash|bat|cmd|py|php|java|class|jar|tar|gz|zip|rar|7z|bak|old|temp|tmp|md|git|svn|cfg|conf|config)$">
 Require all denied
 </FilesMatch>
 
 # ==============================================
-# 防 5：只允许同源请求，防抓包、防盗链
+# ✅ 加速 1：开启 GZIP 压缩（网页体积变小）
 # ==============================================
-RewriteCond %{HTTP_REFERER} !^https://yuguoguanwang20260326.us.ci(/.*)?$ [NC]
-RewriteCond %{HTTP_REFERER} !^$
-RewriteRule ^.*$ - [F,L]
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
 
 # ==============================================
-# 安全头部：防点击劫持、XSS、嗅探、篡改
+# ✅ 加速 2：浏览器强缓存（第二次打开秒开）
+# ==============================================
+<FilesMatch "\.(jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$">
+    Header set Cache-Control "max-age=31536000, public, immutable"
+</FilesMatch>
+
+<FilesMatch "\.(css|js)$">
+    Header set Cache-Control "max-age=604800, public"
+</FilesMatch>
+
+<FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "max-age=300, public"
+</FilesMatch>
+
+# ==============================================
+# ✅ 加速 3：关闭 ETag，减少请求开销
+# ==============================================
+FileETag None
+
+# ==============================================
+#  加速 4：禁用 DNS 预读干扰，优化连接
+# ==============================================
+Header set X-DNS-Prefetch-Control "on"
+
+# ==============================================
+# 安全头部拉满
 # ==============================================
 Header always set X-Frame-Options DENY
 Header always set X-XSS-Protection "1; mode=block"
 Header always set X-Content-Type-Options nosniff
-Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;"
-Header always set Referrer-Policy strict-origin
-Header always set Permissions-Policy "geolocation=(),microphone=(),camera=(),payment=()"
+Header always set Referrer-Policy "no-referrer"
+Header always set Permissions-Policy "geolocation=(),microphone=(),camera=(),payment=(),usb=(),bluetooth=(),accelerometer=()"
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'"
+Header always set X-Permitted-Cross-Domain-Policies "none"
 
 # ==============================================
-# 错误页面统一伪装，不泄露服务器信息
+# 错误页面统一伪装
 # ==============================================
 ErrorDocument 400 /404.html
+ErrorDocument 401 /404.html
 ErrorDocument 403 /404.html
 ErrorDocument 404 /404.html
+ErrorDocument 410 /404.html
 ErrorDocument 500 /404.html
+
+# ==============================================
+# 服务器信息伪装
+# ==============================================
+ServerTokens Prod
+ServerSignature Off
