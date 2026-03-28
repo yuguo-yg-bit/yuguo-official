@@ -1,5 +1,88 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<title>页面找不到</title>
-<h1>404 页面走丢啦</h1>
-<p><a href="index.html">返回首页</a></p>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - 页面不存在 - 玉国科技</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050505',
+                        gold: '#FFD700',
+                        glass: 'rgba(20,20,20,0.85)',
+                        card: '#121212',
+                        border: '#222222',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'breath': 'breath 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%,100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        },
+                        breath: {
+                            '0%,100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
+                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+            .glow { box-shadow: 0 0 15px rgba(255,215,0,0.3); animation: breath 4s ease-in-out infinite; }
+        }
+    </style>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0A0A0A; color:#fff; font-family:system-ui,sans-serif; overflow-x:hidden; }
+        ::-webkit-scrollbar { width:8px; }
+        ::-webkit-scrollbar-track { background:#0A0A0A; }
+        ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center px-6">
+
+    <div class="text-center max-w-xl mx-auto space-y-6">
+        <div class="text-[120px] font-bold text-gold text-shadow animate-pulse-slow">
+            404
+        </div>
+        <h1 class="text-3xl md:text-4xl font-bold text-white">
+            页面不见了
+        </h1>
+        <p class="text-gray-400 text-lg">
+            你访问的页面不存在、已删除或路径错误
+        </p>
+        <div class="pt-6">
+            <a href="index.html" class="inline-block bg-gold text-black px-8 py-3 rounded-xl font-medium glow hover:scale-105 transition-all">
+                返回首页
+            </a>
+        </div>
+    </div>
+
+    <footer class="absolute bottom-6 text-sm text-gray-500 text-center">
+        <p>© 2025 玉国科技 · 小飞飞陪伴你的数字生活</p>
+    </footer>
+
+<script>
+// 防右键、F12
+document.oncontextmenu = () => false;
+document.onkeydown = (e) => {
+  if (e.key === 'F12' || (e.ctrlKey && e.key === 'u') || (e.ctrlKey && e.shiftKey && e.key === 'i')) {
+    return false;
+  }
+};
+</script>
+
+</body>
+</html>
