@@ -10,131 +10,247 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {dark:'#0A0A0A',darker:'#050500',gold:'#FFD700',glass:'rgba(20,20,20,0.85)',card:'#121212',border:'#222222'},
-                    animation: {pulse-slow:'pulse 3s infinite',breath:'breath 4s infinite',marquee:'slide 12s linear infinite'},
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050500',
+                        gold: '#FFD700',
+                        glass: 'rgba(20,20,20,0.85)',
+                        card: '#121212',
+                        border: '#222222',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'breath': 'breath 4s ease-in-out infinite',
+                        'marquee': 'slide 12s linear infinite',
+                    },
                     keyframes: {
-                        breath:{'0%,100%':{boxShadow:'0 0 12px rgba(255,215,0,0.3)'},'50%':{boxShadow:'0 0 20px rgba(255,215,0,0.6)'}},
-                        slide:{'0%':{transform:'translateX(100%)'},'100%':{transform:'translateX(-100%)'}}
+                        breath: {
+                            '0%,100%': { boxShadow: '0 0 12px rgba(255,215,0,0.3)' },
+                            '50%': { boxShadow: '0 0 20px rgba(255,215,0,0.6)' }
+                        },
+                        slide: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(-100%)' }
+                        }
                     }
                 }
             }
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+            .glow { box-shadow: 0 0 15px rgba(255,215,0,0.3); animation: breath 4s ease-in-out infinite; }
+            .card-hover { transition: all .3s ease; }
+            .card-hover:hover { transform: translateY(-2px); border-color: #FFD700; }
+        }
+    </style>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; scroll-behavior:smooth; }
-        body { background:#0A0A0A; color:#fff; font-family:Inter,sans-serif; overflow-x:hidden; }
+        body { background:#0A0A0A; color:#FFD700; font-family:Inter,sans-serif; overflow-x:hidden; }
         .glass { backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
         ::-webkit-scrollbar { width:8px; }
+        ::-webkit-scrollbar-track { background:#0A0A0A; }
         ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
     </style>
 </head>
 <body>
 
 <script>
-const GITHUB_CONFIG = {username:"yuguo-yg-bit",repo:"yuguo-official",token:"ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"};
-const currentUser = JSON.parse(localStorage.getItem('currentUser')||null);
+const GITHUB_CONFIG = {
+    username: "yuguo-yg-bit",
+    repo: "yuguo-official",
+    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
+};
+const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
 
-if(!currentUser) { alert("请先登录"); location.href="login.html"; }
+if (!currentUser) {
+    alert('请先登录！');
+    location.href = 'login.html';
+}
 
-function checkLogin() {
-    document.getElementById('userArea').innerHTML = `
+function checkLoginNav() {
+    const userArea = document.getElementById('userArea');
+    userArea.innerHTML = `
     <span class="text-gold mr-3">${currentUser.phone}</span>
     <a href="index.html" class="text-sm hover:text-gold">首页</a>
     <button onclick="logout()" class="text-sm text-gray-400 hover:text-white">退出</button>`;
 }
 
-function logout() { localStorage.removeItem('currentUser'); location.href="login.html"; }
+function logout() {
+    localStorage.removeItem('currentUser');
+    location.href = 'login.html';
+}
 
 async function loadCart() {
     const list = document.getElementById('cartList');
     const empty = document.getElementById('emptyCart');
+    const checkoutBox = document.getElementById('checkoutBox');
     try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`,{
-            headers:{Authorization:`token ${GITHUB_CONFIG.token}`}
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
+            headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
         });
-        if(!res.ok) throw new Error("加载失败");
         const issues = await res.json();
-        const myCart = issues.filter(i=>i.body?.includes(currentUser.phone));
-        if(myCart.length===0) { list.classList.add('hidden'); empty.classList.remove('hidden'); return; }
-        
-        let html = "";
-        myCart.forEach(item=>{
-            const name = item.body.match(/商品：(.+)/)?.[1] || "未知商品";
-            const price = item.body.match(/单价：(.+)/)?.[1] || "¥0";
+        const myCart = issues.filter(i => i.body?.includes(currentUser.phone));
+
+        if (myCart.length === 0) {
+            list.classList.add('hidden');
+            empty.classList.remove('hidden');
+            checkoutBox.classList.add('hidden');
+            return;
+        }
+
+        let html = '';
+        let total = 0;
+        myCart.forEach(issue => {
+            const name = issue.body.match(/商品：(.+)/)?.[1] || '未知商品';
+            const price = issue.body.match(/单价：(.+)/)?.[1] || '¥0';
+            const num = parseFloat(price.replace('¥', '')) || 0;
+            total += num;
             html += `
-            <div class="bg-card rounded-xl border border-border p-6 flex items-center justify-between">
+            <div class="bg-card rounded-xl border border-border p-6 flex items-center justify-between card-hover">
                 <div class="flex items-center gap-4">
-                    <i class="fa-solid fa-box text-gold text-2xl"></i>
+                    <i class="fa-solid fa-box text-gold text-xl"></i>
                     <div>
-                        <h3 class="font-bold">${name}</h3>
-                        <p class="text-gold">${price}</p>
+                        <div class="font-bold text-gold">${name}</div>
+                        <div class="text-gold/80">${price}</div>
                     </div>
                 </div>
-                <button onclick="delCart(${item.number})" class="text-red-500 text-sm">删除</button>
+                <button onclick="delCart(${issue.number})" class="text-red-400 hover:text-red-300 text-sm">
+                    <i class="fa-solid fa-trash mr-1"></i>删除
+                </button>
             </div>`;
         });
+
         list.innerHTML = html;
-        list.classList.remove('hidden'); empty.classList.add('hidden');
-    } catch(e) { list.innerHTML=`<p class="text-red-400 text-center">加载失败：${e.message}</p>`; }
+        document.getElementById('totalPrice').innerText = '¥' + total.toFixed(2);
+        list.classList.remove('hidden');
+        empty.classList.add('hidden');
+        checkoutBox.classList.remove('hidden');
+    } catch (e) {
+        list.innerHTML = `<div class="text-red-400 text-center p-4">加载失败</div>`;
+    }
 }
 
 async function delCart(issueId) {
-    if(!confirm("确定删除？")) return;
-    try {
-        await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${issueId}`,{
-            method:'PATCH',
-            headers:{Authorization:`token ${GITHUB_CONFIG.token}`,"Content-Type":"application/json"},
-            body:JSON.stringify({state:"closed"})
+    if (!confirm('确定删除？')) return;
+    await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${issueId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `token ${GITHUB_CONFIG.token}` },
+        body: JSON.stringify({ state: 'closed' })
+    });
+    alert('已删除');
+    loadCart();
+}
+
+function goToPay() {
+    document.getElementById('payLayer').classList.remove('hidden');
+}
+
+function closePay() {
+    document.getElementById('payLayer').classList.add('hidden');
+}
+
+async function confirmPay() {
+    if (!confirm('已完成支付？确认后将生成订单')) return;
+
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
+        headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
+    });
+    const issues = await res.json();
+    const myCart = issues.filter(i => i.body?.includes(currentUser.phone));
+
+    if (myCart.length === 0) { alert('购物车为空'); return; }
+
+    const orderNo = 'YG' + Date.now();
+    const payTime = new Date().toLocaleString('zh-CN');
+
+    for (const item of myCart) {
+        await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${item.number}`, {
+            method: 'PATCH',
+            headers: { Authorization: `token ${GITHUB_CONFIG.token}` },
+            body: JSON.stringify({
+                labels: ['payment-record'],
+                body: item.body + `\n订单号：${orderNo}\n支付时间：${payTime}\n状态：已支付`
+            })
         });
-        alert("删除成功");
-        loadCart();
-    } catch(e) { alert("删除失败"); }
+    }
+
+    alert('支付成功！订单已生成');
+    closePay();
+    loadCart();
 }
 </script>
 
-<!-- 顶部固定：跑马灯+导航 -->
+<!-- 顶部固定栏 -->
 <div class="fixed top-0 left-0 w-full z-50">
-    <div class="bg-gold text-black py-1 text-sm overflow-hidden">
-        <div class="whitespace-nowrap animate-marquee">🎉 玉国科技购物车已上线 | 3D打印蛋仔新品发售</div>
+    <div class="bg-black text-gold py-1 text-sm overflow-hidden">
+        <div class="whitespace-nowrap animate-marquee px-4">
+            🎉 玉国科技官网 | 3D打印蛋仔新品发售 | 购物车结算支持微信支付
+        </div>
     </div>
     <nav class="bg-dark/90 glass py-3 px-6">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold">
-                <i class="fa-solid fa-atom text-gold text-2xl"></i>玉国科技</a>
+            <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
+                <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>玉国科技
+            </a>
             <div id="userArea" class="flex items-center gap-4"></div>
         </div>
     </nav>
 </div>
 
-<!-- 购物车主体 -->
-<section class="pt-[110px] px-6 py-10">
+<!-- 主体 -->
+<section class="pt-[120px] px-6 py-10 min-h-screen">
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-gold mb-6 flex items-center gap-2">
-            <i class="fa-solid fa-shopping-cart"></i> 我的购物车
+        <h1 class="text-3xl font-bold text-gold mb-8 flex items-center gap-2">
+            <i class="fa-solid fa-shopping-cart text-gold"></i> 购物车
         </h1>
-        <div id="cartList" class="space-y-4 hidden"></div>
-        <div id="emptyCart" class="bg-card rounded-xl p-12 text-center">
-            <i class="fa-solid fa-cart-shopping text-gold/40 text-4xl mb-4"></i>
-            <h3 class="text-xl font-bold mb-2">购物车是空的</h3>
-            <a href="index.html#product" class="bg-gold text-black px-6 py-2 rounded-lg font-medium glow mt-4 inline-block">去选购</a>
+
+        <div id="cartList" class="space-y-4 mb-6 hidden"></div>
+
+        <div id="emptyCart" class="bg-card rounded-xl border border-border p-12 text-center">
+            <i class="fa-solid fa-shopping-cart text-gold/50 text-4xl mb-4"></i>
+            <h3 class="text-xl font-bold text-gold mb-4">购物车为空</h3>
+            <a href="index.html#product" class="bg-gold text-black px-6 py-3 rounded-lg font-medium glow">去选购</a>
+        </div>
+
+        <!-- 结算栏 -->
+        <div id="checkoutBox" class="hidden bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-gold">
+                <span class="text-sm text-gold/70">合计：</span>
+                <span id="totalPrice" class="text-2xl font-bold">¥0.00</span>
+            </div>
+            <button onclick="goToPay()" class="bg-gold text-black px-8 py-3 rounded-lg font-medium glow">
+                <i class="fa-solid fa-credit-card mr-1"></i>去支付
+            </button>
         </div>
     </div>
 </section>
 
-<footer class="py-8 text-center text-sm text-gray-500 border-t border-border bg-darker mt-10">
+<!-- 支付弹窗（和蛋仔页面一样） -->
+<div id="payLayer" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-dark rounded-2xl border border-gold/40 p-8 max-w-sm w-full text-center relative">
+        <button onclick="closePay()" class="absolute top-4 right-4 text-gold text-xl">✕</button>
+        <h3 class="text-2xl font-bold text-gold mb-2">微信支付</h3>
+        <p class="text-gold/80 mb-4">请扫码支付</p>
+        <img src="wechat.png" class="w-64 h-64 object-contain mx-auto rounded-lg border border-gold/30 mb-6" alt="微信收款码">
+        <p class="text-gold font-bold text-lg mb-6" id="showTotal">¥0.00</p>
+        <button onclick="confirmPay()" class="w-full bg-gold text-black py-3 rounded-lg font-medium glow">已完成支付</button>
+    </div>
+</div>
+
+<footer class="py-8 text-center text-sm text-gold/50 border-t border-border bg-darker">
     <p>© 2025 玉国科技 版权所有</p>
 </footer>
 
 <script>
-window.addEventListener('load',()=>{checkLogin();loadCart();});
+window.addEventListener('load', () => {
+    checkLoginNav();
+    loadCart();
+    const total = document.getElementById('totalPrice').innerText;
+    document.getElementById('showTotal').innerText = total;
+});
 </script>
 
 </body>
-<script>
-document.oncontextmenu = ()=>false;
-document.onkeydown = e=>{if(e.key=="F12"||(e.ctrlKey&&e.key=="u")||(e.ctrlKey&&e.shiftKey&&e.key=="i"))return false;};
-let ow=innerWidth,oh=innerHeight;
-setInterval(()=>{if(innerWidth<ow||innerHeight<oh)window.location.href="about:blank";debugger;},1000);
-console.log=console.warn=console.error=()=>{};
-</script>
 </html>
