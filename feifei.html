@@ -54,9 +54,50 @@
         ::-webkit-scrollbar { width:8px; }
         ::-webkit-scrollbar-track { background:#0A0A0A; }
         ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0A0A0A;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: opacity 0.7s ease;
+        }
+        .progress-bar {
+            width: 320px;
+            height: 6px;
+            background: #222;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: #FFD700;
+            width: 0%;
+            transition: width 0.15s linear;
+        }
+        #percent {
+            color: #FFD700;
+            font-size: 16px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+
+<div id="loading">
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+    <div id="percent">0%</div>
+</div>
 
 <!-- 导航栏 -->
 <nav id="navbar" class="fixed w-full z-50 py-4 px-6 transition-all duration-500">
@@ -89,7 +130,7 @@
   </div>
 </section>
 
-<!-- 内容区 9 个板块 · 每张图自动适配 -->
+<!-- 内容区 9 个板块 -->
 <div class="max-w-6xl mx-auto px-6 pb-20 space-y-8">
 
   <!-- 1 -->
@@ -212,44 +253,43 @@ window.addEventListener('scroll', () => {
 </script>
 
 <script>
-// ==============================================
-// 1. 禁止右键
-// ==============================================
-document.oncontextmenu = function () {
-  return false;
-};
+// ===================== 终极加载进度条 =====================
+const progress = document.getElementById('progress');
+const percent = document.getElementById('percent');
+const loading = document.getElementById('loading');
 
-// ==============================================
-// 2. 禁止 F12 / Ctrl+U / Ctrl+Shift+I
-// ==============================================
-document.onkeydown = function (e) {
-  if (
-    e.key === "F12" ||
-    (e.ctrlKey && e.key === "u") ||
-    (e.ctrlKey && e.shiftKey && e.key === "i")
-  ) {
+let current = 0;
+// 先自动跑到99%，绝不提前完成
+const timer = setInterval(() => {
+  if (current < 99) {
+    current++;
+    progress.style.width = current + '%';
+    percent.textContent = current + '%';
+  }
+}, 30);
+
+// 重点：必须等整个页面+所有图片完全加载完才到100%消失
+window.addEventListener('load', () => {
+  clearInterval(timer);
+  current = 100;
+  progress.style.width = '100%';
+  percent.textContent = '100%';
+
+  setTimeout(() => {
+    loading.style.opacity = 0;
+    setTimeout(() => {
+      loading.style.display = 'none';
+    }, 700);
+  }, 400);
+});
+
+// 防护
+document.oncontextmenu = () => false;
+document.onkeydown = (e) => {
+  if (e.key === 'F12' || (e.ctrlKey && e.key === 'u') || (e.ctrlKey && e.shiftKey && e.key === 'i')) {
     return false;
   }
 };
-
-// ==============================================
-// 3. 反调试：一打开控制台就跳空白页
-// ==============================================
-let originalW = innerWidth;
-let originalH = innerHeight;
-
-setInterval(function () {
-  if (innerWidth < originalW || innerHeight < originalH) {
-    window.location.href = "about:blank";
-  }
-  debugger;
-}, 1000);
-
-// ==============================================
-// 4. 禁用控制台输出
-// ==============================================
-console.log = console.warn = console.error = function () {};
 </script>
-
 </body>
 </html>
