@@ -108,6 +108,17 @@ async function addToCart(product) {
         });
         if(res.ok) {
             alert("已加入购物车");
+            // 立刻刷新数量，解决首页不跳的问题
+            loadCartCount();
+        } else {
+            alert("加入失败");
+        }
+    } catch(e) {
+        alert("错误：" + e.message);
+    }
+}
+        if(res.ok) {
+            alert("已加入购物车");
             loadCartCount();
         } else alert("加入失败");
     } catch(e) { alert("错误"); }
