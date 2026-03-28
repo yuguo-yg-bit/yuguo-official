@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车 - 玉国科技</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {dark:'#0A0A0A',darker:'#050500',gold:'#FFD700',glass:'rgba(20,20,20,0.85)',card:'#121212',border:'#222222'},
+                    animation: {pulse-slow:'pulse 3s infinite',breath:'breath 4s infinite',marquee:'slide 12s linear infinite'},
+                    keyframes: {
+                        breath:{'0%,100%':{boxShadow:'0 0 12px rgba(255,215,0,0.3)'},'50%':{boxShadow:'0 0 20px rgba(255,215,0,0.6)'}},
+                        slide:{'0%':{transform:'translateX(100%)'},'100%':{transform:'translateX(-100%)'}}
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; scroll-behavior:smooth; }
+        body { background:#0A0A0A; color:#fff; font-family:Inter,sans-serif; overflow-x:hidden; }
+        .glass { backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+        ::-webkit-scrollbar { width:8px; }
+        ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
+    </style>
+</head>
+<body>
+
+<script>
+const GITHUB_CONFIG = {username:"yuguo-yg-bit",repo:"yuguo-official",token:"ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"};
+const currentUser = JSON.parse(localStorage.getItem('currentUser')||null);
+
+if(!currentUser) { alert("请先登录"); location.href="login.html"; }
+
+function checkLogin() {
+    document.getElementById('userArea').innerHTML = `
+    <span class="text-gold mr-3">${currentUser.phone}</span>
+    <a href="index.html" class="text-sm hover:text-gold">首页</a>
+    <button onclick="logout()" class="text-sm text-gray-400 hover:text-white">退出</button>`;
+}
+
+function logout() { localStorage.removeItem('currentUser'); location.href="login.html"; }
+
+async function loadCart() {
+    const list = document.getElementById('cartList');
+    const empty = document.getElementById('emptyCart');
+    try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`,{
+            headers:{Authorization:`token ${GITHUB_CONFIG.token}`}
+        });
+        if(!res.ok) throw new Error("加载失败");
+        const issues = await res.json();
+        const myCart = issues.filter(i=>i.body?.includes(currentUser.phone));
+        if(myCart.length===0) { list.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+        
+        let html = "";
+        myCart.forEach(item=>{
+            const name = item.body.match(/商品：(.+)/)?.[1] || "未知商品";
+            const price = item.body.match(/单价：(.+)/)?.[1] || "¥0";
+            html += `
+            <div class="bg-card rounded-xl border border-border p-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <i class="fa-solid fa-box text-gold text-2xl"></i>
+                    <div>
+                        <h3 class="font-bold">${name}</h3>
+                        <p class="text-gold">${price}</p>
+                    </div>
+                </div>
+                <button onclick="delCart(${item.number})" class="text-red-500 text-sm">删除</button>
+            </div>`;
+        });
+        list.innerHTML = html;
+        list.classList.remove('hidden'); empty.classList.add('hidden');
+    } catch(e) { list.innerHTML=`<p class="text-red-400 text-center">加载失败：${e.message}</p>`; }
+}
+
+async function delCart(issueId) {
+    if(!confirm("确定删除？")) return;
+    try {
+        await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${issueId}`,{
+            method:'PATCH',
+            headers:{Authorization:`token ${GITHUB_CONFIG.token}`,"Content-Type":"application/json"},
+            body:JSON.stringify({state:"closed"})
+        });
+        alert("删除成功");
+        loadCart();
+    } catch(e) { alert("删除失败"); }
+}
+</script>
+
+<!-- 顶部固定：跑马灯+导航 -->
+<div class="fixed top-0 left-0 w-full z-50">
+    <div class="bg-gold text-black py-1 text-sm overflow-hidden">
+        <div class="whitespace-nowrap animate-marquee">🎉 玉国科技购物车已上线 | 3D打印蛋仔新品发售</div>
+    </div>
+    <nav class="bg-dark/90 glass py-3 px-6">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold">
+                <i class="fa-solid fa-atom text-gold text-2xl"></i>玉国科技</a>
+            <div id="userArea" class="flex items-center gap-4"></div>
+        </div>
+    </nav>
+</div>
+
+<!-- 购物车主体 -->
+<section class="pt-[110px] px-6 py-10">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gold mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-shopping-cart"></i> 我的购物车
+        </h1>
+        <div id="cartList" class="space-y-4 hidden"></div>
+        <div id="emptyCart" class="bg-card rounded-xl p-12 text-center">
+            <i class="fa-solid fa-cart-shopping text-gold/40 text-4xl mb-4"></i>
+            <h3 class="text-xl font-bold mb-2">购物车是空的</h3>
+            <a href="index.html#product" class="bg-gold text-black px-6 py-2 rounded-lg font-medium glow mt-4 inline-block">去选购</a>
+        </div>
+    </div>
+</section>
+
+<footer class="py-8 text-center text-sm text-gray-500 border-t border-border bg-darker mt-10">
+    <p>© 2025 玉国科技 版权所有</p>
+</footer>
+
+<script>
+window.addEventListener('load',()=>{checkLogin();loadCart();});
+</script>
+
+</body>
+<script>
+document.oncontextmenu = ()=>false;
+document.onkeydown = e=>{if(e.key=="F12"||(e.ctrlKey&&e.key=="u")||(e.ctrlKey&&e.shiftKey&&e.key=="i"))return false;};
+let ow=innerWidth,oh=innerHeight;
+setInterval(()=>{if(innerWidth<ow||innerHeight<oh)window.location.href="about:blank";debugger;},1000);
+console.log=console.warn=console.error=()=>{};
+</script>
+</html>
