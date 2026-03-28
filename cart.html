@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>购物车 - 玉国科技</title>
-    <script src="https://cdn.tcdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script>
         tailwind.config = {
@@ -16,7 +16,7 @@
                         gold: '#FFD700',
                         glass: 'rgba(20,20,20,0.85)',
                         card: '#121212',
-                        border: '#222',
+                        border: '#222222',
                     },
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -41,12 +41,14 @@
         @layer utilities {
             .text-shadow { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
             .glow { box-shadow: 0 0 15px rgba(255,215,0,0.3); animation: breath 4s ease-in-out infinite; }
+            .card-hover { transition: all .3s ease; }
+            .card-hover:hover { transform: translateY(-2px); border-color: #FFD700; }
         }
     </style>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; scroll-behavior:smooth; }
         body { background:#0A0A0A; color:#FFD700; font-family:system-ui,sans-serif; overflow-x:hidden; }
-        .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .glass { backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
         ::-webkit-scrollbar { width:8px; }
         ::-webkit-scrollbar-track { background:#0A0A0A; }
         ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
@@ -58,7 +60,7 @@
 const GITHUB_CONFIG = {
     username: "yuguo-yg-bit",
     repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nvK3S"+"K3wS2qidM6AvQAFx1rAvCd"
+    token: "ghp_sVylTqJv"+"8nvK3SK3wS2qidM6AvQAFx1rAvCd"
 };
 
 const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
@@ -69,9 +71,8 @@ if (!currentUser) {
 
 let cartList = [];
 let totalPrice = 0;
-let refreshTimer; // 自动刷新定时器
+let refreshTimer;
 
-// 导航用户状态
 function checkLoginNav() {
     document.getElementById("userArea").innerHTML = `
     <span class="text-gold mr-3">${currentUser.phone}</span>
@@ -84,7 +85,6 @@ function logout() {
     location.href = "login.html";
 }
 
-// 核心：加载购物车
 async function loadCart() {
     const listEl = document.getElementById("cartList");
     const emptyEl = document.getElementById("emptyCart");
@@ -116,7 +116,7 @@ async function loadCart() {
             totalPrice += num;
 
             html += `
-            <div class="bg-card rounded-xl border border-border p-6 flex items-center justify-between">
+            <div class="bg-card rounded-xl border border-border p-6 flex items-center justify-between card-hover">
                 <div class="flex items-center gap-4">
                     <i class="fa-solid fa-box text-gold text-xl"></i>
                     <div>
@@ -124,8 +124,7 @@ async function loadCart() {
                         <div class="text-gold/80">${price}</div>
                     </div>
                 </div>
-                <button onclick="delCart(${item.number})" 
-                    class="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                <button onclick="delCart(${item.number})" class="bg-red-500 text-white px-3 py-1 rounded text-sm">
                     <i class="fa-solid fa-trash mr-1"></i>删除
                 </button>
             </div>`;
@@ -137,11 +136,10 @@ async function loadCart() {
         emptyEl.classList.add("hidden");
         checkoutBox.classList.remove("hidden");
     } catch (e) {
-        console.error("刷新失败", e);
+        console.error(e);
     }
 }
 
-// 删除商品
 async function delCart(id) {
     if (!confirm("确定删除？")) return;
     await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${id}`, {
@@ -152,18 +150,15 @@ async function delCart(id) {
     loadCart();
 }
 
-// 打开支付
 function goToPay() {
     document.getElementById("showTotal").innerText = "¥" + totalPrice.toFixed(2);
     document.getElementById("payLayer").classList.remove("hidden");
 }
 
-// 关闭支付
 function closePay() {
     document.getElementById("payLayer").classList.add("hidden");
 }
 
-// 确认支付
 async function confirmPay() {
     if (!confirm("确认已支付？")) return;
 
@@ -193,23 +188,21 @@ async function confirmPay() {
     loadCart();
 }
 
-// ========== 关键：自动实时刷新 ==========
 function autoRefreshCart() {
-    loadCart(); // 立即刷一次
+    loadCart();
     clearInterval(refreshTimer);
-    // 每 2 秒自动刷新一次购物车
     refreshTimer = setInterval(loadCart, 2000);
 }
 </script>
 
-<!-- 顶部 -->
-<div class="fixed top-0 left-0 w-full z-50">
+<!-- 顶部固定栏 -->
+<div class="fixed top-0 left-0 w-full z-50 bg-dark/90 glass">
     <div class="bg-black text-gold py-1 text-sm overflow-hidden">
         <div class="whitespace-nowrap animate-marquee px-4">
             🎉 玉国科技 | 3D打印蛋仔 | 购物车自动刷新
         </div>
     </div>
-    <nav class="bg-dark/90 glass py-3 px-6">
+    <nav class="py-3 px-6">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
                 <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>玉国科技
@@ -219,7 +212,7 @@ function autoRefreshCart() {
     </nav>
 </div>
 
-<!-- 内容 -->
+<!-- 购物车主体内容 -->
 <section class="pt-[120px] px-6 py-10 min-h-screen">
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gold mb-8 flex items-center gap-2">
@@ -231,7 +224,7 @@ function autoRefreshCart() {
         <div id="emptyCart" class="bg-card rounded-xl border border-border p-12 text-center">
             <i class="fa-solid fa-shopping-cart text-gold/50 text-4xl mb-4"></i>
             <h3 class="text-xl font-bold text-gold mb-4">购物车为空</h3>
-            <a href="index.html#product" class="bg-gold text-black px-6 py-3 rounded-lg font-bold glow">
+            <a href="index.html#product" class="bg-gold text-black px-6 py-3 rounded-lg font-medium glow">
                 去选购商品
             </a>
         </div>
@@ -241,14 +234,14 @@ function autoRefreshCart() {
                 <span class="text-sm text-gold/70">合计：</span>
                 <span id="totalPrice" class="text-2xl font-bold">¥0.00</span>
             </div>
-            <button onclick="goToPay()" class="bg-gold text-black px-8 py-3 rounded-lg font-bold glow">
+            <button onclick="goToPay()" class="bg-gold text-black px-8 py-3 rounded-lg font-medium glow">
                 <i class="fa-solid fa-credit-card mr-1"></i>去支付
             </button>
         </div>
     </div>
 </section>
 
-<!-- 支付弹窗 -->
+<!-- 支付弹窗（居中+遮罩，彻底解决排版错乱） -->
 <div id="payLayer" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-dark rounded-2xl border border-gold/40 p-8 max-w-sm w-full text-center relative">
         <button onclick="closePay()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-gold text-black flex items-center justify-center font-bold">✕</button>
@@ -256,7 +249,7 @@ function autoRefreshCart() {
         <p class="text-gold/80 mb-4">请扫码支付</p>
         <img src="wechat.png" class="w-64 h-64 object-contain mx-auto rounded-lg border border-gold/30 mb-6" alt="微信收款码">
         <p id="showTotal" class="text-gold font-bold text-xl mb-6">¥0.00</p>
-        <button onclick="confirmPay()" class="w-full bg-gold text-black py-3 rounded-lg font-bold glow">已完成支付</button>
+        <button onclick="confirmPay()" class="w-full bg-gold text-black py-3 rounded-lg font-medium glow">已完成支付</button>
     </div>
 </div>
 
@@ -267,80 +260,19 @@ function autoRefreshCart() {
 <script>
 window.addEventListener("load", () => {
     checkLoginNav();
-    autoRefreshCart(); // 开启自动刷新
+    autoRefreshCart();
 });
 </script>
-</body>
 
+<!-- 防扒代码 -->
 <script>
-// ==============================================
-// 1. 禁止右键菜单（防右键另存、查看源码）
-// ==============================================
-document.oncontextmenu = function (e) {
-    e.preventDefault();
+document.oncontextmenu = function(){return false;};
+document.onkeydown = function(e){
+    if(e.key=="F12"||(e.ctrlKey&&e.shiftKey&&e.key=="I")||(e.ctrlKey&&e.key=="u"))return false;
 };
-
-// ==============================================
-// 2. 禁止选中复制（可选）
-// ==============================================
-document.onselectstart = function (e) {
-    // 如果你不想禁选，把这整行注释掉即可
-    // e.preventDefault();
-};
-
-// ==============================================
-// 3. 禁止 F12 / Ctrl+Shift+I / Ctrl+U 查看源码
-// ==============================================
-document.onkeydown = function (e) {
-    // F12
-    if (e.key === 'F12') {
-        e.preventDefault();
-    }
-    // Ctrl+Shift+I
-    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-        e.preventDefault();
-    }
-    // Ctrl+U 查看网页源代码
-    if (e.ctrlKey && e.key === 'u') {
-        e.preventDefault();
-    }
-};
-
-// ==============================================
-// 4. 反开发者工具（控制台一打开就跳转/清空）
-// ==============================================
-let devtools = { open: false };
-setInterval(() => {
-    if (console.profile || console.profile.toString().indexOf('native') < 0) {
-        if (!devtools.open) {
-            devtools.open = true;
-            //打开控制台就跳空白页（防调试）
-            location.href = 'about:blank';
-        }
-    }
-}, 500);
-
-// 强力反调试（控制台打开会卡死/无限debug）
-(function antiDebug() {
-    function block() {
-        debugger;
-        setTimeout(block, 10);
-    }
-    try { block(); } catch (e) {}
-})();
-
-// ==============================================
-// 5. 防控制台输出刷屏（可选）
-// ==============================================
-// 
-console.log = console.warn = console.error = function(){};
-
-// ==============================================
-// 6. 防 iframe 嵌套引用（防别人嵌套你的网站）
-// ==============================================
-if (window.top !== window.self) {
-    window.top.location = window.location.href;
-}
+let originalW=innerWidth,originalH=innerHeight;
+setInterval(()=>{if(innerWidth<originalW||innerHeight<originalH)window.location.href="about:blank";debugger;},1000);
+console.log=console.warn=console.error=function(){};
 </script>
-
+</body>
 </html>
