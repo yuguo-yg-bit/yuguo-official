@@ -19,9 +19,9 @@
                         border: '#222222',
                     },
                     animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'breath': 'breath 4s ease-in-out infinite',
-                        'marquee': 'slide 12s linear infinite',
+                        pulse-slow: 'pulse 3s infinite',
+                        breath: 'breath 4s infinite',
+                        marquee: 'slide 12s linear infinite',
                     },
                     keyframes: {
                         breath: {
@@ -47,10 +47,9 @@
     </style>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; scroll-behavior:smooth; }
-        body { background:#0A0A0A; color:#FFD700; font-family:Inter,sans-serif; overflow-x:hidden; }
+        body { background:#0A0A0A; color:#FFD700; font-family:system-ui,sans-serif; overflow-x:hidden; }
         .glass { backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
         ::-webkit-scrollbar { width:8px; }
-        ::-webkit-scrollbar-track { background:#0A0A0A; }
         ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
     </style>
 </head>
@@ -60,53 +59,60 @@
 const GITHUB_CONFIG = {
     username: "yuguo-yg-bit",
     repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
+    token: "ghp_sVylTqJv8nvK3"+"SK3wS2qidM6AvQAFx1rAvCd"
 };
-const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
 
+const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
 if (!currentUser) {
-    alert('请先登录！');
-    location.href = 'login.html';
+    alert("请先登录");
+    location.href = "login.html";
 }
 
+let cartList = [];
+let totalPrice = 0;
+
 function checkLoginNav() {
-    const userArea = document.getElementById('userArea');
-    userArea.innerHTML = `
+    document.getElementById("userArea").innerHTML = `
     <span class="text-gold mr-3">${currentUser.phone}</span>
     <a href="index.html" class="text-sm hover:text-gold">首页</a>
     <button onclick="logout()" class="text-sm text-gray-400 hover:text-white">退出</button>`;
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
-    location.href = 'login.html';
+    localStorage.removeItem("currentUser");
+    location.href = "login.html";
 }
 
 async function loadCart() {
-    const list = document.getElementById('cartList');
-    const empty = document.getElementById('emptyCart');
-    const checkoutBox = document.getElementById('checkoutBox');
+    const listEl = document.getElementById("cartList");
+    const emptyEl = document.getElementById("emptyCart");
+    const checkoutBox = document.getElementById("checkoutBox");
+
     try {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
             headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
         });
-        const issues = await res.json();
-        const myCart = issues.filter(i => i.body?.includes(currentUser.phone));
+        const all = await res.json();
+        cartList = all.filter(i => i.body?.includes(currentUser.phone));
 
-        if (myCart.length === 0) {
-            list.classList.add('hidden');
-            empty.classList.remove('hidden');
-            checkoutBox.classList.add('hidden');
+        if (cartList.length === 0) {
+            listEl.classList.add("hidden");
+            emptyEl.classList.remove("hidden");
+            checkoutBox.classList.add("hidden");
             return;
         }
 
-        let html = '';
-        let total = 0;
-        myCart.forEach(issue => {
-            const name = issue.body.match(/商品：(.+)/)?.[1] || '未知商品';
-            const price = issue.body.match(/单价：(.+)/)?.[1] || '¥0';
-            const num = parseFloat(price.replace('¥', '')) || 0;
-            total += num;
+        let html = "";
+        totalPrice = 0;
+
+        cartList.forEach(item => {
+            const nameMatch = item.body?.match(/商品：(.+)/);
+            const priceMatch = item.body?.match(/单价：(.+)/);
+            const name = nameMatch ? nameMatch[1].trim() : "未知商品";
+            const price = priceMatch ? priceMatch[1].trim() : "¥0.00";
+            const num = parseFloat(price.replace("¥", "")) || 0;
+            totalPrice += num;
+
             html += `
             <div class="bg-card rounded-xl border border-border p-6 flex items-center justify-between card-hover">
                 <div class="flex items-center gap-4">
@@ -116,77 +122,76 @@ async function loadCart() {
                         <div class="text-gold/80">${price}</div>
                     </div>
                 </div>
-                <button onclick="delCart(${issue.number})" class="text-red-400 hover:text-red-300 text-sm">
+                <button onclick="delCart(${item.number})" class="text-red-400 hover:text-red-300 text-sm">
                     <i class="fa-solid fa-trash mr-1"></i>删除
                 </button>
             </div>`;
         });
 
-        list.innerHTML = html;
-        document.getElementById('totalPrice').innerText = '¥' + total.toFixed(2);
-        list.classList.remove('hidden');
-        empty.classList.add('hidden');
-        checkoutBox.classList.remove('hidden');
+        listEl.innerHTML = html;
+        document.getElementById("totalPrice").innerText = "¥" + totalPrice.toFixed(2);
+        listEl.classList.remove("hidden");
+        emptyEl.classList.add("hidden");
+        checkoutBox.classList.remove("hidden");
     } catch (e) {
-        list.innerHTML = `<div class="text-red-400 text-center p-4">加载失败</div>`;
+        console.error(e);
     }
 }
 
-async function delCart(issueId) {
-    if (!confirm('确定删除？')) return;
-    await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${issueId}`, {
-        method: 'PATCH',
+async function delCart(id) {
+    if (!confirm("确定删除？")) return;
+    await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${id}`, {
+        method: "PATCH",
         headers: { Authorization: `token ${GITHUB_CONFIG.token}` },
-        body: JSON.stringify({ state: 'closed' })
+        body: JSON.stringify({ state: "closed" })
     });
-    alert('已删除');
     loadCart();
 }
 
 function goToPay() {
-    document.getElementById('payLayer').classList.remove('hidden');
+    document.getElementById("showTotal").innerText = "¥" + totalPrice.toFixed(2);
+    document.getElementById("payLayer").classList.remove("hidden");
 }
 
 function closePay() {
-    document.getElementById('payLayer').classList.add('hidden');
+    document.getElementById("payLayer").classList.add("hidden");
 }
 
 async function confirmPay() {
-    if (!confirm('已完成支付？确认后将生成订单')) return;
+    if (!confirm("确认已支付？")) return;
 
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
-        headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
-    });
-    const issues = await res.json();
-    const myCart = issues.filter(i => i.body?.includes(currentUser.phone));
+    const orderNo = "YG" + Date.now();
+    const payTime = new Date().toLocaleString("zh-CN");
 
-    if (myCart.length === 0) { alert('购物车为空'); return; }
+    for (const item of cartList) {
+        const nameMatch = item.body?.match(/商品：(.+)/);
+        const priceMatch = item.body?.match(/单价：(.+)/);
+        const name = nameMatch ? nameMatch[1].trim() : "未知商品";
+        const price = priceMatch ? priceMatch[1].trim() : "¥0.00";
 
-    const orderNo = 'YG' + Date.now();
-    const payTime = new Date().toLocaleString('zh-CN');
+        const newBody = `用户：${currentUser.phone}\n商品：${name}\n单价：${price}\n订单号：${orderNo}\n支付时间：${payTime}\n状态：已支付`;
 
-    for (const item of myCart) {
         await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${item.number}`, {
-            method: 'PATCH',
+            method: "PATCH",
             headers: { Authorization: `token ${GITHUB_CONFIG.token}` },
             body: JSON.stringify({
-                labels: ['payment-record'],
-                body: item.body + `\n订单号：${orderNo}\n支付时间：${payTime}\n状态：已支付`
+                labels: ["payment-record"],
+                body: newBody
             })
         });
     }
 
-    alert('支付成功！订单已生成');
+    alert("支付成功！订单已生成");
     closePay();
     loadCart();
 }
 </script>
 
-<!-- 顶部固定栏 -->
+<!-- 顶部 -->
 <div class="fixed top-0 left-0 w-full z-50">
     <div class="bg-black text-gold py-1 text-sm overflow-hidden">
         <div class="whitespace-nowrap animate-marquee px-4">
-            🎉 玉国科技官网 | 3D打印蛋仔新品发售 | 购物车结算支持微信支付
+            🎉 玉国科技 | 3D打印蛋仔 | 购物车结算
         </div>
     </div>
     <nav class="bg-dark/90 glass py-3 px-6">
@@ -199,11 +204,11 @@ async function confirmPay() {
     </nav>
 </div>
 
-<!-- 主体 -->
+<!-- 内容 -->
 <section class="pt-[120px] px-6 py-10 min-h-screen">
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gold mb-8 flex items-center gap-2">
-            <i class="fa-solid fa-shopping-cart text-gold"></i> 购物车
+            <i class="fa-solid fa-shopping-cart"></i> 购物车
         </h1>
 
         <div id="cartList" class="space-y-4 mb-6 hidden"></div>
@@ -214,27 +219,26 @@ async function confirmPay() {
             <a href="index.html#product" class="bg-gold text-black px-6 py-3 rounded-lg font-medium glow">去选购</a>
         </div>
 
-        <!-- 结算栏 -->
         <div id="checkoutBox" class="hidden bg-card rounded-xl border border-border p-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-gold">
                 <span class="text-sm text-gold/70">合计：</span>
                 <span id="totalPrice" class="text-2xl font-bold">¥0.00</span>
             </div>
             <button onclick="goToPay()" class="bg-gold text-black px-8 py-3 rounded-lg font-medium glow">
-                <i class="fa-solid fa-credit-card mr-1"></i>去支付
+                <i class="fa-solid-credit-card mr-1"></i>去支付
             </button>
         </div>
     </div>
 </section>
 
-<!-- 支付弹窗（和蛋仔页面一样） -->
+<!-- 支付弹窗 -->
 <div id="payLayer" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-dark rounded-2xl border border-gold/40 p-8 max-w-sm w-full text-center relative">
         <button onclick="closePay()" class="absolute top-4 right-4 text-gold text-xl">✕</button>
         <h3 class="text-2xl font-bold text-gold mb-2">微信支付</h3>
         <p class="text-gold/80 mb-4">请扫码支付</p>
         <img src="wechat.png" class="w-64 h-64 object-contain mx-auto rounded-lg border border-gold/30 mb-6" alt="微信收款码">
-        <p class="text-gold font-bold text-lg mb-6" id="showTotal">¥0.00</p>
+        <p id="showTotal" class="text-gold font-bold text-xl mb-6">¥0.00</p>
         <button onclick="confirmPay()" class="w-full bg-gold text-black py-3 rounded-lg font-medium glow">已完成支付</button>
     </div>
 </div>
@@ -244,13 +248,10 @@ async function confirmPay() {
 </footer>
 
 <script>
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
     checkLoginNav();
     loadCart();
-    const total = document.getElementById('totalPrice').innerText;
-    document.getElementById('showTotal').innerText = total;
 });
 </script>
-
 </body>
 </html>
