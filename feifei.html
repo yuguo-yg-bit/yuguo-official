@@ -292,4 +292,75 @@ document.onkeydown = (e) => {
 };
 </script>
 </body>
+
+<script>
+// ==============================================
+// 1. 禁止右键菜单（防右键另存、查看源码）
+// ==============================================
+document.oncontextmenu = function (e) {
+    e.preventDefault();
+};
+
+// ==============================================
+// 2. 禁止选中复制（可选）
+// ==============================================
+document.onselectstart = function (e) {
+    // 如果你不想禁选，把这整行注释掉即可
+    // e.preventDefault();
+};
+
+// ==============================================
+// 3. 禁止 F12 / Ctrl+Shift+I / Ctrl+U 查看源码
+// ==============================================
+document.onkeydown = function (e) {
+    // F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+    }
+    // Ctrl+Shift+I
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+    }
+    // Ctrl+U 查看网页源代码
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+    }
+};
+
+// ==============================================
+// 4. 反开发者工具（控制台一打开就跳转/清空）
+// ==============================================
+let devtools = { open: false };
+setInterval(() => {
+    if (console.profile || console.profile.toString().indexOf('native') < 0) {
+        if (!devtools.open) {
+            devtools.open = true;
+            // 打开控制台就跳空白页（防调试）
+            location.href = 'about:blank';
+        }
+    }
+}, 500);
+
+// 强力反调试（控制台打开会卡死/无限debug）
+(function antiDebug() {
+    function block() {
+        debugger;
+        setTimeout(block, 10);
+    }
+    try { block(); } catch (e) {}
+})();
+
+// ==============================================
+// 5. 防控制台输出刷屏（可选）
+// ==============================================
+console.log = console.warn = console.error = function(){};
+
+// ==============================================
+// 6. 防 iframe 嵌套引用（防别人嵌套你的网站）
+// ==============================================
+if (window.top !== window.self) {
+    window.top.location = window.location.href;
+}
+</script>
+
 </html>
