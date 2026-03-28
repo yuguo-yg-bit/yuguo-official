@@ -18,7 +18,6 @@
                         card: '#121212',
                         border: '#222222',
                     },
-                    fontFamily: { tech: ['Inter','system-ui','sans-serif'] },
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'float': 'float 3s ease-in-out infinite',
@@ -26,9 +25,18 @@
                         'marquee': 'slide 12s linear infinite',
                     },
                     keyframes: {
-                        float: {'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-8px)'}},
-                        breath: {'0%,100%':{boxShadow:'0 0 12px rgba(255,215,0,0.3)'},'50%':{boxShadow:'0 0 20px rgba(255,215,0,0.6)'}},
-                        slide: {'0%':{transform:'translateX(100%)'},'100%':{transform:'translateX(-100%)'}}
+                        float: {
+                            '0%,100%': { transform:'translateY(0)' },
+                            '50%': { transform:'translateY(-8px)' }
+                        },
+                        breath: {
+                            '0%,100%': { boxShadow:'0 0 12px rgba(255,215,0,0.3)' },
+                            '50%': { boxShadow:'0 0 20px rgba(255,215,0,0.6)' }
+                        },
+                        slide: {
+                            '0%': { transform:'translateX(100%)' },
+                            '100%': { transform:'translateX(-100%)' }
+                        }
                     }
                 }
             }
@@ -63,13 +71,14 @@ const GITHUB_CONFIG = {
 };
 const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
 
+// 导航栏状态（登录 / 未登录 / 购物车数量）
 function checkLoginNavCart() {
     const userArea = document.getElementById('userArea');
     if(currentUser) {
         userArea.innerHTML = `
-        <a href="cart.html" class="relative cursor-pointer mr-3">
+        <a href="cart.html" class="relative mr-3">
             <i class="fa-solid fa-shopping-cart text-gold text-xl"></i>
-            <span id="cartCount" class="absolute -top-2 -right-2 w-4 h-4 bg-gold text-black rounded-full text-xs flex items-center justify-center">0</span>
+            <span id="cartCount" class="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-gold text-black text-xs rounded-full">0</span>
         </a>
         <span class="text-gold mr-3">${currentUser.phone}</span>
         <a href="index.html" class="text-sm hover:text-gold">首页</a>
@@ -78,26 +87,40 @@ function checkLoginNavCart() {
         loadCartCount();
     } else {
         userArea.innerHTML = `
+        <a href="login.html" class="text-sm hover:text-gold mr-4">登录</a>
         <a href="register.html" class="text-sm hover:text-gold">注册</a>
-        <a href="login.html" class="bg-gold text-black px-4 py-2 rounded-full text-sm font-medium glow">登录账户</a>
         `;
     }
 }
 
+// 退出登录
 function logout() {
     localStorage.removeItem('currentUser');
-    location.href = 'login.html';
+    location.href = 'index.html';
 }
 
+// 购物车数量实时刷新
+async function loadCartCount() {
+    if(!currentUser) return;
+    try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
+            headers: { "Authorization": `token ${GITHUB_CONFIG.token}` }
+        });
+        const list = await res.json();
+        const cnt = list.filter(i=>i.body?.includes(currentUser.phone)).length;
+        document.getElementById('cartCount').innerText = cnt;
+    }catch(e){}
+}
+
+// 加入购物车（实时刷新）
 async function addToCart(product) {
     if(!currentUser) { alert("请先登录"); return; }
     try {
         const body = `用户：${currentUser.phone}\n商品：${product.name}\n单价：${product.price}\n数量：1\n状态：购物车`;
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`, {
+        await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`, {
             method: 'POST',
             headers: {
                 "Authorization": `token ${GITHUB_CONFIG.token}`,
-                "Accept": "application/vnd.github.v3+json",
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -106,49 +129,23 @@ async function addToCart(product) {
                 labels: ["cart"]
             })
         });
-        if(res.ok) {
-            alert("已加入购物车");
-            // 立刻刷新数量，解决首页不跳的问题
-            loadCartCount();
-        } else {
-            alert("加入失败");
-        }
-    } catch(e) {
-        alert("错误：" + e.message);
+        alert("已加入购物车");
+        loadCartCount();
+    }catch(e){
+        alert("加入失败");
     }
-}
-        if(res.ok) {
-            alert("已加入购物车");
-            loadCartCount();
-        } else alert("加入失败");
-    } catch(e) { alert("错误"); }
-}
-
-async function loadCartCount() {
-    if(!currentUser) return;
-    try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
-            headers: { "Authorization": `token ${GITHUB_CONFIG.token}` }
-        });
-        if(res.ok) {
-            const list = await res.json();
-            const cnt = list.filter(i => i.body?.includes(currentUser.phone)).length;
-            document.getElementById('cartCount').innerText = cnt;
-        }
-    } catch(e) {}
 }
 </script>
 
-<!-- 顶部永久固定：跑马灯 + 导航 -->
+<!-- 顶部永久固定：跑马灯 + 导航栏 -->
 <div class="fixed top-0 left-0 w-full z-50">
-    <!-- 跑马灯：永远滚动，不停止 -->
-    <div class="bg-gold text-black py-1 text-sm overflow-hidden">
+    <!-- 跑马灯 黑底金字 永不停止 -->
+    <div class="bg-black text-gold py-1 text-sm overflow-hidden">
         <div class="whitespace-nowrap animate-marquee">
-            🎉 玉国科技官网正式上线 | 3D打印蛋仔新品发售 | 小额体验价 | 购物车已上线
+            🎉 玉国科技官网正式上线 | 3D打印蛋仔新品发售 | 微信支付 | 购物车已上线
         </div>
     </div>
-    <!-- 导航栏 -->
-    <nav id="navbar" class="bg-dark/90 glass py-3 px-6">
+    <nav class="bg-dark/90 glass py-3 px-6">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-gold text-shadow">
                 <i class="fa-solid fa-atom text-gold text-2xl animate-pulse-slow"></i>玉国科技
@@ -168,69 +165,68 @@ async function loadCartCount() {
 </div>
 
 <!-- 主体内容 -->
-<section class="pt-[110px] min-h-screen flex items-center justify-center px-6">
+<section class="pt-[120px] min-h-screen flex items-center justify-center px-6">
   <div class="max-w-6xl mx-auto text-center fade-up">
     <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-bold text-gold text-shadow mb-6 animate-pulse-slow">玉国科技</h1>
     <p class="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">专注数字IP、3D打印文创、影视项目与互动游戏开发</p>
     <div class="flex flex-wrap justify-center gap-4 mb-10">
-      <a href="#product" class="bg-gold text-black px-6 py-3 rounded-full text-lg font-medium hover:scale-105 glow">进入商品区</a>
-      <a href="#tools" class="border border-gold text-gold px-6 py-3 rounded-full text-lg">实用工具</a>
+      <a href="#product" class="bg-gold text-black px-6 py-3 rounded-full text-lg font-medium glow hover:scale-105 transition-transform">进入商品区</a>
+      <a href="#tools" class="border border-gold text-gold px-6 py-3 rounded-full text-lg hover:bg-gold/10 transition">实用工具</a>
     </div> 
-
-    <!-- 玉国新闻 -->
-    <div class="max-w-6xl mx-auto mb-16">
-      <div class="text-center mb-12 fade-up">
-        <h2 class="text-3xl font-bold text-gold mb-4">玉国新闻</h2>
-        <p class="text-gray-400">最新动态 · 品牌资讯</p>
-      </div>
-      <div class="bg-card rounded-2xl border border-gold/30 p-8 mb-12 card-hover fade-up">
-        <div class="text-center">
-          <h3 class="text-2xl md:text-3xl font-bold text-gold mb-6">玉国科技官方网站正式成立</h3>
-          <p class="text-gray-300 text-lg">2026年3月，玉国科技官网正式上线，涵盖商品、影视、IP、工具、游戏等板块。</p>
-          <p class="text-gray-400 text-sm mt-4">发布时间：2026年3月</p>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-card rounded-2xl border border-border p-6 text-center opacity-60">
-          <i class="fa-solid fa-newspaper text-gold/50 text-3xl mb-4"></i>
-          <h3 class="text-xl font-bold text-gray-400">更多新闻</h3>
-          <p class="text-gray-500 text-sm">即将上线</p>
-        </div>
-        <div class="bg-card rounded-2xl border border-border p-6 text-center opacity-60">
-          <i class="fa-solid fa-bullhorn text-gold/50 text-3xl mb-4"></i>
-          <h3 class="text-xl font-bold text-gray-400">品牌动态</h3>
-          <p class="text-gray-500 text-sm">即将上线</p>
-        </div>
-        <div class="bg-card rounded-2xl border border-border p-6 text-center opacity-60">
-          <i class="fa-solid fa-calendar-days text-gold/50 text-3xl mb-4"></i>
-          <h3 class="text-xl font-bold text-gray-400">活动预告</h3>
-          <p class="text-gray-500 text-sm">即将上线</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 个人小视频 -->
-    <div class="max-w-2xl mx-auto mt-10">
-        <div class="grid grid-cols-1 gap-10 items-center">
-        <a href="video.html" class="relative block">
-        <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
-          <img src="79090.png" class="w-full rounded-2xl relative z-10 border border-border animate-float" alt="个人小视频">
-        </a>
-        <div class="bg-card rounded-2xl border border-border p-8">
-          <h3 class="text-2xl font-bold text-gold mb-6">个人小视频</h3>
-          <p class="text-gray-300">记录日常、作业、生活片段，不定期更新。</p>
-          <p class="text-gray-300 mt-2">26年3月14日更新：作业记录小视频。</p>
-          <a href="video.html" class="block w-full bg-gold text-black text-center py-3 rounded-lg font-medium glow mt-4">查看全部视频</a>
-        </div>
-      </div>
-    </div>
   </div>
 </section>
 
-<!-- 下方所有板块（关于我们、商品、电影等）完全不变，省略重复部分，保持原有代码 -->
-<!-- 这里直接沿用你之前的完整板块代码，不做删减 -->
-<section class="py-20 px-6 bg-gradient-to-b from-dark to-darker fade-up">
-  <div class="max-w-6xl mx-auto">
+<!-- 玉国新闻 -->
+<div class="max-w-6xl mx-auto mb-16 px-6">
+  <div class="text-center mb-12 fade-up">
+    <h2 class="text-3xl font-bold text-gold mb-4">玉国新闻</h2>
+    <p class="text-gray-400">最新动态 · 品牌资讯</p>
+  </div>
+  <div class="bg-card rounded-2xl border border-gold/30 p-8 mb-12 card-hover fade-up">
+    <div class="text-center">
+      <h3 class="text-2xl md:text-3xl font-bold text-gold mb-6">玉国科技官方网站正式成立</h3>
+      <p class="text-gray-300 text-lg">2026年3月，玉国科技官网正式上线，涵盖商品、影视、IP、工具、游戏等板块。</p>
+      <p class="text-gray-400 text-sm mt-4">发布时间：2026年3月</p>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-card rounded-2xl border border-border p-6 text-center opacity-60 fade-up">
+      <i class="fa-solid fa-newspaper text-gold/50 text-3xl mb-4"></i>
+      <h3 class="text-xl font-bold text-gray-400">更多新闻</h3>
+      <p class="text-gray-500 text-sm">即将上线</p>
+    </div>
+    <div class="bg-card rounded-2xl border border-border p-6 text-center opacity-60 fade-up">
+      <i class="fa-solid fa-bullhorn text-gold/50 text-3xl mb-4"></i>
+      <h3 class="text-xl font-bold text-gray-400">品牌动态</h3>
+      <p class="text-gray-500 text-sm">即将上线</p>
+    </div>
+    <div class="bg-card rounded-2xl border border-border p-6 text-center opacity-60 fade-up">
+      <i class="fa-solid fa-calendar-days text-gold/50 text-3xl mb-4"></i>
+      <h3 class="text-xl font-bold text-gray-400">活动预告</h3>
+      <p class="text-gray-500 text-sm">即将上线</p>
+    </div>
+  </div>
+</div>
+
+<!-- 个人小视频 -->
+<div class="max-w-2xl mx-auto mt-10 px-6 mb-20">
+  <div class="grid grid-cols-1 gap-10 items-center fade-up">
+    <a href="video.html" class="relative block">
+      <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
+      <img src="79090.png" class="w-full rounded-2xl relative z-10 border border-border animate-float" alt="个人小视频">
+    </a>
+    <div class="bg-card rounded-2xl border border-border p-8">
+      <h3 class="text-2xl font-bold text-gold mb-6">个人小视频</h3>
+      <p class="text-gray-300">记录日常、作业、生活片段，不定期更新。</p>
+      <p class="text-gray-300 mt-2">26年3月14日更新：作业记录小视频。</p>
+      <a href="video.html" class="block w-full bg-gold text-black text-center py-3 rounded-lg font-medium glow mt-4">查看全部视频</a>
+    </div>
+  </div>
+</div>
+
+<!-- 关于我们 -->
+<section class="py-20 px-6 bg-gradient-to-b from-dark to-darker">
+  <div class="max-w-6xl mx-auto fade-up">
     <div class="text-center mb-12">
       <h2 class="text-3xl font-bold text-gold mb-4">关于我们</h2>
       <p class="text-gray-400">用科技创造美好数字生活</p>
@@ -238,93 +234,96 @@ async function loadCartCount() {
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div class="bg-card rounded-2xl border border-border p-6 card-hover">
         <i class="fa-solid fa-lightbulb text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">创新理念</h3>
-        <p class="text-gray-400">以用户为中心，用前沿技术打造沉浸式数字体验，让科技更有温度。</p>
+        <h3 class="text-xl font-bold mb-2 text-white">创新理念</h3>
+        <p class="text-gray-400">以用户为中心，用前沿技术打造沉浸式数字体验。</p>
       </div>
       <div class="bg-card rounded-2xl border border-border p-6 card-hover">
         <i class="fa-solid fa-rocket text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">核心业务</h3>
-        <p class="text-gray-400">3D打印文创、影视IP开发、互动游戏、实用工具开发，覆盖数字生活全场景。</p>
+        <h3 class="text-xl font-bold mb-2 text-white">核心业务</h3>
+        <p class="text-gray-400">3D打印文创、影视IP、互动游戏、实用工具开发。</p>
       </div>
       <div class="bg-card rounded-2xl border border-border p-6 card-hover">
         <i class="fa-solid fa-shield-halved text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">安全</h3>
-        <p class="text-gray-400">可靠</p>
+        <h3 class="text-xl font-bold mb-2 text-white">安全可靠</h3>
+        <p class="text-gray-400">数据安全，体验稳定，服务持续更新。</p>
       </div>
     </div>
   </div>
 </section>
 
-<section id="product" class="py-24 px-6 bg-darker fade-up">
-  <div class="max-w-6xl mx-auto">
+<!-- 商品区 -->
+<section id="product" class="py-24 px-6 bg-darker">
+  <div class="max-w-6xl mx-auto fade-up">
     <div class="text-center mb-16">
       <h2 class="text-3xl font-bold text-gold mb-4">商品区</h2>
-      <p class="text-gray-400">当前上架商品：3D打印蛋仔（黑金版）</p>
+      <p class="text-gray-400">当前上架：3D打印蛋仔（黑金版）</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="bg-card rounded-2xl border border-border p-6 flex flex-col items-center justify-center card-hover relative">
+      <div class="bg-card rounded-2xl border border-border p-8 flex flex-col items-center justify-center card-hover relative">
         <button class="absolute top-4 right-4 text-gray-400 hover:text-gold" onclick="this.classList.toggle('text-gold')">
           <i class="fa-solid fa-heart text-lg"></i>
         </button>
         <div class="w-24 h-24 rounded-full bg-gold/10 flex items-center justify-center mb-6 animate-float">
           <i class="fa-solid fa-box text-gold text-3xl"></i>
         </div>
-        <h3 class="text-xl font-bold mb-2">3D打印蛋仔（黑金版）</h3>
+        <h3 class="text-xl font-bold mb-2 text-white">3D打印蛋仔（黑金版）</h3>
         <p class="text-gold text-2xl font-bold mb-4">¥3.00</p>
-        <p class="text-gray-400 text-sm text-center mb-6">环保PLA材质<br>高精度3D打印 + 人工打磨</p>
+        <p class="text-gray-400 text-sm text-center mb-6">环保PLA材质<br>高精度打印+手工打磨</p>
         <button onclick="addToCart({name:'3D打印蛋仔（黑金版）',price:'¥3.00'})" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2">加入购物车</button>
         <a href="danzai.html" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看详情</a>
       </div>
-      <div class="bg-card rounded-2xl border border-border p-6 flex flex-col items-center justify-center opacity-60">
+      <div class="bg-card rounded-2xl border border-border p-8 flex flex-col items-center justify-center opacity-60">
         <i class="fa-solid fa-gift text-gold/50 text-3xl mb-6"></i>
         <p class="text-gray-500">更多商品<br>即将上线</p>
       </div>
-      <div class="bg-card rounded-2xl border border-border p-6 flex flex-col items-center justify-center opacity-60">
+      <div class="bg-card rounded-2xl border border-border p-8 flex flex-col items-center justify-center opacity-60">
         <i class="fa-solid fa-rocket text-gold/50 text-3xl mb-6"></i>
-        <p class="text-gray-500">未来产品<br>敬请期待</p>
+        <p class="text-gray-500">未来新品<br>敬请期待</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 电影、兔兔小飞飞、工具、游戏、底部不变，直接沿用 -->
-<section id="movie" class="py-24 px-6 bg-dark fade-up">
-  <div class="max-w-6xl mx-auto">
+<!-- 电影区 -->
+<section id="movie" class="py-24 px-6 bg-dark">
+  <div class="max-w-6xl mx-auto fade-up">
     <div class="text-center mb-16">
       <h2 class="text-3xl font-bold text-gold mb-4">电影区</h2>
       <p class="text-gray-400">暂无正在上映项目</p>
     </div>
     <div class="bg-card rounded-2xl border border-border p-12 text-center">
       <i class="fa-solid fa-film text-gold/40 text-5xl mb-6 animate-pulse-slow"></i>
-      <p class="text-gray-300">我们正在筹备优质影视内容<br>未来将上线原创电影与短片作品，敬请期待</p>
+      <p class="text-gray-300">我们正在筹备优质影视内容<br>未来将上线原创电影与短片，敬请期待</p>
     </div>
   </div>
 </section>
 
-<section id="feifei" class="py-24 px-6 bg-darker fade-up">
-  <div class="max-w-6xl mx-auto">
+<!-- 兔兔小飞飞 -->
+<section id="feifei" class="py-24 px-6 bg-darker">
+  <div class="max-w-6xl mx-auto fade-up">
     <div class="text-center mb-16">
       <h2 class="text-3xl font-bold text-gold mb-4">兔兔小飞飞</h2>
-      <p class="text-gray-400">玉国科技官方品牌吉祥物</p>
+      <p class="text-gray-400">玉国科技官方IP形象</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-      <div class="relative fade-up">
+      <div class="relative">
         <div class="absolute inset-0 bg-gold/10 rounded-2xl blur-xl"></div>
         <img src="feifei.png" class="w-full rounded-2xl relative z-10 border border-border animate-float" alt="兔兔小飞飞">
       </div>
-      <div class="bg-card rounded-2xl border border-border p-8 fade-up">
+      <div class="bg-card rounded-2xl border border-border p-8">
         <h3 class="text-2xl font-bold text-gold mb-6">小飞飞介绍</h3>
-        <p class="text-gray-300">「兔兔小飞飞」是玉国科技的核心IP形象，以灵动、活泼、充满科技感的兔子为原型，象征创新与活力。</p>
-        <p class="text-gray-300 mt-2">耳朵接收未来信号，眼睛闪烁金色科技光效，代表技术与美学的极致追求。</p>
-        <p class="text-gray-300 mt-2 mb-6">未来将推出表情包、壁纸、周边，让小飞飞陪伴你的数字生活。</p>
+        <p class="text-gray-300">「兔兔小飞飞」是玉国科技核心IP，灵动活泼的科技兔，象征创新与活力。</p>
+        <p class="text-gray-300 mt-2">耳朵接收未来信号，眼睛散发金色光效，代表技术与美学的融合。</p>
+        <p class="text-gray-300 mt-2 mb-6">后续将推出表情包、壁纸、周边系列。</p>
         <a href="feifei.html" class="block w-full bg-gold text-black text-center py-3 rounded-lg font-medium glow">查看更多趣事</a>
       </div>
     </div>
   </div>
 </section>
 
-<section id="tools" class="py-24 px-6 bg-dark fade-up">
-  <div class="max-w-6xl mx-auto">
+<!-- 实用工具 -->
+<section id="tools" class="py-24 px-6 bg-dark">
+  <div class="max-w-6xl mx-auto fade-up">
     <div class="text-center mb-16">
       <h2 class="text-3xl font-bold text-gold mb-4">实用工具</h2>
       <p class="text-gray-400">日常便捷小工具</p>
@@ -332,67 +331,77 @@ async function loadCartCount() {
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
         <i class="fa-solid fa-image text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">PNG 转 JPG</h3>
-        <p class="text-gray-400 text-sm mb-6">免费在线格式转换，无水印</p>
+        <h3 class="text-xl font-bold mb-2 text-white">PNG 转 JPG</h3>
+        <p class="text-gray-400 text-sm mb-6">免费格式转换，无水印</p>
         <a href="https://www.pngtojpgonline.com" target="_blank" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">立即使用</a>
       </div>
       <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
         <i class="fa-solid fa-music text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">MP3 转 WAV</h3>
-        <p class="text-gray-400 text-sm mb-6">免费音频格式转换，高保真</p>
-        <a href="https://www.geshizhuanhuan.com/" target="_blank" class="block w-full bg-gold text black py-2 rounded-lg text-sm glow">立即使用</a>
+        <h3 class="text-xl font-bold mb-2 text-white">MP3 转 WAV</h3>
+        <p class="text-gray-400 text-sm mb-6">高清音频转换</p>
+        <a href="https://www.geshizhuanhuan.com/" target="_blank" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">立即使用</a>
       </div>
       <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
         <i class="fa-solid fa-calculator text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">科学计算器</h3>
-        <p class="text-gray-400 text-sm mb-6">支持复杂运算与单位转换</p>
+        <h3 class="text-xl font-bold mb-2 text-white">科学计算器</h3>
+        <p class="text-gray-400 text-sm mb-6">支持复杂公式运算</p>
         <a href="https://web2.0calc.com/" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">立即使用</a>
       </div>
     </div>
   </div>
 </section>
 
-<section id="games" class="py-24 px-6 bg-darker fade-up">
-  <div class="max-w-6xl mx-auto">
+<!-- 小游戏 -->
+<section id="games" class="py-24 px-6 bg-darker">
+  <div class="max-w-6xl mx-auto fade-up">
     <div class="text-center mb-16">
       <h2 class="text-3xl font-bold text-gold mb-4">小游戏</h2>
-      <p class="text-gray-400">休闲娱乐，轻松解压</p>
+      <p class="text-gray-400">休闲解压，随时开玩</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
         <i class="fa-solid fa-dice text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">猜数字</h3>
-        <p class="text-gray-400 text-sm mb-6">经典猜数字游戏，挑战你的直觉</p>
-        <a href="caishuzi.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">进入游戏</a>
+        <h3 class="text-xl font-bold mb-2 text-white">猜数字</h3>
+        <p class="text-gray-400 text-sm mb-6">经典猜数小游戏</p>
+        <a href="caishuzi.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">开始游戏</a>
       </div>
       <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
         <i class="fa-solid fa-snake text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">贪吃蛇</h3>
-        <p class="text-gray-400 text-sm mb-6">怀旧经典，挑战高分</p>
-        <a href="tanchishe.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">进入游戏</a>
+        <h3 class="text-xl font-bold mb-2 text-white">贪吃蛇</h3>
+        <p class="text-gray-400 text-sm mb-6">怀旧经典挑战高分</p>
+        <a href="tanchishe.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">开始游戏</a>
       </div>
       <div class="bg-card rounded-2xl border border-border p-6 text-center card-hover">
         <i class="fa-solid fa-hammer text-gold text-3xl mb-4"></i>
-        <h3 class="text-xl font-bold mb-2">打地鼠</h3>
-        <p class="text-gray-400 text-sm mb-6">轻松解压，锻炼反应</p>
-        <a href="dadishu.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">进入游戏</a>
+        <h3 class="text-xl font-bold mb-2 text-white">打地鼠</h3>
+        <p class="text-gray-400 text-sm mb-6">手速锻炼小游戏</p>
+        <a href="dadishu.html" class="block w-full bg-gold text-black py-2 rounded-lg text-sm glow">开始游戏</a>
       </div>
     </div>
   </div>
 </section>
 
-<footer class="py-10 text-center text-sm text-gray-500 border-t border-border bg-darker">
-  <div class="max-w-6xl mx-auto mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="text-center"><h4 class="text-gold font-bold mb-2">商务合作</h4><p class="text-gray-400">yuguo@example.com</p></div>
-          <div class="text-center"><h4 class="text-gold font-bold mb-2">官方交流</h4><p class="text-gray-400">QQ：12345678</p></div>
-          <div class="text-center"><h4 class="text-gold font-bold mb-2">运营时长</h4><p id="run-time" class="text-gray-400">加载中...</p></div>
+<footer class="py-10 text-center text-sm text-gold/50 border-t border-border bg-darker">
+  <div class="max-w-6xl mx-auto px-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="text-center">
+        <h4 class="text-gold font-bold mb-2">商务合作</h4>
+        <p class="text-gray-400">yuguo@example.com</p>
       </div>
+      <div class="text-center">
+        <h4 class="text-gold font-bold mb-2">官方交流</h4>
+        <p class="text-gray-400">QQ：12345678</p>
+      </div>
+      <div class="text-center">
+        <h4 class="text-gold font-bold mb-2">网站运行时长</h4>
+        <p id="run-time" class="text-gray-400">加载中...</p>
+      </div>
+    </div>
     <div class="flex items-center justify-center gap-2 mb-4">
       <i class="fa-solid fa-atom text-gold text-xl"></i>
       <span class="text-gold font-bold">玉国科技</span>
     </div>
-    <p class="mb-2">© 2025 玉国科技版权所有</p>
+    <p>© 2025 玉国科技 版权所有</p>
   </div>
 </footer>
 
@@ -423,11 +432,4 @@ window.addEventListener('load',()=>{checkLoginNavCart();document.querySelectorAl
 </script>
 
 </body>
-<script>
-document.oncontextmenu = ()=>false;
-document.onkeydown = e=>{if(e.key=="F12"||(e.ctrlKey&&e.key=="u")||(e.ctrlKey&&e.shiftKey&&e.key=="i"))return false;};
-let ow=innerWidth,oh=innerHeight;
-setInterval(()=>{if(innerWidth<ow||innerHeight<oh)window.location.href="about:blank";debugger;},1000);
-console.log=console.warn=console.error=()=>{};
-</script>
 </html>
