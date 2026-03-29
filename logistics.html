@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物流详情 - 玉国科技</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0A0A0A',
+                        darker: '#050505',
+                        gold: '#FFD700',
+                        card: '#121212',
+                        border: '#222222',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #0A0A0A; color: #fff; }
+        .road-line { position: relative; height: 8px; background: #222; border-radius: 4px; overflow: hidden; }
+        .road-progress { position: absolute; left: 0; top: 0; height: 100%; background: #FFD700; transition: 0.5s; }
+        .location-point { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; }
+        .timeline-item { display: flex; gap: 12px; padding-bottom: 24px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: #222; z-index: 0; }
+        .timeline-item:last-child::before { display: none; }
+        .timeline-dot { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; z-index: 1; display: grid; place-items: center; }
+    </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="fixed top-0 w-full bg-glass backdrop-blur-md z-50 px-6 py-4 border-b border-border">
+    <div class="max-w-3xl mx-auto flex justify-between items-center">
+        <button onclick="history.back()" class="text-gold">
+            <i class="fa-solid fa-arrow-left mr-1"></i> 返回
+        </button>
+        <h1 class="text-lg font-bold text-gold">物流详情</h1>
+        <div></div>
+    </div>
+</nav>
+
+<div class="pt-20 pb-12 px-4 max-w-3xl mx-auto">
+    <!-- 地图区域 -->
+    <div class="bg-card rounded-2xl p-6 border border-border mb-6">
+        <h2 class="text-sm text-gray-400 mb-4">运输地图</h2>
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex flex-col items-center gap-1">
+                <div class="location-point bg-gold text-black text-xs"><i class="fa-solid fa-house"></i></div>
+                <span class="text-xs text-gray-300">卖家</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <div id="carIcon" class="location-point bg-gold text-black text-xs"><i class="fa-solid fa-truck-fast"></i></div>
+                <span class="text-xs text-gold" id="carText">1/5</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+                <div class="location-point bg-gray-600 text-white text-xs"><i class="fa-solid fa-user"></i></div>
+                <span class="text-xs text-gray-300">买家</span>
+            </div>
+        </div>
+        <div class="road-line">
+            <div id="mapProgress" class="road-progress" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- 订单信息 -->
+    <div class="bg-card rounded-2xl p-6 border border-border mb-6 space-y-2 text-sm">
+        <p><span class="text-gray-400">订单号：</span><span id="orderNo">加载中...</span></p>
+        <p><span class="text-gray-400">商品：</span><span id="productName">加载中...</span></p>
+        <p><span class="text-gray-400">金额：</span><span id="amount">加载中...</span></p>
+        <p><span class="text-gray-400">下单时间：</span><span id="orderTime">加载中...</span></p>
+    </div>
+
+    <!-- 收货地址 -->
+    <div class="bg-card rounded-2xl p-6 border border-border mb-6">
+        <h2 class="text-base font-bold text-gold mb-3">收货地址</h2>
+        <p id="receiver" class="text-sm">加载中...</p>
+        <p id="phone" class="text-sm text-gray-300">加载中...</p>
+        <p id="address" class="text-sm text-gray-300 mt-1">加载中...</p>
+    </div>
+
+    <!-- 物流时间线 -->
+    <div class="bg-card rounded-2xl p-6 border border-border mb-6">
+        <h2 class="text-base font-bold text-gold mb-4">物流进度</h2>
+        <div id="timeline" class="space-y-1">
+            <!-- 自动生成 -->
+        </div>
+    </div>
+
+    <!-- 最终状态 -->
+    <div class="text-center text-sm py-4">
+        <span id="finalTip" class="text-gold">加载中...</span>
+    </div>
+</div>
+
+<script>
+const GITHUB_CONFIG = {
+    username: "yuguo-yg-bit",
+    repo: "yuguo-official",
+    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
+};
+
+// 读取订单号
+const params = new URLSearchParams(window.location.search);
+const orderNo = params.get("orderNo");
+
+if (!orderNo) {
+    alert("无效订单");
+    history.back();
+}
+
+// 物流文案
+const steps = [
+    "订单已提交",
+    "付款成功，待审核",
+    "审核通过，已出库",
+    "运输中（1/5）",
+    "运输中（2/5）",
+    "运输中（3/5）",
+    "运输中（4/5）",
+    "已签收，交易完成"
+];
+
+async function loadLogistics() {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`);
+    const list = await res.json();
+    const issue = list.find(item => item.body.includes(orderNo));
+    if (!issue) {
+        alert("订单不存在");
+        return;
+    }
+    const body = issue.body;
+
+    // 解析信息
+    function get(key) {
+        const reg = new RegExp(`${key}：(.+)`);
+        const m = body.match(reg);
+        return m ? m[1].trim() : "无";
+    }
+
+    const data = {
+        product: get("商品名称"),
+        amount: get("支付金额"),
+        time: get("支付时间"),
+        receiver: get("收货人"),
+        phone: get("联系电话"),
+        address: get("收货地址"),
+        progress: parseInt(get("物流进度")) || 0
+    };
+
+    // 渲染页面
+    document.getElementById("orderNo").innerText = orderNo;
+    document.getElementById("productName").innerText = data.product;
+    document.getElementById("amount").innerText = data.amount;
+    document.getElementById("orderTime").innerText = data.time;
+    document.getElementById("receiver").innerText = data.receiver;
+    document.getElementById("phone").innerText = data.phone;
+    document.getElementById("address").innerText = data.address;
+
+    // 地图进度
+    const mapPercents = [0, 0, 0, 20, 40, 60, 80, 100];
+    const percent = mapPercents[data.progress] || 0;
+    document.getElementById("mapProgress").style.width = percent + "%";
+
+    // 运输文字
+    const carText = data.progress >=3 && data.progress <=6 ? `${data.progress-2}/5` : "";
+    document.getElementById("carText").innerText = carText;
+
+    // 时间线
+    const tl = document.getElementById("timeline");
+    tl.innerHTML = "";
+    steps.forEach((text, i) => {
+        const done = i <= data.progress;
+        const item = document.createElement("div");
+        item.className = "timeline-item";
+        item.innerHTML = `
+            <div class="timeline-dot ${done ? 'bg-gold text-black' : 'bg-gray-700 text-gray-400'}">
+                ${done ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+            </div>
+            <div>
+                <p class="${done ? 'text-white' : 'text-gray-500'} text-sm">${text}</p>
+            </div>
+        `;
+        tl.appendChild(item);
+    });
+
+    // 最终提示
+    const final = document.getElementById("finalTip");
+    if (data.progress >=7) {
+        final.innerText = "已签收，感谢您的购买";
+    } else {
+        final.innerText = steps[data.progress];
+    }
+}
+
+loadLogistics();
+</script>
+
+</body>
+</html>
