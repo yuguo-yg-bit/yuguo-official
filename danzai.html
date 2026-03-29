@@ -72,7 +72,6 @@ const GITHUB_CONFIG = {
     token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
 };
 
-// 未登录拦截
 const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 if (!currentUser) {
     alert('你未登录！请登录！');
@@ -141,7 +140,7 @@ function logout() {
                 适合桌面摆放、收藏、送礼。成品无毛刺、质感细腻，支持长期保存。
             </p>
             <div class="flex flex-col gap-3">
-                <button onclick="showPayModal()" class="bg-gold text-black py-3 rounded-lg font-medium hover:bg-gold/90 transition-colors glow">
+                <button onclick="showAddressModal()" class="bg-gold text-black py-3 rounded-lg font-medium hover:bg-gold/90 transition-colors glow">
                     <i class="fa-brands fa-weixin mr-2"></i> 微信支付
                 </button>
                 <button class="border border-gray-600 text-gray-400 py-3 rounded-lg cursor-not-allowed">
@@ -218,6 +217,27 @@ function logout() {
     </div>
 </section>
 
+<!-- 地址填写弹窗 -->
+<div class="modal-backdrop" id="addressModal">
+    <div class="modal-box bg-card p-6 rounded-2xl border border-gold/30 w-full max-w-sm" id="addressBox">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gold">填写收货地址</h3>
+            <button onclick="hideAddressModal()" class="text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="space-y-3 mb-5">
+            <input type="text" id="receiverName" placeholder="收货人姓名" class="w-full bg-darker border border-border rounded-lg px-4 py-2 text-white outline-none focus:border-gold">
+            <input type="text" id="receiverPhone" placeholder="收货人电话" class="w-full bg-darker border border-border rounded-lg px-4 py-2 text-white outline-none focus:border-gold">
+            <textarea id="receiverAddress" rows="3" placeholder="详细收货地址（省市区+街道门牌号）" class="w-full bg-darker border border-border rounded-lg px-4 py-2 text-white outline-none focus:border-gold"></textarea>
+        </div>
+        <button onclick="submitAddress()" class="block w-full bg-gold text-black text-center py-2 rounded-lg font-medium glow">
+            确认地址，去付款
+        </button>
+    </div>
+</div>
+
+<!-- 支付弹窗 -->
 <div class="modal-backdrop" id="payModal">
     <div class="modal-box bg-card p-6 rounded-2xl border border-gold/30 w-full max-w-sm" id="modalBox">
         <div class="flex justify-between items-center mb-4">
@@ -252,6 +272,8 @@ function logout() {
 </button>
 
 <script>
+let orderAddress = { name: '', phone: '', detail: '' };
+
 window.addEventListener('scroll', () => {
   const navbar = document.getElementById('navbar');
   if (window.scrollY > 50) {
@@ -280,6 +302,46 @@ window.addEventListener('scroll', () => {
   });
 });
 
+// 地址弹窗
+const addressModal = document.getElementById('addressModal');
+const addressBox = document.getElementById('addressBox');
+function showAddressModal() {
+    addressModal.style.display = 'grid';
+    setTimeout(() => addressBox.classList.add('show'), 10);
+}
+function hideAddressModal() {
+    addressBox.classList.remove('show');
+    setTimeout(() => addressModal.style.display = 'none', 300);
+}
+
+// 地址提交验证
+function submitAddress() {
+    const name = document.getElementById('receiverName').value.trim();
+    const phone = document.getElementById('receiverPhone').value.trim();
+    const addr = document.getElementById('receiverAddress').value.trim();
+
+    if (!name) {
+        alert('请输入收货人姓名');
+        return;
+    }
+    if (!phone || phone.length < 11) {
+        alert('请输入正确的手机号码');
+        return;
+    }
+    if (!addr) {
+        alert('请输入详细收货地址');
+        return;
+    }
+
+    orderAddress.name = name;
+    orderAddress.phone = phone;
+    orderAddress.detail = addr;
+
+    hideAddressModal();
+    setTimeout(showPayModal, 400);
+}
+
+// 支付弹窗
 const modal = document.getElementById('payModal');
 const modalBox = document.getElementById('modalBox');
 function showPayModal() {
@@ -307,7 +369,16 @@ async function createPaymentRecord() {
 - 商品名称：${productName}
 - 支付金额：¥${amount}
 - 支付时间：${payTime}
-- 订单状态：${status}`,
+- 订单状态：${status}
+
+### 收货信息
+- 收货人：${orderAddress.name}
+- 联系电话：${orderAddress.phone}
+- 收货地址：${orderAddress.detail}
+
+### 物流信息
+- 物流进度：0
+- 物流状态：订单已提交`,
         labels: ["payment-record"]
     };
 
@@ -343,42 +414,20 @@ window.addEventListener('load', () => {
 </script>
 
 <script>
-// ==============================================
-// 1. 禁止右键
-// ==============================================
-document.oncontextmenu = function () {
-  return false;
-};
-
-// ==============================================
-// 2. 禁止 F12 / Ctrl+U / Ctrl+Shift+I
-// ==============================================
+document.oncontextmenu = function () { return false; };
 document.onkeydown = function (e) {
-  if (
-    e.key === "F12" ||
-    (e.ctrlKey && e.key === "u") ||
-    (e.ctrlKey && e.shiftKey && e.key === "i")
-  ) {
+  if (e.key === "F12" || (e.ctrlKey && e.key === "u") || (e.ctrlKey && e.shiftKey && e.key === "i")) {
     return false;
   }
 };
-
-// ==============================================
-// 3. 反调试：一打开控制台就跳空白页
-// ==============================================
 let originalW = innerWidth;
 let originalH = innerHeight;
-
 setInterval(function () {
   if (innerWidth < originalW || innerHeight < originalH) {
     window.location.href = "about:blank";
   }
   debugger;
 }, 1000);
-
-// ==============================================
-// 4. 禁用控制台输出
-// ==============================================
 console.log = console.warn = console.error = function () {};
 </script>
 
