@@ -1,307 +1,1309 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理后台 - 玉国科技</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#165DFF',
-            secondary: '#4080FF',
-            danger: '#F53F3F',
-            success: '#00B42A',
-            light: '#E8F3FF',
-            bglight: '#F5F8FF'
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 玉国科技</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#4080FF',
+                        danger: '#F53F3F',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        light: '#E8F3FF',
+                        bglight: '#F5F8FF',
+                        dark: '#121212',
+                        darkpanel: '#1E1E1E'
+                    }
+                },
+                darkMode: 'class'
+            }
         }
-      }
-    }
-  </script>
-  <style>
-    body { background: #F5F8FF;font-family:sans-serif; }
-    .tab-active { border-bottom:2px solid #165DFF;color:#165DFF;font-weight:600; }
-  </style>
+    </script>
+    <style>
+        :root {
+            --bg-body: #F5F8FF;
+            --bg-panel: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+        }
+        .dark {
+            --bg-body: #121212;
+            --bg-panel: #1E1E1E;
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --border-color: #374151;
+        }
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: system-ui, sans-serif;
+            transition: all 0.3s ease;
+        }
+        .tab-active {
+            border-bottom: 2px solid #165DFF;
+            color: #165DFF;
+            font-weight: 600;
+        }
+        .order-card.new-order {
+            border-left: 4px solid #FF7D00;
+        }
+        .order-card.unpaid {
+            border-left: 4px solid #F53F3F;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            background-color: #00B42A;
+        }
+        .toast.error {
+            background-color: #F53F3F;
+        }
+        .toast.warning {
+            background-color: #FF7D00;
+        }
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #E5E7EB;
+            border-top: 2px solid #165DFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .table-view table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-view th, .table-view td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .table-view th {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .detail-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .detail-content.open {
+            max-height: 500px;
+        }
+    </style>
 </head>
 <body>
 
-<header class="bg-white shadow-sm px-4 py-3 sticky top-0 z-10">
-  <div class="max-w-6xl mx-auto flex justify-between items-center">
-    <h1 class="text-primary text-xl font-bold">
-      <i class="bi bi-shield-check mr-1"></i> 玉国科技 - 管理后台
-    </h1>
-    <button onclick="logout()" class="text-gray-600 hover:text-primary">
-      <i class="bi bi-box-arrow-right mr-1"></i>退出登录
-    </button>
-  </div>
+<!-- Toast 提示 -->
+<div id="toast" class="toast"></div>
+
+<header class="bg-[var(--bg-panel)] shadow-sm px-4 py-3 sticky top-0 z-10 border-b border-[var(--border-color)]">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+        <h1 class="text-primary text-xl font-bold">
+            <i class="bi bi-shield-check mr-1"></i> 玉国科技 - 全功能管理后台
+        </h1>
+        <div class="flex items-center gap-4">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" id="autoRefresh" class="w-4 h-4 text-primary">
+                <span>30秒自动刷新</span>
+            </label>
+            <button id="darkModeBtn" class="text-sm p-2 rounded-full hover:bg-[var(--bg-body)]">
+                <i class="bi bi-moon"></i>
+            </button>
+            <button onclick="logout()" class="text-sm text-[var(--text-secondary)] hover:text-primary">
+                <i class="bi bi-box-arrow-right mr-1"></i> 退出登录
+            </button>
+        </div>
+    </div>
 </header>
 
-<div class="max-w-6xl mx-auto px-4 py-8">
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white p-5 rounded-xl shadow-sm border">
-      <p class="text-sm text-gray-500">全部订单</p>
-      <p class="text-2xl font-bold text-primary" id="totalOrder">0</p>
+<div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- 统计面板 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">全部订单</p>
+            <p class="text-xl font-bold text-primary" id="totalOrder">0</p>
+        </div>
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">今日订单</p>
+            <p class="text-xl font-bold text-secondary" id="todayOrder">0</p>
+        </div>
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">待处理</p>
+            <div class="relative">
+                <p class="text-xl font-bold text-warning" id="pendingOrder">0</p>
+                <span id="pendingBadge" class="absolute -top-1 -right-2 bg-warning text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+            </div>
+        </div>
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">未支付</p>
+            <p class="text-xl font-bold text-danger" id="unpaidOrder">0</p>
+        </div>
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">已完成</p>
+            <p class="text-xl font-bold text-success" id="finishOrder">0</p>
+        </div>
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">总交易额</p>
+            <p class="text-xl font-bold text-darkblue" id="totalAmount">¥0</p>
+        </div>
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">注册用户</p>
+            <p class="text-xl font-bold text-success" id="totalUser">0</p>
+        </div>
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+            <p class="text-xs text-[var(--text-secondary)]">今日新增</p>
+            <p class="text-xl font-bold text-secondary" id="todayUser">0</p>
+        </div>
     </div>
-    <div class="bg-white p-5 rounded-xl shadow-sm border">
-      <p class="text-sm text-gray-500">待发货/运输中</p>
-      <p class="text-2xl font-bold text-secondary" id="shippingNum">0</p>
-    </div>
-    <div class="bg-white p-5 rounded-xl shadow-sm border">
-      <p class="text-sm text-gray-500">已完成</p>
-      <p class="text-2xl font-bold text-success" id="finishNum">0</p>
-    </div>
-    <div class="bg-white p-5 rounded-xl shadow-sm border">
-      <p class="text-sm text-gray-500">注册用户</p>
-      <p class="text-2xl font-bold text-success" id="userCount">0</p>
-    </div>
-  </div>
 
-  <div class="flex gap-6 mb-4 border-b pb-2">
-    <div id="tab_order" class="tab-active cursor-pointer" onclick="switchTab('order')">订单管理</div>
-    <div id="tab_user" class="cursor-pointer text-gray-500" onclick="switchTab('user')">用户管理</div>
-  </div>
-
-  <div id="panel_order">
-    <div class="flex justify-between items-center mb-3">
-      <div class="flex items-center gap-3">
-        <input type="checkbox" id="checkAll" class="w-4 h-4">
-        <label for="checkAll">全选</label>
-        <button onclick="batchDelete()" class="bg-danger text-white px-3 py-1 rounded text-sm">
-          批量彻底删除
-        </button>
-      </div>
-      <button onclick="loadOrders()" class="bg-primary text-white px-3 py-1 rounded text-sm">刷新订单</button>
+    <!-- 标签切换 -->
+    <div class="flex gap-6 mb-4 border-b border-[var(--border-color)]">
+        <div id="tab_order" class="tab-active pb-2 px-1 cursor-pointer" onclick="switchTab('order')">
+            <i class="bi bi-list-ul mr-1"></i> 订单管理
+        </div>
+        <div id="tab_user" class="pb-2 px-1 cursor-pointer text-[var(--text-secondary)]" onclick="switchTab('user')">
+            <i class="bi bi-people mr-1"></i> 用户管理
+        </div>
     </div>
-    <div id="orderList" class="space-y-3"></div>
-  </div>
 
-  <div id="panel_user" class="hidden">
-    <div class="flex justify-end mb-3">
-      <button onclick="loadUsers()" class="bg-primary text-white px-3 py-1 rounded text-sm">刷新用户</button>
+    <!-- 订单管理面板 -->
+    <div id="panel_order">
+        <!-- 搜索与操作栏 -->
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)] mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mb-3">
+                <div class="md:col-span-4">
+                    <input id="orderSearch" type="text" placeholder="搜索订单号/手机号/商品/收货人" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+                </div>
+                <div class="md:col-span-2">
+                    <select id="statusFilter" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+                        <option value="">全部状态</option>
+                        <option value="0">0-已提交</option>
+                        <option value="1">1-待审核</option>
+                        <option value="2">2-已出库</option>
+                        <option value="3">3-运输1/5</option>
+                        <option value="4">4-运输2/5</option>
+                        <option value="5">5-运输3/5</option>
+                        <option value="6">6-运输4/5</option>
+                        <option value="7">7-已签收</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <select id="payFilter" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+                        <option value="">全部支付</option>
+                        <option value="已支付">已支付</option>
+                        <option value="未支付">未支付</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <select id="timeFilter" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+                        <option value="all">全部时间</option>
+                        <option value="today">今天</option>
+                        <option value="7day">近7天</option>
+                        <option value="month">本月</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2 flex gap-2">
+                    <button id="viewCard" class="flex-1 bg-primary/10 text-primary px-2 py-2 rounded-lg font-medium">卡片</button>
+                    <button id="viewTable" class="flex-1 bg-transparent text-[var(--text-secondary)] px-2 py-2 rounded-lg">表格</button>
+                </div>
+            </div>
+            <div class="flex flex-wrap justify-between items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <input type="checkbox" id="checkAll" class="w-4 h-4 text-primary">
+                    <label for="checkAll" class="text-sm text-[var(--text-secondary)]">全选</label>
+                    <select id="batchStatus" class="text-sm px-2 py-1 rounded border border-[var(--border-color)] bg-transparent outline-none">
+                        <option value="">批量改状态</option>
+                        <option value="1">待审核</option>
+                        <option value="2">已出库</option>
+                        <option value="7">已签收</option>
+                    </select>
+                    <button onclick="batchUpdateStatus()" class="bg-secondary text-white px-3 py-1 rounded text-sm hover:bg-secondary/90">
+                        确认修改
+                    </button>
+                    <button onclick="batchDelete()" class="bg-danger text-white px-3 py-1 rounded text-sm hover:bg-danger/90">
+                        <i class="bi bi-trash mr-1"></i> 批量彻底删除
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openCreateOrderModal()" class="bg-success text-white px-3 py-1 rounded text-sm hover:bg-success/90">
+                        <i class="bi bi-plus mr-1"></i> 手动建单
+                    </button>
+                    <button onclick="exportOrders()" class="bg-primary/10 text-primary px-3 py-1 rounded text-sm hover:bg-primary/20">
+                        <i class="bi bi-download mr-1"></i> 导出订单
+                    </button>
+                    <button onclick="clearTestData()" class="bg-warning/10 text-warning px-3 py-1 rounded text-sm hover:bg-warning/20">
+                        清空测试数据
+                    </button>
+                    <button onclick="loadOrders()" class="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90">
+                        <i class="bi bi-arrow-clockwise mr-1"></i> 刷新
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 订单内容区 -->
+        <div id="orderContent" class="card-view">
+            <div id="orderList" class="space-y-3">
+                <div class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-[var(--text-secondary)]">
+                    <div class="loading-spinner mx-auto"></div>
+                    <p class="mt-2">正在加载订单...</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div id="userList" class="space-y-3"></div>
-  </div>
+
+    <!-- 用户管理面板 -->
+    <div id="panel_user" class="hidden">
+        <!-- 搜索与操作栏 -->
+        <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)] mb-4">
+            <div class="flex flex-wrap justify-between items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <input id="userSearch" type="text" placeholder="搜索用户手机号" class="w-full md:w-64 px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+                    <select id="userSort" class="px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+                        <option value="desc">最新注册</option>
+                        <option value="asc">最早注册</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportUsers()" class="bg-primary/10 text-primary px-3 py-1 rounded text-sm hover:bg-primary/20">
+                        <i class="bi bi-download mr-1"></i> 导出用户
+                    </button>
+                    <button onclick="loadUsers()" class="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90">
+                        <i class="bi bi-arrow-clockwise mr-1"></i> 刷新
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户列表 -->
+        <div id="userList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-[var(--text-secondary)]">
+                <div class="loading-spinner mx-auto"></div>
+                <p class="mt-2">正在加载用户...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 订单详情/编辑弹窗 -->
+<div id="orderModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden place-items-center">
+    <div class="bg-[var(--bg-panel)] rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold" id="modalTitle">订单详情</h3>
+            <button onclick="closeOrderModal()" class="text-[var(--text-secondary)]"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div id="modalContent" class="space-y-3 mb-5"></div>
+        <div class="flex gap-3">
+            <button onclick="saveOrderEdit()" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90">保存修改</button>
+            <button onclick="closeOrderModal()" class="flex-1 border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-body)]">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 手动建单弹窗 -->
+<div id="createOrderModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden place-items-center">
+    <div class="bg-[var(--bg-panel)] rounded-xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">手动创建订单</h3>
+            <button onclick="closeCreateOrderModal()" class="text-[var(--text-secondary)]"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div id="createOrderForm" class="space-y-3 mb-5">
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">订单号</label>
+                <input id="createOrderNo" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">用户手机号</label>
+                <input id="createOrderPhone" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">商品名称</label>
+                <input id="createOrderGoods" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">支付金额</label>
+                <input id="createOrderAmount" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">收货人</label>
+                <input id="createOrderReceiver" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">联系电话</label>
+                <input id="createOrderReceiverPhone" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">收货地址</label>
+                <input id="createOrderAddress" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">支付状态</label>
+                <select id="createOrderPayStatus" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+                    <option value="已支付">已支付</option>
+                    <option value="未支付">未支付</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="createOrder()" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90">创建订单</button>
+            <button onclick="closeCreateOrderModal()" class="flex-1 border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-body)]">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 用户订单弹窗 -->
+<div id="userOrderModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden place-items-center">
+    <div class="bg-[var(--bg-panel)] rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold" id="userOrderTitle">用户订单</h3>
+            <button onclick="closeUserOrderModal()" class="text-[var(--text-secondary)]"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div id="userOrderList" class="space-y-3"></div>
+    </div>
+</div>
+
+<!-- 重置密码弹窗 -->
+<div id="resetPwdModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden place-items-center">
+    <div class="bg-[var(--bg-panel)] rounded-xl p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">重置用户密码</h3>
+            <button onclick="closeResetPwdModal()" class="text-[var(--text-secondary)]"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <input type="hidden" id="resetUserId">
+        <div class="mb-5">
+            <label class="text-sm text-[var(--text-secondary)] block mb-1">新密码</label>
+            <input id="newPwd" type="text" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+        </div>
+        <div class="flex gap-3">
+            <button onclick="confirmResetPwd()" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90">确认重置</button>
+            <button onclick="closeResetPwdModal()" class="flex-1 border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-body)]">取消</button>
+        </div>
+    </div>
 </div>
 
 <script>
-// ================== 配置 ==================
+// ================== 核心配置（完全保留你的原有配置） ==================
 const CONFIG = {
-  owner: 'yuguo-yg-bit',
-  repo: 'yuguo-official',
-  t1: 'ghp_sVylTqJv8nv',
-  t2: 'K3SK3wS2qidM6AvQ',
-  t3: 'AFx1rAvCd',
-  get token() { return this.t1 + this.t2 + this.t3 },
-  adminPwd: '0978004710_27015150111_admin'
+    owner: 'yuguo-yg-bit',
+    repo: 'yuguo-official',
+    t1: 'ghp_sVylTqJv8nv',
+    t2: 'K3SK3wS2qidM6AvQ',
+    t3: 'AFx1rAvCd',
+    get token() { return this.t1 + this.t2 + this.t3 },
+    adminPwd: '0978004710_27015150111_admin',
+    orderLabel: 'payment-record',
+    userLabel: 'user-register'
 };
 
-let orders = [];
-let users = [];
+// 全局变量
+let allOrders = [];
+let allUsers = [];
 let currentTab = 'order';
+let currentView = 'card';
+let autoRefreshTimer = null;
+const statusTexts = ['已提交','待审核','已出库','运输1/5','运输2/5','运输3/5','运输4/5','已签收'];
+const orderStatusTexts = ['待发货','待发货','待发货','待发货','待发货','待发货','待发货','已完成'];
 
-// 登录验证
+// ================== 登录验证（完全保留） ==================
 if (!localStorage.getItem('isAdmin')) {
-  const p = prompt('请输入管理员密码：');
-  if (p !== CONFIG.adminPwd) {
-    alert('密码错误');
-    location.href = '/index.html';
-  } else {
-    localStorage.setItem('isAdmin', '1');
-  }
+    const p = prompt('请输入管理员密码：');
+    if (p !== CONFIG.adminPwd) {
+        alert('密码错误，无访问权限');
+        window.location.href = 'index.html';
+    } else {
+        localStorage.setItem('isAdmin', 'ok');
+    }
 }
 
 function logout() {
-  localStorage.removeItem('isAdmin');
-  location.href = '/index.html';
+    localStorage.removeItem('isAdmin');
+    window.location.href = 'index.html';
 }
 
+// ================== 工具函数 ==================
+// Toast 提示
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast show ${type}`;
+    setTimeout(() => {
+        toast.className = 'toast';
+    }, 3000);
+}
+
+// 日期格式化
+function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+}
+
+// 判断是否是今天
+function isToday(dateStr) {
+    const d = new Date(dateStr);
+    const today = new Date();
+    return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+}
+
+// 判断是否在近7天
+function isLast7Day(dateStr) {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const diff = today - d;
+    return diff <= 7 * 24 * 60 * 60 * 1000;
+}
+
+// 判断是否是本月
+function isThisMonth(dateStr) {
+    const d = new Date(dateStr);
+    const today = new Date();
+    return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth();
+}
+
+// 生成订单号
+function generateOrderNo() {
+    return 'ORD' + Date.now() + Math.floor(Math.random()*1000).toString().padStart(3,'0');
+}
+
+// 密码哈希（和前台登录保持一致）
+async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 下载文件
+function downloadFile(content, filename) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ================== 标签切换 ==================
 function switchTab(tab) {
-  currentTab = tab;
-  document.getElementById('panel_order').classList.add('hidden');
-  document.getElementById('panel_user').classList.add('hidden');
-  document.getElementById('tab_order').classList.remove('tab-active');
-  document.getElementById('tab_user').classList.remove('tab-active');
-  document.getElementById('tab_' + tab).classList.add('tab-active');
-  document.getElementById('panel_' + tab).classList.remove('hidden');
-  tab === 'order' ? loadOrders() : loadUsers();
+    currentTab = tab;
+    // 重置标签样式
+    document.getElementById('tab_order').classList.remove('tab-active');
+    document.getElementById('tab_user').classList.remove('tab-active');
+    document.getElementById('tab_order').classList.add('text-[var(--text-secondary)]');
+    document.getElementById('tab_user').classList.add('text-[var(--text-secondary)]');
+    // 隐藏面板
+    document.getElementById('panel_order').classList.add('hidden');
+    document.getElementById('panel_user').classList.add('hidden');
+    // 激活当前标签
+    document.getElementById(`tab_${tab}`).classList.add('tab-active');
+    document.getElementById(`tab_${tab}`).classList.remove('text-[var(--text-secondary)]');
+    // 显示面板
+    document.getElementById(`panel_${tab}`).classList.remove('hidden');
+    // 加载数据
+    if (tab === 'order') loadOrders();
+    if (tab === 'user') loadUsers();
 }
 
-// ================== 订单 ==================
+// ================== 视图切换 ==================
+document.getElementById('viewCard').onclick = () => switchView('card');
+document.getElementById('viewTable').onclick = () => switchView('table');
+
+function switchView(view) {
+    currentView = view;
+    const content = document.getElementById('orderContent');
+    // 重置按钮样式
+    document.getElementById('viewCard').className = 'flex-1 bg-transparent text-[var(--text-secondary)] px-2 py-2 rounded-lg';
+    document.getElementById('viewTable').className = 'flex-1 bg-transparent text-[var(--text-secondary)] px-2 py-2 rounded-lg';
+    // 激活当前视图
+    document.getElementById(`view${view.charAt(0).toUpperCase() + view.slice(1)}`).className = 'flex-1 bg-primary/10 text-primary px-2 py-2 rounded-lg font-medium';
+    // 切换视图类
+    content.className = `${view}-view`;
+    // 重新渲染
+    renderOrders(allOrders);
+}
+
+// ================== 夜间模式 ==================
+document.getElementById('darkModeBtn').onclick = () => {
+    document.documentElement.classList.toggle('dark');
+    const isDark = document.documentElement.classList.contains('dark');
+    document.getElementById('darkModeBtn').innerHTML = isDark ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon"></i>';
+};
+
+// ================== 自动刷新 ==================
+document.getElementById('autoRefresh').onchange = (e) => {
+    if (e.target.checked) {
+        autoRefreshTimer = setInterval(() => {
+            if (currentTab === 'order') loadOrders();
+            if (currentTab === 'user') loadUsers();
+        }, 30000);
+        showToast('已开启30秒自动刷新', 'success');
+    } else {
+        clearInterval(autoRefreshTimer);
+        showToast('已关闭自动刷新', 'warning');
+    }
+};
+
+// ================== 订单核心功能 ==================
+// 加载订单
 async function loadOrders() {
-  const el = document.getElementById('orderList');
-  el.innerHTML = '<div class="bg-white p-4 text-center">加载中...</div>';
-  try {
-    const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=payment-record&state=all&per_page=100`, {
-      headers: { Authorization: `token ${CONFIG.token}` }
+    const el = document.getElementById('orderList');
+    el.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-[var(--text-secondary)]"><div class="loading-spinner mx-auto"></div><p class="mt-2">正在加载订单...</p></div>`;
+    try {
+        const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.orderLabel}&state=all&per_page=100`, {
+            headers: { Authorization: `token ${CONFIG.token}` }
+        });
+        allOrders = await res.json();
+        renderOrders(allOrders);
+        updateOrderStats(allOrders);
+        document.getElementById('checkAll').checked = false;
+    } catch (e) {
+        el.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-danger">加载失败：${e.message}</div>`;
+        showToast('订单加载失败', 'error');
+    }
+}
+
+// 更新订单统计
+function updateOrderStats(orders) {
+    const total = orders.length;
+    let today = 0, pending = 0, unpaid = 0, finish = 0, totalAmount = 0;
+
+    orders.forEach(o => {
+        const body = o.body;
+        // 今日订单
+        if (isToday(o.created_at)) today++;
+        // 物流进度
+        const p = body.match(/物流进度：(\d+)/) ? +body.match(/物流进度：(\d+)/)[1] : 0;
+        if (p >= 1 && p < 7) pending++;
+        if (p >= 7) finish++;
+        // 未支付
+        const payStatus = body.match(/支付状态：(\S+)/)?.[1] || '已支付';
+        if (payStatus === '未支付') unpaid++;
+        // 总金额
+        const amount = body.match(/支付金额：¥?(\d+\.?\d*)/)?.[1];
+        if (amount) totalAmount += parseFloat(amount);
     });
-    orders = await r.json();
-    renderOrders();
-    updateStats();
-  } catch (e) {
-    el.innerHTML = '<div class="bg-white p-4 text-center text-red-500">加载失败</div>';
-  }
+
+    // 更新DOM
+    document.getElementById('totalOrder').innerText = total;
+    document.getElementById('todayOrder').innerText = today;
+    document.getElementById('pendingOrder').innerText = pending;
+    document.getElementById('unpaidOrder').innerText = unpaid;
+    document.getElementById('finishOrder').innerText = finish;
+    document.getElementById('totalAmount').innerText = `¥${totalAmount.toFixed(2)}`;
+
+    // 待处理红点
+    const badge = document.getElementById('pendingBadge');
+    if (pending > 0) {
+        badge.innerText = pending;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
 }
 
-function updateStats() {
-  document.getElementById('totalOrder').innerText = orders.length;
-  let s = 0, f = 0;
-  orders.forEach(o => {
-    const m = o.body.match(/物流进度：(\d+)/);
-    const p = m ? +m[1] : 0;
-    if (p >= 1 && p < 7) s++;
-    if (p >= 7) f++;
-  });
-  document.getElementById('shippingNum').innerText = s;
-  document.getElementById('finishNum').innerText = f;
+// 解析订单信息
+function parseOrderBody(body) {
+    return {
+        orderNo: body.match(/订单号：(\S+)/)?.[1] || '',
+        userPhone: body.match(/用户手机号：(.+)/)?.[1] || '',
+        product: body.match(/商品名称：(.+)/)?.[1] || '',
+        amount: body.match(/支付金额：(.+)/)?.[1] || '',
+        receiver: body.match(/收货人：(.+)/)?.[1] || '',
+        receiverPhone: body.match(/联系电话：(.+)/)?.[1] || '',
+        address: body.match(/收货地址：(.+)/)?.[1] || '',
+        payTime: body.match(/支付时间：(.+)/)?.[1] || '',
+        progress: body.match(/物流进度：(\d+)/) ? +body.match(/物流进度：(\d+)/)[1] : 0,
+        payStatus: body.match(/支付状态：(\S+)/)?.[1] || '已支付',
+        remark: body.match(/内部备注：(.+)/)?.[1] || ''
+    };
 }
 
-function renderOrders() {
-  const list = document.getElementById('orderList');
-  if (orders.length === 0) {
-    list.innerHTML = '<div class="bg-white p-4 text-center">暂无订单</div>';
-    return;
-  }
-  const status = ['已提交','待审核','已出库','运输1/5','运输2/5','运输3/5','运输4/5','已签收'];
-  let html = '';
-  orders.forEach(o => {
-    const b = o.body;
-    const no = b.match(/订单号：(\S+)/)?.[1] || '';
-    const user = b.match(/用户手机号：(.+)/)?.[1] || '';
-    const goods = b.match(/商品名称：(.+)/)?.[1] || '';
-    const money = b.match(/支付金额：(.+)/)?.[1] || '';
-    const name = b.match(/收货人：(.+)/)?.[1] || '';
-    const phone = b.match(/联系电话：(.+)/)?.[1] || '';
-    const addr = b.match(/收货地址：(.+)/)?.[1] || '';
-    const p = b.match(/物流进度：(\d+)/) ? +b.match(/物流进度：(\d+)/)[1] : 0;
+// 渲染订单列表
+function renderOrders(orders) {
+    const list = document.getElementById('orderList');
+    if (!orders.length) {
+        list.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-[var(--text-secondary)]">暂无订单</div>`;
+        return;
+    }
 
-    html += `
-<div class="bg-white p-4 rounded-xl shadow-sm border">
-  <div class="flex items-start gap-2 mb-2">
-    <input type="checkbox" class="order-check w-4 h-4 mt-1" data-node="${o.node_id}">
-    <div class="flex-1 text-sm">
-      <p>订单：${no} · 用户：${user}</p>
-      <p>商品：${goods} · ${money}</p>
-      <p>收货人：${name} ${phone}</p>
-      <p>地址：${addr}</p>
-      <p class="text-blue-600">状态：${status[p]}</p>
+    let html = '';
+    if (currentView === 'card') {
+        // 卡片视图
+        orders.forEach(o => {
+            const info = parseOrderBody(o.body);
+            const isNew = isToday(o.created_at);
+            const isUnpaid = info.payStatus === '未支付';
+            const cardClass = `order-card bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)] ${isNew ? 'new-order' : ''} ${isUnpaid ? 'unpaid' : ''}`;
+
+            html += `
+<div class="${cardClass}">
+    <div class="flex items-start gap-3 mb-3">
+        <input type="checkbox" class="order-check w-4 h-4 mt-1" data-node="${o.node_id}" data-number="${o.number}">
+        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+            <div>
+                <p><span class="text-[var(--text-secondary)]">订单号：</span>${info.orderNo} ${isNew ? '<span class="text-xs bg-warning/20 text-warning px-1 rounded">新</span>' : ''}</p>
+                <p><span class="text-[var(--text-secondary)]">用户：</span>${info.userPhone}</p>
+                <p><span class="text-[var(--text-secondary)]">商品：</span>${info.product}</p>
+                <p><span class="text-[var(--text-secondary)]">金额：</span><span class="font-bold">${info.amount}</span> <span class="text-xs ${isUnpaid ? 'text-danger' : 'text-success'}">${info.payStatus}</span></p>
+            </div>
+            <div>
+                <p><span class="text-[var(--text-secondary)]">收货人：</span>${info.receiver} ${info.receiverPhone}</p>
+                <p><span class="text-[var(--text-secondary)]">地址：</span>${info.address}</p>
+                <p><span class="text-[var(--text-secondary)]">下单时间：</span>${info.payTime}</p>
+                <p><span class="text-[var(--text-secondary)]">状态：</span><span class="text-primary font-medium">${statusTexts[info.progress]}</span></p>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="flex gap-2 border-t pt-2">
-    <select class="border rounded px-2 py-1 text-sm" onchange="updatePro('${o.node_id}',this.value)">
-      <option value="0" ${p==0?'selected':''}>0-已提交</option>
-      <option value="1" ${p==1?'selected':''}>1-待审核</option>
-      <option value="2" ${p==2?'selected':''}>2-已出库</option>
-      <option value="3" ${p==3?'selected':''}>3-运输1/5</option>
-      <option value="4" ${p==4?'selected':''}>4-运输2/5</option>
-      <option value="5" ${p==5?'selected':''}>5-运输3/5</option>
-      <option value="6" ${p==6?'selected':''}>6-运输4/5</option>
-      <option value="7" ${p==7?'selected':''}>7-已签收</option>
-    </select>
-    <button onclick="delOne('${o.node_id}')" class="bg-red-500 text-white px-2 py-1 rounded text-sm">彻底删除</button>
-  </div>
+    <div class="flex flex-wrap gap-2 border-t border-[var(--border-color)] pt-3">
+        <select class="border border-[var(--border-color)] rounded px-2 py-1 text-sm bg-transparent outline-none" onchange="updateProgress('${o.node_id}', this.value)">
+            <option value="0" ${info.progress==0?'selected':''}>0-已提交</option>
+            <option value="1" ${info.progress==1?'selected':''}>1-待审核</option>
+            <option value="2" ${info.progress==2?'selected':''}>2-已出库</option>
+            <option value="3" ${info.progress==3?'selected':''}>3-运输1/5</option>
+            <option value="4" ${info.progress==4?'selected':''}>4-运输2/5</option>
+            <option value="5" ${info.progress==5?'selected':''}>5-运输3/5</option>
+            <option value="6" ${info.progress==6?'selected':''}>6-运输4/5</option>
+            <option value="7" ${info.progress==7?'selected':''}>7-已签收</option>
+        </select>
+        <button onclick="copyAddress('${info.receiver}','${info.receiverPhone}','${info.address}')" class="bg-secondary/10 text-secondary px-2 py-1 rounded text-sm">
+            <i class="bi bi-clipboard mr-1"></i> 复制地址
+        </button>
+        <button onclick="openOrderDetail('${o.node_id}')" class="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
+            <i class="bi bi-eye mr-1"></i> 详情/编辑
+        </button>
+        <button onclick="delOne('${o.node_id}')" class="bg-danger text-white px-2 py-1 rounded text-sm">
+            <i class="bi bi-trash mr-1"></i> 彻底删除
+        </button>
+    </div>
 </div>`;
-  });
-  list.innerHTML = html;
-  document.getElementById('checkAll').onchange = e => {
-    document.querySelectorAll('.order-check').forEach(c => c.checked = e.target.checked);
-  };
+        });
+    } else {
+        // 表格视图
+        html = `
+<table class="w-full bg-[var(--bg-panel)] rounded-xl overflow-hidden">
+    <thead>
+        <tr class="border-b border-[var(--border-color)]">
+            <th class="w-10"><input type="checkbox" id="tableCheckAll" class="w-4 h-4 text-primary"></th>
+            <th>订单号</th>
+            <th>用户</th>
+            <th>商品</th>
+            <th>金额</th>
+            <th>状态</th>
+            <th>收货人</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>`;
+        orders.forEach(o => {
+            const info = parseOrderBody(o.body);
+            const isUnpaid = info.payStatus === '未支付';
+            html += `
+<tr>
+    <td><input type="checkbox" class="order-check w-4 h-4" data-node="${o.node_id}" data-number="${o.number}"></td>
+    <td class="text-sm">${info.orderNo}</td>
+    <td class="text-sm">${info.userPhone}</td>
+    <td class="text-sm">${info.product}</td>
+    <td class="text-sm font-bold">${info.amount}</td>
+    <td class="text-sm ${isUnpaid ? 'text-danger' : 'text-primary'}">${statusTexts[info.progress]}</td>
+    <td class="text-sm">${info.receiver}</td>
+    <td>
+        <div class="flex gap-1">
+            <button onclick="openOrderDetail('${o.node_id}')" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">详情</button>
+            <button onclick="delOne('${o.node_id}')" class="text-xs bg-danger text-white px-2 py-1 rounded">删除</button>
+        </div>
+    </td>
+</tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+
+    list.innerHTML = html;
+
+    // 全选事件
+    document.getElementById('checkAll').onchange = e => {
+        document.querySelectorAll('.order-check').forEach(c => c.checked = e.target.checked);
+    };
+    const tableCheckAll = document.getElementById('tableCheckAll');
+    if (tableCheckAll) {
+        tableCheckAll.onchange = e => {
+            document.querySelectorAll('.order-check').forEach(c => c.checked = e.target.checked);
+            document.getElementById('checkAll').checked = e.target.checked;
+        };
+    }
 }
 
-// 更新进度
-async function updatePro(nodeId, val) {
-  const o = orders.find(x => x.node_id === nodeId);
-  if (!o) return;
-  const status = ['已提交','待审核','已出库','运输1/5','运输2/5','运输3/5','运输4/5','已签收'];
-  const orderSt = ['待发货','待发货','待发货','待发货','待发货','待发货','待发货','已完成'];
-  let body = o.body;
-  body = body.replace(/物流进度：\d+/, `物流进度：${val}`);
-  body = body.replace(/物流状态：.*/, `物流状态：${status[val]}`);
-  body = body.replace(/订单状态：.*/, `订单状态：${orderSt[val]}`);
-  await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
-    method: 'PATCH',
-    headers: { Authorization: `token ${CONFIG.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body })
-  });
-  loadOrders();
+// 搜索与筛选
+document.getElementById('orderSearch').oninput = filterOrders;
+document.getElementById('statusFilter').onchange = filterOrders;
+document.getElementById('payFilter').onchange = filterOrders;
+document.getElementById('timeFilter').onchange = filterOrders;
+
+function filterOrders() {
+    const keyword = document.getElementById('orderSearch').value.trim().toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const payFilter = document.getElementById('payFilter').value;
+    const timeFilter = document.getElementById('timeFilter').value;
+
+    const filtered = allOrders.filter(o => {
+        const info = parseOrderBody(o.body);
+        // 关键词搜索
+        const matchKeyword = !keyword || 
+            info.orderNo.toLowerCase().includes(keyword) ||
+            info.userPhone.toLowerCase().includes(keyword) ||
+            info.product.toLowerCase().includes(keyword) ||
+            info.receiver.toLowerCase().includes(keyword);
+        // 状态筛选
+        const matchStatus = !statusFilter || info.progress == statusFilter;
+        // 支付筛选
+        const matchPay = !payFilter || info.payStatus === payFilter;
+        // 时间筛选
+        let matchTime = true;
+        if (timeFilter === 'today') matchTime = isToday(o.created_at);
+        if (timeFilter === '7day') matchTime = isLast7Day(o.created_at);
+        if (timeFilter === 'month') matchTime = isThisMonth(o.created_at);
+
+        return matchKeyword && matchStatus && matchPay && matchTime;
+    });
+
+    renderOrders(filtered);
 }
 
-// ================== 核心：真正彻底删除 ==================
+// 复制收货地址
+function copyAddress(receiver, phone, address) {
+    const text = `${receiver} ${phone} ${address}`;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('地址已复制', 'success');
+    }).catch(() => {
+        showToast('复制失败', 'error');
+    });
+}
+
+// 更新物流进度
+async function updateProgress(nodeId, val) {
+    const o = allOrders.find(x => x.node_id === nodeId);
+    if (!o) return;
+
+    let body = o.body;
+    body = body.replace(/物流进度：\d+/, `物流进度：${val}`);
+    body = body.replace(/物流状态：.*/, `物流状态：${statusTexts[val]}`);
+    body = body.replace(/订单状态：.*/, `订单状态：${orderStatusTexts[val]}`);
+
+    try {
+        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `token ${CONFIG.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ body })
+        });
+        showToast('物流状态更新成功', 'success');
+        loadOrders();
+    } catch (e) {
+        showToast('更新失败', 'error');
+    }
+}
+
+// 批量更新状态
+async function batchUpdateStatus() {
+    const selected = Array.from(document.querySelectorAll('.order-check:checked'));
+    const targetStatus = document.getElementById('batchStatus').value;
+    if (selected.length === 0) return showToast('请先选择订单', 'warning');
+    if (!targetStatus) return showToast('请选择要修改的状态', 'warning');
+    if (!confirm(`确定要将选中的 ${selected.length} 条订单状态改为 ${statusTexts[targetStatus]}？`)) return;
+
+    let success = 0;
+    for (const item of selected) {
+        const nodeId = item.dataset.node;
+        const o = allOrders.find(x => x.node_id === nodeId);
+        if (!o) continue;
+
+        let body = o.body;
+        body = body.replace(/物流进度：\d+/, `物流进度：${targetStatus}`);
+        body = body.replace(/物流状态：.*/, `物流状态：${statusTexts[targetStatus]}`);
+        body = body.replace(/订单状态：.*/, `订单状态：${orderStatusTexts[targetStatus]}`);
+
+        try {
+            await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `token ${CONFIG.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ body })
+            });
+            success++;
+        } catch (e) {}
+    }
+
+    showToast(`批量更新完成：成功 ${success} 条`, 'success');
+    loadOrders();
+}
+
+// 订单详情/编辑
+let currentEditOrderNode = '';
+function openOrderDetail(nodeId) {
+    currentEditOrderNode = nodeId;
+    const o = allOrders.find(x => x.node_id === nodeId);
+    if (!o) return;
+    const info = parseOrderBody(o.body);
+    document.getElementById('modalTitle').innerText = `订单详情 - ${info.orderNo}`;
+    document.getElementById('modalContent').innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">订单号</label>
+                <input id="editOrderNo" type="text" value="${info.orderNo}" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">用户手机号</label>
+                <input id="editOrderPhone" type="text" value="${info.userPhone}" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">商品名称</label>
+                <input id="editOrderGoods" type="text" value="${info.product}" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">支付金额</label>
+                <input id="editOrderAmount" type="text" value="${info.amount}" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">收货人</label>
+                <input id="editOrderReceiver" type="text" value="${info.receiver}" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">联系电话</label>
+                <input id="editOrderReceiverPhone" type="text" value="${info.receiverPhone}" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">收货地址</label>
+                <input id="editOrderAddress" type="text" value="${info.address}" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">支付状态</label>
+                <select id="editOrderPayStatus" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+                    <option value="已支付" ${info.payStatus==='已支付'?'selected':''}>已支付</option>
+                    <option value="未支付" ${info.payStatus==='未支付'?'selected':''}>未支付</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">物流进度</label>
+                <select id="editOrderProgress" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary">
+                    <option value="0" ${info.progress==0?'selected':''}>0-已提交</option>
+                    <option value="1" ${info.progress==1?'selected':''}>1-待审核</option>
+                    <option value="2" ${info.progress==2?'selected':''}>2-已出库</option>
+                    <option value="3" ${info.progress==3?'selected':''}>3-运输1/5</option>
+                    <option value="4" ${info.progress==4?'selected':''}>4-运输2/5</option>
+                    <option value="5" ${info.progress==5?'selected':''}>5-运输3/5</option>
+                    <option value="6" ${info.progress==6?'selected':''}>6-运输4/5</option>
+                    <option value="7" ${info.progress==7?'selected':''}>7-已签收</option>
+                </select>
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-sm text-[var(--text-secondary)] block mb-1">内部备注（用户不可见）</label>
+                <textarea id="editOrderRemark" class="w-full border border-[var(--border-color)] rounded-lg px-3 py-2 bg-transparent outline-none focus:border-primary" rows="3">${info.remark}</textarea>
+            </div>
+        </div>
+    `;
+    document.getElementById('orderModal').style.display = 'grid';
+}
+
+function closeOrderModal() {
+    document.getElementById('orderModal').style.display = 'none';
+    currentEditOrderNode = '';
+}
+
+async function saveOrderEdit() {
+    const o = allOrders.find(x => x.node_id === currentEditOrderNode);
+    if (!o) return;
+
+    // 获取表单值
+    const orderNo = document.getElementById('editOrderNo').value.trim();
+    const userPhone = document.getElementById('editOrderPhone').value.trim();
+    const product = document.getElementById('editOrderGoods').value.trim();
+    const amount = document.getElementById('editOrderAmount').value.trim();
+    const receiver = document.getElementById('editOrderReceiver').value.trim();
+    const receiverPhone = document.getElementById('editOrderReceiverPhone').value.trim();
+    const address = document.getElementById('editOrderAddress').value.trim();
+    const payStatus = document.getElementById('editOrderPayStatus').value;
+    const progress = document.getElementById('editOrderProgress').value;
+    const remark = document.getElementById('editOrderRemark').value.trim();
+
+    // 构建新的body
+    let body = o.body;
+    body = body.replace(/订单号：\S+/, `订单号：${orderNo}`);
+    body = body.replace(/用户手机号：.+/, `用户手机号：${userPhone}`);
+    body = body.replace(/商品名称：.+/, `商品名称：${product}`);
+    body = body.replace(/支付金额：.+/, `支付金额：${amount}`);
+    body = body.replace(/收货人：.+/, `收货人：${receiver}`);
+    body = body.replace(/联系电话：.+/, `联系电话：${receiverPhone}`);
+    body = body.replace(/收货地址：.+/, `收货地址：${address}`);
+    body = body.replace(/支付状态：\S+/, `支付状态：${payStatus}`);
+    body = body.replace(/物流进度：\d+/, `物流进度：${progress}`);
+    body = body.replace(/物流状态：.+/, `物流状态：${statusTexts[progress]}`);
+    body = body.replace(/订单状态：.+/, `订单状态：${orderStatusTexts[progress]}`);
+
+    // 处理备注
+    if (body.match(/内部备注：.+/)) {
+        body = body.replace(/内部备注：.+/, `内部备注：${remark}`);
+    } else if (remark) {
+        body += `\n内部备注：${remark}`;
+    }
+
+    try {
+        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `token ${CONFIG.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ body, title: `订单 | ${orderNo}` })
+        });
+        showToast('订单修改成功', 'success');
+        closeOrderModal();
+        loadOrders();
+    } catch (e) {
+        showToast('修改失败', 'error');
+    }
+}
+
+// 手动创建订单
+function openCreateOrderModal() {
+    document.getElementById('createOrderNo').value = generateOrderNo();
+    document.getElementById('createOrderForm').reset();
+    document.getElementById('createOrderNo').value = generateOrderNo();
+    document.getElementById('createOrderModal').style.display = 'grid';
+}
+
+function closeCreateOrderModal() {
+    document.getElementById('createOrderModal').style.display = 'none';
+}
+
+async function createOrder() {
+    const orderNo = document.getElementById('createOrderNo').value.trim();
+    const userPhone = document.getElementById('createOrderPhone').value.trim();
+    const product = document.getElementById('createOrderGoods').value.trim();
+    const amount = document.getElementById('createOrderAmount').value.trim();
+    const receiver = document.getElementById('createOrderReceiver').value.trim();
+    const receiverPhone = document.getElementById('createOrderReceiverPhone').value.trim();
+    const address = document.getElementById('createOrderAddress').value.trim();
+    const payStatus = document.getElementById('createOrderPayStatus').value;
+
+    if (!orderNo || !userPhone || !product || !amount || !receiver || !receiverPhone || !address) {
+        return showToast('请填写完整订单信息', 'warning');
+    }
+
+    const now = new Date();
+    const payTime = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+
+    // 构建body
+    const body = `订单号：${orderNo}
+用户手机号：${userPhone}
+商品名称：${product}
+支付金额：${amount}
+支付状态：${payStatus}
+收货人：${receiver}
+联系电话：${receiverPhone}
+收货地址：${address}
+支付时间：${payTime}
+订单状态：待发货
+物流进度：0
+物流状态：已提交`;
+
+    try {
+        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues`, {
+            method: 'POST',
+            headers: {
+                Authorization: `token ${CONFIG.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: `订单 | ${orderNo}`,
+                body: body,
+                labels: [CONFIG.orderLabel]
+            })
+        });
+        showToast('订单创建成功', 'success');
+        closeCreateOrderModal();
+        loadOrders();
+    } catch (e) {
+        showToast('创建失败', 'error');
+    }
+}
+
+// 导出订单
+function exportOrders() {
+    if (allOrders.length === 0) return showToast('暂无订单可导出', 'warning');
+    let content = '订单号,用户手机号,商品名称,金额,支付状态,物流状态,收货人,联系电话,地址,下单时间\n';
+    allOrders.forEach(o => {
+        const info = parseOrderBody(o.body);
+        content += `${info.orderNo},${info.userPhone},${info.product},${info.amount},${info.payStatus},${statusTexts[info.progress]},${info.receiver},${info.receiverPhone},${info.address},${info.payTime}\n`;
+    });
+    downloadFile(content, `订单列表_${new Date().toLocaleDateString()}.csv`);
+    showToast('订单导出成功', 'success');
+}
+
+// ================== 彻底删除（GraphQL 真删除） ==================
 async function deleteNode(nodeId) {
-  await fetch('https://api.github.com/graphql', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${CONFIG.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `mutation { deleteIssue(input: { issueId: "${nodeId}" }) { clientMutationId } }`
-    })
-  });
+    try {
+        const res = await fetch('https://api.github.com/graphql', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${CONFIG.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: `mutation {
+                    deleteIssue(input: { issueId: "${nodeId}" }) {
+                        clientMutationId
+                    }
+                }`
+            })
+        });
+        const json = await res.json();
+        return !json.errors;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
 }
 
 // 单条删除
 async function delOne(nodeId) {
-  if (!confirm('确定要永久彻底删除？不可恢复！')) return;
-  await deleteNode(nodeId);
-  if (currentTab === 'order') loadOrders();
-  else loadUsers();
+    if (!confirm('确定要永久彻底删除？删除后无法恢复！')) return;
+    const success = await deleteNode(nodeId);
+    if (success) {
+        showToast('删除成功', 'success');
+        currentTab === 'order' ? loadOrders() : loadUsers();
+    } else {
+        showToast('删除失败', 'error');
+    }
 }
 
-// 批量删除
+// 批量删除订单
 async function batchDelete() {
-  const nodes = [...document.querySelectorAll('.order-check:checked')].map(c => c.dataset.node);
-  if (nodes.length === 0) return alert('请选择订单');
-  if (!confirm(`确定彻底删除 ${nodes.length} 条订单？`)) return;
-  for (const id of nodes) await deleteNode(id);
-  loadOrders();
+    const list = Array.from(document.querySelectorAll('.order-check:checked'));
+    if (list.length === 0) return showToast('请先选择订单', 'warning');
+    if (!confirm(`确定永久删除 ${list.length} 条订单？`)) return;
+
+    let count = 0;
+    for (const item of list) {
+        const ok = await deleteNode(item.dataset.node);
+        if (ok) count++;
+    }
+    showToast(`成功删除 ${count} 条`, 'success');
+    loadOrders();
 }
 
-// ================== 用户管理（已适配 user-register + • 格式） ==================
+// 清空测试数据
+async function clearTestData() {
+    if (!confirm('确定清空所有订单与用户？不可恢复！')) return;
+    let count = 0;
+    for (const o of allOrders) {
+        if (await deleteNode(o.node_id)) count++;
+    }
+    for (const u of allUsers) {
+        if (await deleteNode(u.node_id)) count++;
+    }
+    showToast(`清空完成，共删除 ${count} 条数据`, 'success');
+    loadOrders();
+    loadUsers();
+}
+
+// ================== 用户管理 ==================
 async function loadUsers() {
-  const el = document.getElementById('userList');
-  el.innerHTML = '<div class="bg-white p-4 text-center">加载中...</div>';
-  try {
-    // 关键：标签改为 user-register
-    const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=user-register&state=all&per_page=100`, {
-      headers: { Authorization: `token ${CONFIG.token}` }
-    });
-    users = await r.json();
-    renderUsers();
-    document.getElementById('userCount').innerText = users.length;
-  } catch (e) {
-    el.innerHTML = '<div class="bg-white p-4 text-center text-red-500">加载失败</div>';
-  }
+    const el = document.getElementById('userList');
+    el.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 text-center"><div class="loading-spinner mx-auto"></div><p class="mt-2">加载用户中...</p></div>`;
+    try {
+        const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.userLabel}&state=all&per_page=100`, {
+            headers: { Authorization: `token ${CONFIG.token}` }
+        });
+        allUsers = await res.json();
+        renderUsers(allUsers);
+        updateUserStats(allUsers);
+    } catch (e) {
+        el.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 text-center text-danger">加载失败</div>`;
+        showToast('用户加载失败', 'error');
+    }
 }
 
-function renderUsers() {
-  const list = document.getElementById('userList');
-  if (users.length === 0) {
-    list.innerHTML = '<div class="bg-white p-4 text-center">暂无用户</div>';
-    return;
-  }
-  let html = '';
-  users.forEach(u => {
-    const b = u.body;
-    // 关键：正则适配 • 手机号：xxx 格式
-    const phone = b.match(/•\s*手机号：(\S+)/)?.[1] || '';
-    const pwd = b.match(/•\s*密码哈希值：(\S+)/)?.[1] || '';
-    const time = b.match(/•\s*注册时间：(.+)/)?.[1] || '';
-    html += `
-<div class="bg-white p-4 rounded-xl shadow-sm border text-sm">
-  <p><span class="text-gray-500">手机号：</span>${phone}</p>
-  <p><span class="text-gray-500">密码哈希值：</span>${pwd}</p>
-  <p><span class="text-gray-500">注册时间：</span>${time}</p>
-  <div class="flex gap-2 mt-2">
-    <button onclick="delOne('${u.node_id}')" class="bg-red-500 text-white px-2 py-1 rounded">彻底删除用户</button>
-  </div>
+function updateUserStats(users) {
+    const total = users.length;
+    const today = users.filter(u => isToday(u.created_at)).length;
+    document.getElementById('totalUser').innerText = total;
+    document.getElementById('todayUser').innerText = today;
+}
+
+function parseUserBody(body) {
+    return {
+        phone: body.match(/•\s*手机号：(\S+)/)?.[1] || '',
+        pwdHash: body.match(/•\s*密码哈希值：(\S+)/)?.[1] || '',
+        regTime: body.match(/•\s*注册时间：(.+)/)?.[1] || '',
+        status: body.match(/•\s*账号状态：(\S+)/)?.[1] || '正常'
+    };
+}
+
+function renderUsers(users) {
+    const el = document.getElementById('userList');
+    if (!users.length) {
+        el.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 text-center">暂无用户</div>`;
+        return;
+    }
+
+    const sort = document.getElementById('userSort').value;
+    users.sort((a, b) => sort === 'desc'
+        ? new Date(b.created_at) - new Date(a.created_at)
+        : new Date(a.created_at) - new Date(b.created_at)
+    );
+
+    let html = '';
+    users.forEach(u => {
+        const info = parseUserBody(u.body);
+        const days = Math.floor((new Date() - new Date(u.created_at)) / 86400000);
+        html += `
+<div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border">
+    <div class="flex justify-between items-start">
+        <div>
+            <p class="font-bold text-lg">${info.phone}</p>
+            <p class="text-sm text-[var(--text-secondary)]">注册：${info.regTime}（${days}天）</p>
+            <p class="text-sm">状态：<span class="${info.status==='正常'?'text-success':'text-danger'}">${info.status}</span></p>
+        </div>
+        <div class="flex flex-col gap-1">
+            <button onclick="showUserOrders('${info.phone}')" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">查看订单</button>
+            <button onclick="openResetPwdModal('${u.node_id}')" class="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded">重置密码</button>
+            <button onclick="delOne('${u.node_id}')" class="text-xs bg-danger text-white px-2 py-1 rounded">删除</button>
+        </div>
+    </div>
+    <div class="text-xs text-[var(--text-secondary)] mt-2 break-all">
+        哈希：${info.pwdHash}
+    </div>
 </div>`;
-  });
-  list.innerHTML = html;
+    });
+    el.innerHTML = html;
 }
 
-// 初始加载
-window.onload = () => loadOrders();
+function filterUsers() {
+    const kw = document.getElementById('userSearch').value.trim();
+    const filtered = allUsers.filter(u => {
+        const info = parseUserBody(u.body);
+        return !kw || info.phone.includes(kw);
+    });
+    renderUsers(filtered);
+}
+
+// 查看用户订单
+function showUserOrders(phone) {
+    const orders = allOrders.filter(o => {
+        const info = parseOrderBody(o.body);
+        return info.userPhone === phone;
+    });
+    document.getElementById('userOrderTitle').innerText = `${phone} 的订单（${orders.length}单）`;
+    let html = '';
+    if (orders.length === 0) {
+        html = `<div class="p-4 text-center">暂无订单</div>`;
+    } else {
+        orders.forEach(o => {
+            const info = parseOrderBody(o.body);
+            html += `
+<div class="p-3 border rounded-lg text-sm">
+    <p>订单：${info.orderNo}</p>
+    <p>商品：${info.product} · ${info.amount}</p>
+    <p>状态：${statusTexts[info.progress]}</p>
+</div>`;
+        });
+    }
+    document.getElementById('userOrderList').innerHTML = html;
+    document.getElementById('userOrderModal').style.display = 'grid';
+}
+
+function closeUserOrderModal() {
+    document.getElementById('userOrderModal').style.display = 'none';
+}
+
+// 重置密码
+function openResetPwdModal(nodeId) {
+    currentResetUserId = nodeId;
+    document.getElementById('newPwd').value = '';
+    document.getElementById('resetPwdModal').style.display = 'grid';
+}
+
+function closeResetPwdModal() {
+    document.getElementById('resetPwdModal').style.display = 'none';
+    currentResetUserId = '';
+}
+
+async function confirmResetPwd() {
+    const pwd = document.getElementById('newPwd').value.trim();
+    if (!pwd) return showToast('请输入新密码', 'warning');
+    const hash = await sha256(pwd);
+    const u = allUsers.find(x => x.node_id === currentResetUserId);
+    if (!u) return;
+
+    let body = u.body;
+    body = body.replace(/•\s*密码哈希值：\S+/, `• 密码哈希值：${hash}`);
+
+    try {
+        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${u.number}`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `token ${CONFIG.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ body })
+        });
+        showToast('密码已重置', 'success');
+        closeResetPwdModal();
+        loadUsers();
+    } catch (e) {
+        showToast('重置失败', 'error');
+    }
+}
+
+// 导出用户
+function exportUsers() {
+    if (allUsers.length === 0) return showToast('暂无用户', 'warning');
+    let content = '手机号,密码哈希,注册时间,状态\n';
+    allUsers.forEach(u => {
+        const info = parseUserBody(u.body);
+        content += `${info.phone},${info.pwdHash},${info.regTime},${info.status}\n`;
+    });
+    downloadFile(content, `用户列表_${new Date().toLocaleDateString()}.csv`);
+    showToast('用户导出成功', 'success');
+}
+
+// 初始化
+window.onload = function () {
+    loadOrders();
+    if (localStorage.getItem('dark') === '1') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('darkModeBtn').innerHTML = '<i class="bi bi-sun"></i>';
+    }
+};
+
 </script>
 </body>
 </html>
+   
