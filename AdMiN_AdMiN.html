@@ -244,7 +244,8 @@ async function deleteNode(nodeId) {
 async function delOne(nodeId) {
   if (!confirm('确定要永久彻底删除？不可恢复！')) return;
   await deleteNode(nodeId);
-  loadOrders();
+  if (currentTab === 'order') loadOrders();
+  else loadUsers();
 }
 
 // 批量删除
@@ -256,12 +257,13 @@ async function batchDelete() {
   loadOrders();
 }
 
-// ================== 用户 ==================
+// ================== 用户管理（已适配 user-register + • 格式） ==================
 async function loadUsers() {
   const el = document.getElementById('userList');
   el.innerHTML = '<div class="bg-white p-4 text-center">加载中...</div>';
   try {
-    const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=user&state=all&per_page=100`, {
+    // 关键：标签改为 user-register
+    const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=user-register&state=all&per_page=100`, {
       headers: { Authorization: `token ${CONFIG.token}` }
     });
     users = await r.json();
@@ -281,16 +283,17 @@ function renderUsers() {
   let html = '';
   users.forEach(u => {
     const b = u.body;
-    const phone = b.match(/手机号：(\S+)/)?.[1] || '';
-    const pwd = b.match(/密码：(\S+)/)?.[1] || '';
-    const time = b.match(/注册时间：(.+)/)?.[1] || '';
+    // 关键：正则适配 • 手机号：xxx 格式
+    const phone = b.match(/•\s*手机号：(\S+)/)?.[1] || '';
+    const pwd = b.match(/•\s*密码哈希值：(\S+)/)?.[1] || '';
+    const time = b.match(/•\s*注册时间：(.+)/)?.[1] || '';
     html += `
 <div class="bg-white p-4 rounded-xl shadow-sm border text-sm">
-  <p>手机号：${phone}</p>
-  <p>密码：${pwd}</p>
-  <p>注册：${time}</p>
+  <p><span class="text-gray-500">手机号：</span>${phone}</p>
+  <p><span class="text-gray-500">密码哈希值：</span>${pwd}</p>
+  <p><span class="text-gray-500">注册时间：</span>${time}</p>
   <div class="flex gap-2 mt-2">
-    <button onclick="delOne('${u.node_id}')" class="bg-red-500 text-white px-2 py-1 rounded">删除用户</button>
+    <button onclick="delOne('${u.node_id}')" class="bg-red-500 text-white px-2 py-1 rounded">彻底删除用户</button>
   </div>
 </div>`;
   });
