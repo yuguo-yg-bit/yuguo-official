@@ -1,412 +1,304 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理后台 - 玉国科技</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#165DFF',
-                        secondary: '#4080FF',
-                        danger: '#F53F3F',
-                        success: '#00B42A',
-                        light: '#E8F3FF',
-                        darkblue: '#0E2F89',
-                        panel: '#FFFFFF',
-                        bglight: '#F5F8FF'
-                    }
-                }
-            }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - 玉国科技</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#4080FF',
+            danger: '#F53F3F',
+            success: '#00B42A',
+            light: '#E8F3FF',
+            bglight: '#F5F8FF'
+          }
         }
-    </script>
-    <style>
-        body {
-            background-color: #F5F8FF;
-            font-family: system-ui, sans-serif;
-        }
-        .order-card {
-            transition: all 0.2s ease;
-        }
-        .order-card:hover {
-            transform: translateY(-2px);
-        }
-        .tab-active {
-            border-bottom: 2px solid #165DFF;
-            color: #165DFF;
-            font-weight: 600;
-        }
-    </style>
+      }
+    }
+  </script>
+  <style>
+    body { background: #F5F8FF;font-family:sans-serif; }
+    .tab-active { border-bottom:2px solid #165DFF;color:#165DFF;font-weight:600; }
+  </style>
 </head>
 <body>
 
 <header class="bg-white shadow-sm px-4 py-3 sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto flex justify-between items-center">
-        <h1 class="text-primary text-xl font-bold">
-            <i class="bi bi-shield-check mr-1"></i> 玉国科技 - 管理后台
-        </h1>
-        <button onclick="logout()" class="text-sm text-gray-600 hover:text-primary">
-            <i class="bi bi-box-arrow-right mr-1"></i> 退出登录
-        </button>
-    </div>
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <h1 class="text-primary text-xl font-bold">
+      <i class="bi bi-shield-check mr-1"></i> 玉国科技 - 管理后台
+    </h1>
+    <button onclick="logout()" class="text-gray-600 hover:text-primary">
+      <i class="bi bi-box-arrow-right mr-1"></i>退出登录
+    </button>
+  </div>
 </header>
 
 <div class="max-w-6xl mx-auto px-4 py-8">
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-light">
-            <p class="text-sm text-gray-500">全部订单</p>
-            <p class="text-2xl font-bold text-primary" id="totalOrder">0</p>
-        </div>
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-light">
-            <p class="text-sm text-gray-500">待发货 / 运输中</p>
-            <p class="text-2xl font-bold text-secondary" id="shippingNum">0</p>
-        </div>
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-light">
-            <p class="text-sm text-gray-500">已完成订单</p>
-            <p class="text-2xl font-bold text-darkblue" id="finishNum">0</p>
-        </div>
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-light">
-            <p class="text-sm text-gray-500">注册用户</p>
-            <p class="text-2xl font-bold text-success" id="userNum">0</p>
-        </div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-xl shadow-sm border">
+      <p class="text-sm text-gray-500">全部订单</p>
+      <p class="text-2xl font-bold text-primary" id="totalOrder">0</p>
     </div>
-
-    <div class="flex gap-8 mb-6 border-b border-gray-200">
-        <div id="orderTab" class="tab-active pb-2 px-1 cursor-pointer" onclick="switchTab('order')">
-            <i class="bi bi-list-ul mr-1"></i> 订单管理
-        </div>
-        <div id="userTab" class="pb-2 px-1 cursor-pointer text-gray-500" onclick="switchTab('user')">
-            <i class="bi bi-people mr-1"></i> 用户管理
-        </div>
+    <div class="bg-white p-5 rounded-xl shadow-sm border">
+      <p class="text-sm text-gray-500">待发货/运输中</p>
+      <p class="text-2xl font-bold text-secondary" id="shippingNum">0</p>
     </div>
-
-    <div id="orderPanel">
-        <div class="flex justify-between items-center mb-4">
-            <div class="flex items-center gap-3">
-                <input type="checkbox" id="checkAll" class="w-4 h-4 text-primary">
-                <label for="checkAll" class="text-sm text-gray-700">全选</label>
-                <button onclick="batchDeleteOrder()" class="bg-danger text-white px-3 py-1 rounded text-sm hover:bg-danger/90">
-                    <i class="bi bi-trash mr-1"></i> 批量删除
-                </button>
-            </div>
-            <button onclick="loadAllOrders()" class="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90">
-                <i class="bi bi-arrow-clockwise mr-1"></i> 刷新订单
-            </button>
-        </div>
-
-        <div id="orderList" class="space-y-4">
-            <div class="bg-white p-6 rounded-xl text-center text-gray-500">
-                <i class="bi bi-hourglass-split text-2xl"></i>
-                <p class="mt-2">正在加载订单...</p>
-            </div>
-        </div>
+    <div class="bg-white p-5 rounded-xl shadow-sm border">
+      <p class="text-sm text-gray-500">已完成</p>
+      <p class="text-2xl font-bold text-success" id="finishNum">0</p>
     </div>
-
-    <div id="userPanel" class="hidden">
-        <div class="flex justify-end mb-4">
-            <button onclick="loadAllUsers()" class="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90">
-                <i class="bi bi-arrow-clockwise mr-1"></i> 刷新用户
-            </button>
-        </div>
-        <div id="userList" class="space-y-4">
-            <div class="bg-white p-6 rounded-xl text-center text-gray-500">
-                <i class="bi bi-hourglass-split text-2xl"></i>
-                <p class="mt-2">正在加载用户...</p>
-            </div>
-        </div>
+    <div class="bg-white p-5 rounded-xl shadow-sm border">
+      <p class="text-sm text-gray-500">注册用户</p>
+      <p class="text-2xl font-bold text-success" id="userCount">0</p>
     </div>
+  </div>
 
-</div>
+  <div class="flex gap-6 mb-4 border-b pb-2">
+    <div id="tab_order" class="tab-active cursor-pointer" onclick="switchTab('order')">订单管理</div>
+    <div id="tab_user" class="cursor-pointer text-gray-500" onclick="switchTab('user')">用户管理</div>
+  </div>
 
-<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden place-items-center" id="userEditModal">
-    <div class="bg-white rounded-xl p-6 w-full max-w-md">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-gray-800">修改用户信息</h3>
-            <button onclick="closeUserEditModal()" class="text-gray-500"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <div class="space-y-3 mb-5">
-            <input type="hidden" id="editUserId">
-            <div>
-                <label class="text-sm text-gray-600 block mb-1">用户手机号</label>
-                <input type="text" id="editUserPhone" class="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary">
-            </div>
-            <div>
-                <label class="text-sm text-gray-600 block mb-1">用户密码</label>
-                <input type="text" id="editUserPwd" class="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-primary">
-            </div>
-        </div>
-        <div class="flex gap-3">
-            <button onclick="saveUserEdit()" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary/90">保存修改</button>
-            <button onclick="closeUserEditModal()" class="flex-1 border border-gray-200 py-2 rounded-lg hover:bg-gray-50">取消</button>
-        </div>
+  <div id="panel_order">
+    <div class="flex justify-between items-center mb-3">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" id="checkAll" class="w-4 h-4">
+        <label for="checkAll">全选</label>
+        <button onclick="batchDelete()" class="bg-danger text-white px-3 py-1 rounded text-sm">
+          批量彻底删除
+        </button>
+      </div>
+      <button onclick="loadOrders()" class="bg-primary text-white px-3 py-1 rounded text-sm">刷新订单</button>
     </div>
+    <div id="orderList" class="space-y-3"></div>
+  </div>
+
+  <div id="panel_user" class="hidden">
+    <div class="flex justify-end mb-3">
+      <button onclick="loadUsers()" class="bg-primary text-white px-3 py-1 rounded text-sm">刷新用户</button>
+    </div>
+    <div id="userList" class="space-y-3"></div>
+  </div>
 </div>
 
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token_part1: "ghp_sVylTqJv8nv",
-    token_part2: "K3SK3wS2qidM6AvQ",
-    token_part3: "AFx1rAvCd",
-    get token() {
-        return this.token_part1 + this.token_part2 + this.token_part3;
-    }
+// ================== 配置 ==================
+const CONFIG = {
+  owner: 'yuguo-yg-bit',
+  repo: 'yuguo-official',
+  t1: 'ghp_sVylTqJv8nv',
+  t2: 'K3SK3wS2qidM6AvQ',
+  t3: 'AFx1rAvCd',
+  get token() { return this.t1 + this.t2 + this.t3 },
+  adminPwd: '0978004710_27015150111_admin'
 };
 
-const adminPassword = "0978004710_27015150111_admin";
+let orders = [];
+let users = [];
+let currentTab = 'order';
 
-let allOrders = [];
-let allUsers = [];
-let currentTab = "order";
-
+// 登录验证
 if (!localStorage.getItem('isAdmin')) {
-    const pwd = prompt("请输入管理员密码：");
-    if (pwd !== adminPassword) {
-        alert("密码错误，无访问权限");
-        window.location.href = "index.html";
-    } else {
-        localStorage.setItem('isAdmin', 'ok');
-    }
+  const p = prompt('请输入管理员密码：');
+  if (p !== CONFIG.adminPwd) {
+    alert('密码错误');
+    location.href = '/index.html';
+  } else {
+    localStorage.setItem('isAdmin', '1');
+  }
 }
 
 function logout() {
-    localStorage.removeItem('isAdmin');
-    window.location.href = "index.html";
+  localStorage.removeItem('isAdmin');
+  location.href = '/index.html';
 }
 
 function switchTab(tab) {
-    currentTab = tab;
-    document.getElementById('orderTab').classList.remove('tab-active');
-    document.getElementById('userTab').classList.remove('tab-active');
-    document.getElementById('orderTab').classList.add('text-gray-500');
-    document.getElementById('userTab').classList.add('text-gray-500');
-    document.getElementById('orderPanel').classList.add('hidden');
-    document.getElementById('userPanel').classList.add('hidden');
-    document.getElementById(`${tab}Tab`).classList.add('tab-active');
-    document.getElementById(`${tab}Tab`).classList.remove('text-gray-500');
-    document.getElementById(`${tab}Panel`).classList.remove('hidden');
-    if (tab === 'order') loadAllOrders();
-    if (tab === 'user') loadAllUsers();
+  currentTab = tab;
+  document.getElementById('panel_order').classList.add('hidden');
+  document.getElementById('panel_user').classList.add('hidden');
+  document.getElementById('tab_order').classList.remove('tab-active');
+  document.getElementById('tab_user').classList.remove('tab-active');
+  document.getElementById('tab_' + tab).classList.add('tab-active');
+  document.getElementById('panel_' + tab).classList.remove('hidden');
+  tab === 'order' ? loadOrders() : loadUsers();
 }
 
-// ====================== 订单 ======================
-async function loadAllOrders() {
-    const listBox = document.getElementById('orderList');
-    listBox.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-gray-500">加载中...</div>`;
-    try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=payment-record&state=all&per_page=100`, {
-            headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
-        });
-        allOrders = await res.json();
-        renderOrderList(allOrders);
-        updateOrderStatistics(allOrders);
-        document.getElementById('checkAll').checked = false;
-    } catch (e) {
-        listBox.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-danger">加载失败</div>`;
-    }
-}
-
-function updateOrderStatistics(orders) {
-    document.getElementById('totalOrder').innerText = orders.length;
-    let shipping = 0, finish = 0;
-    orders.forEach(iss => {
-        const p = getOrderProgress(iss.body);
-        if (p >= 1 && p < 7) shipping++;
-        if (p >= 7) finish++;
+// ================== 订单 ==================
+async function loadOrders() {
+  const el = document.getElementById('orderList');
+  el.innerHTML = '<div class="bg-white p-4 text-center">加载中...</div>';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=payment-record&state=all&per_page=100`, {
+      headers: { Authorization: `token ${CONFIG.token}` }
     });
-    document.getElementById('shippingNum').innerText = shipping;
-    document.getElementById('finishNum').innerText = finish;
+    orders = await r.json();
+    renderOrders();
+    updateStats();
+  } catch (e) {
+    el.innerHTML = '<div class="bg-white p-4 text-center text-red-500">加载失败</div>';
+  }
 }
 
-function getOrderProgress(body) {
-    const m = body.match(/物流进度：(\d+)/);
-    return m ? parseInt(m[1]) : 0;
+function updateStats() {
+  document.getElementById('totalOrder').innerText = orders.length;
+  let s = 0, f = 0;
+  orders.forEach(o => {
+    const m = o.body.match(/物流进度：(\d+)/);
+    const p = m ? +m[1] : 0;
+    if (p >= 1 && p < 7) s++;
+    if (p >= 7) f++;
+  });
+  document.getElementById('shippingNum').innerText = s;
+  document.getElementById('finishNum').innerText = f;
 }
 
-function renderOrderList(orders) {
-    const box = document.getElementById('orderList');
-    if (orders.length === 0) { box.innerHTML = `<div class="bg-white p-6 text-center">暂无订单</div>`; return; }
-    const statusTextList = [
-        "订单已提交", "付款成功，待审核", "审核通过，已出库",
-        "运输中（1/5）", "运输中（2/5）", "运输中（3/5）",
-        "运输中（4/5）", "已签收，交易完成"
-    ];
-    let html = '';
-    orders.forEach(iss => {
-        const b = iss.body;
-        const orderNo = b.match(/订单号：(\S+)/)?.[1] || '无';
-        const userPhone = b.match(/用户手机号：(.+)/)?.[1] || '无';
-        const product = b.match(/商品名称：(.+)/)?.[1] || '无';
-        const amount = b.match(/支付金额：(.+)/)?.[1] || '无';
-        const receiver = b.match(/收货人：(.+)/)?.[1] || '无';
-        const receiverPhone = b.match(/联系电话：(.+)/)?.[1] || '无';
-        const address = b.match(/收货地址：(.+)/)?.[1] || '无';
-        const payTime = b.match(/支付时间：(.+)/)?.[1] || '无';
-        const progress = getOrderProgress(b);
-        const statusText = statusTextList[progress] || "未知";
+function renderOrders() {
+  const list = document.getElementById('orderList');
+  if (orders.length === 0) {
+    list.innerHTML = '<div class="bg-white p-4 text-center">暂无订单</div>';
+    return;
+  }
+  const status = ['已提交','待审核','已出库','运输1/5','运输2/5','运输3/5','运输4/5','已签收'];
+  let html = '';
+  orders.forEach(o => {
+    const b = o.body;
+    const no = b.match(/订单号：(\S+)/)?.[1] || '';
+    const user = b.match(/用户手机号：(.+)/)?.[1] || '';
+    const goods = b.match(/商品名称：(.+)/)?.[1] || '';
+    const money = b.match(/支付金额：(.+)/)?.[1] || '';
+    const name = b.match(/收货人：(.+)/)?.[1] || '';
+    const phone = b.match(/联系电话：(.+)/)?.[1] || '';
+    const addr = b.match(/收货地址：(.+)/)?.[1] || '';
+    const p = b.match(/物流进度：(\d+)/) ? +b.match(/物流进度：(\d+)/)[1] : 0;
 
-        html += `
-<div class="order-card bg-white p-5 rounded-xl shadow-sm border border-light">
-    <div class="flex items-start gap-3 mb-3">
-        <input type="checkbox" class="order-check w-4 h-4 text-primary mt-1" data-issue="${iss.number}">
-        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="space-y-1 text-sm">
-                <p>订单号：${orderNo}</p>
-                <p>用户：${userPhone}</p>
-                <p>商品：${product}</p>
-                <p>金额：${amount}</p>
-                <p>时间：${payTime}</p>
-            </div>
-            <div class="space-y-1 text-sm">
-                <p>收货人：${receiver} ${receiverPhone}</p>
-                <p>地址：${address}</p>
-                <p class="text-primary font-medium">状态：${statusText}</p>
-            </div>
-        </div>
+    html += `
+<div class="bg-white p-4 rounded-xl shadow-sm border">
+  <div class="flex items-start gap-2 mb-2">
+    <input type="checkbox" class="order-check w-4 h-4 mt-1" data-node="${o.node_id}">
+    <div class="flex-1 text-sm">
+      <p>订单：${no} · 用户：${user}</p>
+      <p>商品：${goods} · ${money}</p>
+      <p>收货人：${name} ${phone}</p>
+      <p>地址：${addr}</p>
+      <p class="text-blue-600">状态：${status[p]}</p>
     </div>
-    <div class="flex flex-wrap gap-3 border-t pt-3">
-        <select class="border rounded-lg px-3 py-1.5 text-sm" onchange="updateOrderProgress(this, '${iss.number}')">
-            <option value="0" ${progress==0?'selected':''}>0-已提交</option>
-            <option value="1" ${progress==1?'selected':''}>1-待审核</option>
-            <option value="2" ${progress==2?'selected':''}>2-已出库</option>
-            <option value="3" ${progress==3?'selected':''}>3-运输1/5</option>
-            <option value="4" ${progress==4?'selected':''}>4-运输2/5</option>
-            <option value="5" ${progress==5?'selected':''}>5-运输3/5</option>
-            <option value="6" ${progress==6?'selected':''}>6-运输4/5</option>
-            <option value="7" ${progress==7?'selected':''}>7-已签收</option>
-        </select>
-        <button onclick="deleteIssueReally('${iss.number}')" class="bg-danger text-white px-3 py-1.5 rounded text-sm">彻底删除</button>
-    </div>
+  </div>
+  <div class="flex gap-2 border-t pt-2">
+    <select class="border rounded px-2 py-1 text-sm" onchange="updatePro('${o.node_id}',this.value)">
+      <option value="0" ${p==0?'selected':''}>0-已提交</option>
+      <option value="1" ${p==1?'selected':''}>1-待审核</option>
+      <option value="2" ${p==2?'selected':''}>2-已出库</option>
+      <option value="3" ${p==3?'selected':''}>3-运输1/5</option>
+      <option value="4" ${p==4?'selected':''}>4-运输2/5</option>
+      <option value="5" ${p==5?'selected':''}>5-运输3/5</option>
+      <option value="6" ${p==6?'selected':''}>6-运输4/5</option>
+      <option value="7" ${p==7?'selected':''}>7-已签收</option>
+    </select>
+    <button onclick="delOne('${o.node_id}')" class="bg-red-500 text-white px-2 py-1 rounded text-sm">彻底删除</button>
+  </div>
 </div>`;
+  });
+  list.innerHTML = html;
+  document.getElementById('checkAll').onchange = e => {
+    document.querySelectorAll('.order-check').forEach(c => c.checked = e.target.checked);
+  };
+}
+
+// 更新进度
+async function updatePro(nodeId, val) {
+  const o = orders.find(x => x.node_id === nodeId);
+  if (!o) return;
+  const status = ['已提交','待审核','已出库','运输1/5','运输2/5','运输3/5','运输4/5','已签收'];
+  const orderSt = ['待发货','待发货','待发货','待发货','待发货','待发货','待发货','已完成'];
+  let body = o.body;
+  body = body.replace(/物流进度：\d+/, `物流进度：${val}`);
+  body = body.replace(/物流状态：.*/, `物流状态：${status[val]}`);
+  body = body.replace(/订单状态：.*/, `订单状态：${orderSt[val]}`);
+  await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
+    method: 'PATCH',
+    headers: { Authorization: `token ${CONFIG.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body })
+  });
+  loadOrders();
+}
+
+// ================== 核心：真正彻底删除 ==================
+async function deleteNode(nodeId) {
+  await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${CONFIG.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `mutation { deleteIssue(input: { issueId: "${nodeId}" }) { clientMutationId } }`
+    })
+  });
+}
+
+// 单条删除
+async function delOne(nodeId) {
+  if (!confirm('确定要永久彻底删除？不可恢复！')) return;
+  await deleteNode(nodeId);
+  loadOrders();
+}
+
+// 批量删除
+async function batchDelete() {
+  const nodes = [...document.querySelectorAll('.order-check:checked')].map(c => c.dataset.node);
+  if (nodes.length === 0) return alert('请选择订单');
+  if (!confirm(`确定彻底删除 ${nodes.length} 条订单？`)) return;
+  for (const id of nodes) await deleteNode(id);
+  loadOrders();
+}
+
+// ================== 用户 ==================
+async function loadUsers() {
+  const el = document.getElementById('userList');
+  el.innerHTML = '<div class="bg-white p-4 text-center">加载中...</div>';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=user&state=all&per_page=100`, {
+      headers: { Authorization: `token ${CONFIG.token}` }
     });
-    box.innerHTML = html;
-    document.getElementById('checkAll').onchange = function(){
-        document.querySelectorAll('.order-check').forEach(c=>c.checked=this.checked);
-    };
+    users = await r.json();
+    renderUsers();
+    document.getElementById('userCount').innerText = users.length;
+  } catch (e) {
+    el.innerHTML = '<div class="bg-white p-4 text-center text-red-500">加载失败</div>';
+  }
 }
 
-async function updateOrderProgress(sel, issueNum) {
-    const newProgress = sel.value;
-    const target = allOrders.find(i => i.number == issueNum);
-    if (!target) return;
-    const statusTextList = [
-        "订单已提交","付款成功，待审核","审核通过，已出库",
-        "运输中（1/5）","运输中（2/5）","运输中（3/5）",
-        "运输中（4/5）","已签收，交易完成"
-    ];
-    const orderStatusList = ["待发货","待发货","待发货","待发货","待发货","待发货","待发货","已完成"];
-    let body = target.body;
-    body = body.replace(/物流进度：\d+/, `物流进度：${newProgress}`);
-    body = body.replace(/物流状态：.+/, `物流状态：${statusTextList[newProgress]}`);
-    body = body.replace(/订单状态：.+/, `订单状态：${orderStatusList[newProgress]}`);
-    await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${issueNum}`, {
-        method: "PATCH",
-        headers: { Authorization: `token ${GITHUB_CONFIG.token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ body })
-    });
-    loadAllOrders();
-}
-
-// ====================== 真正彻底删除 Issue ======================
-async function deleteIssueReally(issueNum) {
-    if (!confirm("确定要永久彻底删除该条目？删除后无法恢复！")) return;
-    await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${issueNum}`, {
-        method: "DELETE",
-        headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
-    });
-    loadAllOrders();
-}
-
-async function batchDeleteOrder() {
-    const list = [...document.querySelectorAll('.order-check:checked')].map(i => i.dataset.issue);
-    if (list.length === 0) { alert("请选择"); return; }
-    if (!confirm(`确定彻底删除 ${list.length} 条订单？`)) return;
-    for (const id of list) {
-        await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${id}`, {
-            method: "DELETE",
-            headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
-        });
-    }
-    loadAllOrders();
-}
-
-// ====================== 用户 ======================
-async function loadAllUsers() {
-    const box = document.getElementById('userList');
-    box.innerHTML = `<div class="bg-white p-6 text-center">加载中...</div>`;
-    try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=user&state=all&per_page=100`, {
-            headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
-        });
-        allUsers = await res.json();
-        renderUserList(allUsers);
-        document.getElementById('userNum').innerText = allUsers.length;
-    } catch (e) {
-        box.innerHTML = `<div class="bg-white p-6 text-center text-danger">加载失败</div>`;
-    }
-}
-
-function renderUserList(users) {
-    const box = document.getElementById('userList');
-    if (users.length === 0) { box.innerHTML = `<div class="bg-white p-6 text-center">暂无用户</div>`; return; }
-    let html = '';
-    users.forEach(iss => {
-        const b = iss.body;
-        const phone = b.match(/手机号：(\S+)/)?.[1] || '无';
-        const pwd = b.match(/密码：(\S+)/)?.[1] || '无';
-        const regTime = b.match(/注册时间：(.+)/)?.[1] || '无';
-        html += `
-<div class="bg-white p-5 rounded-xl shadow-sm border border-light">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div><p class="text-sm text-gray-500">手机号</p><p class="font-bold">${phone}</p></div>
-        <div><p class="text-sm text-gray-500">注册时间</p><p>${regTime}</p></div>
-        <div><p class="text-sm text-gray-500">密码</p><p>${pwd}</p></div>
-    </div>
-    <div class="flex gap-3 border-t pt-3 mt-3">
-        <button onclick="openUserEditModal('${iss.number}','${phone}','${pwd}')" class="bg-primary text-white px-3 py-1.5 rounded text-sm">修改</button>
-        <button onclick="deleteIssueReally('${iss.number}')" class="bg-danger text-white px-3 py-1.5 rounded text-sm">彻底删除用户</button>
-    </div>
+function renderUsers() {
+  const list = document.getElementById('userList');
+  if (users.length === 0) {
+    list.innerHTML = '<div class="bg-white p-4 text-center">暂无用户</div>';
+    return;
+  }
+  let html = '';
+  users.forEach(u => {
+    const b = u.body;
+    const phone = b.match(/手机号：(\S+)/)?.[1] || '';
+    const pwd = b.match(/密码：(\S+)/)?.[1] || '';
+    const time = b.match(/注册时间：(.+)/)?.[1] || '';
+    html += `
+<div class="bg-white p-4 rounded-xl shadow-sm border text-sm">
+  <p>手机号：${phone}</p>
+  <p>密码：${pwd}</p>
+  <p>注册：${time}</p>
+  <div class="flex gap-2 mt-2">
+    <button onclick="delOne('${u.node_id}')" class="bg-red-500 text-white px-2 py-1 rounded">删除用户</button>
+  </div>
 </div>`;
-    });
-    box.innerHTML = html;
+  });
+  list.innerHTML = html;
 }
 
-function openUserEditModal(id, phone, pwd) {
-    document.getElementById('editUserId').value = id;
-    document.getElementById('editUserPhone').value = phone;
-    document.getElementById('editUserPwd').value = pwd;
-    document.getElementById('userEditModal').style.display = 'grid';
-}
-function closeUserEditModal() {
-    document.getElementById('userEditModal').style.display = 'none';
-}
-
-async function saveUserEdit() {
-    const id = document.getElementById('editUserId').value;
-    const phone = document.getElementById('editUserPhone').value.trim();
-    const pwd = document.getElementById('editUserPwd').value.trim();
-    const user = allUsers.find(u => u.number == id);
-    if (!phone || !pwd || !user) return;
-    let body = user.body;
-    body = body.replace(/手机号：\S+/, `手机号：${phone}`);
-    body = body.replace(/密码：\S+/, `密码：${pwd}`);
-    await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${id}`, {
-        method: "PATCH",
-        headers: { Authorization: `token ${GITHUB_CONFIG.token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ body, title: `用户注册 | ${phone}` })
-    });
-    alert("修改成功");
-    closeUserEditModal();
-    loadAllUsers();
-}
-
-window.onload = () => loadAllOrders();
+// 初始加载
+window.onload = () => loadOrders();
 </script>
 </body>
 </html>
