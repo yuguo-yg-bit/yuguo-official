@@ -287,6 +287,60 @@ async function addToCart(product) {
     </div>
   </div>
 </section>
+<style>
+/* 客服按钮 */
+.service-float-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 30px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #ff2442;
+  color: white;
+  font-size: 24px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 9999;
+}
+/* 聊天窗口默认隐藏 */
+.chat-window {
+  position: fixed;
+  right: 20px;
+  bottom: 100px;
+  width: 320px;
+  height: 450px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  display: none;
+  z-index: 9998;
+  overflow: hidden;
+}
+</style>
+
+<!-- 客服按钮 -->
+<button class="service-float-btn" onclick="toggleChat()">💬练习在线客服</button>
+
+<!-- 聊天窗口 -->
+<div class="chat-window" id="chatWindow">
+  <div style="padding:15px; background:#f5f5f5; font-weight:bold;">客服中心</div>
+  <div style="padding:10px; height:320px; overflow-y:auto;" id="chatMsgArea"></div>
+  <div style="display:flex; padding:10px; border-top:1px solid #eee;">
+    <button style="padding:8px; flex:1; background:#f2f2f2; border:none; border-radius:6px;" onclick="sendMyOrder()">发送我的订单</button>
+  </div>
+</div>
+
+<script>
+function toggleChat() {
+  let w = document.getElementById('chatWindow');
+  w.style.display = w.style.display === 'block' ? 'none' : 'block';
+}
+function sendMyOrder() {
+  alert("将自动发送您的订单信息给客服");
+}
+</script>
 
 <!-- 电影区 -->
 <section id="movie" class="py-24 px-6 bg-dark">
