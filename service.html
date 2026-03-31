@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客服中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航 */
+        .chat-header {
+            background-color: #121212;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #222;
+        }
+
+        .chat-header h2 {
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            color: #ffd700;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* 聊天区域 */
+        .chat-container {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 消息气泡 */
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        /* 客服消息（左侧） */
+        .message.service {
+            align-self: flex-start;
+            background-color: #1a1a1a;
+            color: #eee;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* 用户消息（右侧） */
+        .message.user {
+            align-self: flex-end;
+            background-color: #222;
+            color: #fff;
+            border-bottom-right-radius: 4px;
+            border: 1px solid #333;
+        }
+
+        /* 已读未读 */
+        .read-status {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message.user .read-status {
+            color: #ffd700;
+        }
+
+        /* 订单卡片 */
+        .order-card {
+            background-color: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 6px;
+            font-size: 13px;
+        }
+
+        .order-card p {
+            color: #ccc;
+            margin-bottom: 4px;
+        }
+
+        .order-card .order-no {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* 底部输入栏 */
+        .chat-footer {
+            background-color: #121212;
+            padding: 10px;
+            border-top: 1px solid #222;
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .send-order-btn {
+            padding: 10px 12px;
+            background-color: #1a1a1a;
+            color: #ffd700;
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+        }
+
+        #msgInput {
+            flex: 1;
+            padding: 12px 14px;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 24px;
+            color: #fff;
+            outline: none;
+        }
+
+        #msgInput:focus {
+            border-color: #ffd700;
+        }
+
+        .send-btn {
+            padding: 0 16px;
+            background-color: #ffd700;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-header">
+        <button class="back-btn" onclick="history.back()">← 返回</button>
+        <h2>客服中心</h2>
+        <div></div>
+    </div>
+
+    <div class="chat-container" id="chatBox">
+        <div class="message service">
+            您好，很高兴为您服务～
+            <div class="read-status">已读</div>
+        </div>
+        <div class="message user">
+            你好
+            <div class="read-status">已读</div>
+        </div>
+    </div>
+
+    <div class="chat-footer">
+        <button class="send-order-btn" id="sendOrder">发送我的订单</button>
+        <div class="input-wrapper">
+            <input type="text" id="msgInput" placeholder="输入消息...">
+            <button class="send-btn" id="sendBtn">发送</button>
+        </div>
+    </div>
+
+<script>
+    const chatBox = document.getElementById('chatBox');
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const sendOrder = document.getElementById('sendOrder');
+
+    // 发送消息
+    function addMessage(text, isUser = true, isOrder = false) {
+        const div = document.createElement('div');
+        div.className = `message ${isUser ? 'user' : 'service'}`;
+
+        if (isOrder) {
+            div.innerHTML = `
+                <div class="order-card">
+                    <p class="order-no">订单号：20260331001</p>
+                    <p>商品：3D蛋仔</p>
+                    <p>状态：待发货</p>
+                </div>
+                <div class="read-status">未读</div>
+            `;
+        } else {
+            div.innerHTML = `
+                ${text}
+                <div class="read-status">未读</div>
+            `;
+        }
+
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', () => {
+        const text = msgInput.value.trim();
+        if (!text) return;
+        addMessage(text, true);
+        msgInput.value = '';
+    });
+
+    msgInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendBtn.click();
+    });
+
+    // 发送订单
+    sendOrder.addEventListener('click', () => {
+        addMessage('', true, true);
+    });
+</script>
+</body>
+</html>
