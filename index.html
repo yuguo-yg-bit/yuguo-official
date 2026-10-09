@@ -224,11 +224,37 @@ const BIRTHDAY_DATE = new Date('2026-10-11T00:00:00');
 
 function checkBirthday() {
     if (currentUser && currentUser.phone === BIRTHDAY_USER) {
-        // 用户匹配，显示祝福
         setTimeout(() => {
             showBirthdayCelebration();
         }, 500);
     }
+}
+
+function renderBirthdayProduct() {
+    const slot = document.getElementById('birthdayProductSlot');
+    if (!slot) return;
+    if (currentUser && currentUser.phone === BIRTHDAY_USER) {
+        slot.innerHTML = `
+        <div class="bg-card rounded-2xl border-2 border-gold p-8 flex flex-col items-center justify-center card-hover relative" style="box-shadow:0 0 30px rgba(255,215,0,0.3);">
+            <div class="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">生日专享</div>
+            <div class="w-24 h-24 rounded-full bg-gold/10 flex items-center justify-center mb-6 animate-float">
+                <i class="fa-solid fa-cake-candles text-gold text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-gold">🎂 生日祝福礼包</h3>
+            <p class="text-red-400 text-2xl font-bold mb-4">-¥6.66</p>
+            <p class="text-gray-400 text-sm text-center mb-6">中年男人的生日祝福<br>商家倒贴，仅限今日！</p>
+            <button onclick="addToCart({name:'🎂生日祝福礼包',price:'-¥6.66'})" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2">加入购物车</button>
+            <button onclick="showBirthdayDetail()" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看祝福详情</button>
+        </div>`;
+    }
+}
+
+function showBirthdayDetail() {
+    document.getElementById('birthdayDetailOverlay').classList.add('show');
+}
+
+function closeBirthdayDetail() {
+    document.getElementById('birthdayDetailOverlay').classList.remove('show');
 }
 
 function showBirthdayCelebration() {
@@ -452,6 +478,7 @@ async function addToCart(product) {
 window.addEventListener('load', () => {
     checkLoginNavCart();
     checkBirthday();
+    renderBirthdayProduct();
 });
 </script>
 
@@ -511,6 +538,29 @@ window.addEventListener('load', () => {
         <div style="margin-top:20px;font-size:2rem;">
             🎈 🎉 🎁 🎊 🥳 🎂 🎁 🎊 🎉 🎈
         </div>
+    </div>
+</div>
+
+<!-- 生日商品详情弹窗 -->
+<div class="birthday-overlay" id="birthdayDetailOverlay">
+    <div class="birthday-modal" style="max-width:500px;">
+        <span class="close-birthday" onclick="closeBirthdayDetail()">×</span>
+        <div class="birthday-title" style="font-size:2rem;">🎂 中年男人的生日祝福 🎂</div>
+        <div style="font-size:1.1rem;color:#fff;margin:20px 0;line-height:2.2;text-align:left;padding:0 10px;">
+            <p>🎉 兄弟，又老了一岁！</p>
+            <p>💪 但别慌，中年才是男人的黄金时代——</p>
+            <p>🏠 事业稳了，家庭有了，心态成熟了，</p>
+            <p>🍺 该吃的苦都吃过了，该看的风景也看了不少。</p>
+            <p style="margin-top:12px;">🌟 愿你：</p>
+            <p>💰 钱包越来越鼓，头发越来越少但气质越来越强；</p>
+            <p>👨‍👩‍👧 家人健康平安，孩子听话懂事；</p>
+            <p>🏋️ 身体是革命的本钱，别忘了偶尔运动；</p>
+            <p>🍵 少熬夜，多喝茶，心态年轻就是最大的资本。</p>
+            <p style="margin-top:12px;">🎁 全世界的中年男人联合起来——</p>
+            <p style="text-align:center;font-size:1.3rem;color:#FFD700;">我们不是老了，我们只是成熟了！</p>
+            <p style="text-align:center;margin-top:15px;font-size:1.5rem;">🍻 生日快乐，兄弟！🍻</p>
+        </div>
+        <div style="font-size:2rem;margin-top:10px;">🎈 🎉 🎁 🎊 🥳</div>
     </div>
 </div>
 
@@ -635,7 +685,7 @@ window.addEventListener('load', () => {
       <h2 class="text-3xl font-bold text-gold mb-4">商品区</h2>
       <p class="text-gray-400">当前上架：3D打印蛋仔（黑金版）</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="productGrid">
       <div class="bg-card rounded-2xl border border-border p-8 flex flex-col items-center justify-center card-hover relative">
         <button class="absolute top-4 right-4 text-gray-400 hover:text-gold" onclick="this.classList.toggle('text-gold')">
           <i class="fa-solid fa-heart text-lg"></i>
@@ -649,9 +699,11 @@ window.addEventListener('load', () => {
         <button onclick="addToCart({name:'3D打印蛋仔（黑金版）',price:'¥3.00'})" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2">加入购物车</button>
         <a href="danzai.html" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看详情</a>
       </div>
-      <div class="bg-card rounded-2xl border border-border p-8 flex flex-col items-center justify-center opacity-60">
-        <i class="fa-solid fa-gift text-gold/50 text-3xl mb-6"></i>
-        <p class="text-gray-500">更多商品<br>即将上线</p>
+      <div id="birthdayProductSlot">
+        <div class="bg-card rounded-2xl border border-border p-8 flex flex-col items-center justify-center opacity-60">
+          <i class="fa-solid fa-gift text-gold/50 text-3xl mb-6"></i>
+          <p class="text-gray-500">更多商品<br>即将上线</p>
+        </div>
       </div>
       <div class="bg-card rounded-2xl border border-border p-8 flex flex-col items-center justify-center opacity-60">
         <i class="fa-solid fa-rocket text-gold/50 text-3xl mb-6"></i>
@@ -862,6 +914,7 @@ document.getElementById('backToTop').onclick = ()=>window.scrollTo({top:0,behavi
 window.addEventListener('load',()=>{
     checkLoginNavCart();
     checkBirthday();
+    renderBirthdayProduct();
     document.querySelectorAll('.fade-up').forEach(el=>el.classList.add('show'));
 });
 </script>
