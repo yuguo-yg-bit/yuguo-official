@@ -27,6 +27,9 @@
                         'float': 'float 3s ease-in-out infinite',
                         'breath': 'breath 4s ease-in-out infinite',
                         'marquee': 'slide 12s linear infinite',
+                        'bounce-in': 'bounceIn 0.8s ease-out',
+                        'float-up': 'floatUp 2s ease-in-out infinite',
+                        'sparkle': 'sparkle 1s ease-in-out infinite',
                     },
                     keyframes: {
                         float: {
@@ -40,6 +43,19 @@
                         slide: {
                             '0%': { transform:'translateX(100%)' },
                             '100%': { transform:'translateX(-100%)' }
+                        },
+                        bounceIn: {
+                            '0%': { transform:'scale(0)', opacity: 0 },
+                            '50%': { transform:'scale(1.1)' },
+                            '100%': { transform:'scale(1)', opacity: 1 }
+                        },
+                        floatUp: {
+                            '0%,100%': { transform:'translateY(0) rotate(0deg)' },
+                            '50%': { transform:'translateY(-20px) rotate(5deg)' }
+                        },
+                        sparkle: {
+                            '0%,100%': { opacity: 1, transform: 'scale(1)' },
+                            '50%': { opacity: 0.5, transform: 'scale(1.2)' }
                         }
                     }
                 }
@@ -63,6 +79,133 @@
         ::-webkit-scrollbar { width:8px; }
         ::-webkit-scrollbar-track { background:#0A0A0A; }
         ::-webkit-scrollbar-thumb { background:#FFD700; border-radius:4px; }
+        
+        /* 生日祝福弹窗样式 */
+        .birthday-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 99999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .birthday-overlay.show {
+            display: flex;
+        }
+        .birthday-modal {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            border: 4px solid #FFD700;
+            box-shadow: 0 0 60px rgba(255,215,0,0.5), 0 0 100px rgba(255,100,100,0.3);
+            animation: bounceIn 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+        .birthday-modal::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        .birthday-title {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #ffd700, #ff6b6b);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 2s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        .cake-container {
+            font-size: 120px;
+            margin: 20px 0;
+            animation: floatUp 2s ease-in-out infinite;
+        }
+        .countdown {
+            font-size: 2rem;
+            color: #ffd700;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+        .countdown-item {
+            display: inline-block;
+            background: rgba(255,215,0,0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            margin: 5px;
+            border: 2px solid #ffd700;
+        }
+        .countdown-num {
+            font-size: 2.5rem;
+            display: block;
+        }
+        .close-birthday {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            color: #fff;
+            cursor: pointer;
+            z-index: 100001;
+            background: rgba(255,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .close-birthday:hover {
+            background: rgba(255,0,0,0.8);
+            transform: rotate(90deg);
+        }
+        
+        /* 烟花样式 */
+        .firework {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99998;
+        }
+        .firework-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 99997;
+        }
     </style>
 </head>
 <body>
@@ -74,6 +217,171 @@ const GITHUB_CONFIG = {
     token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
 };
 const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
+
+// 生日祝福相关
+const BIRTHDAY_USER = '13528379080';
+const BIRTHDAY_DATE = new Date('2026-10-11T00:00:00');
+
+function checkBirthday() {
+    if (currentUser && currentUser.phone === BIRTHDAY_USER) {
+        // 用户匹配，显示祝福
+        setTimeout(() => {
+            showBirthdayCelebration();
+        }, 500);
+    }
+}
+
+function showBirthdayCelebration() {
+    const overlay = document.getElementById('birthdayOverlay');
+    overlay.classList.add('show');
+    startFireworks();
+    startConfetti();
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+}
+
+function closeBirthday() {
+    const overlay = document.getElementById('birthdayOverlay');
+    overlay.classList.remove('show');
+    stopFireworks();
+    stopConfetti();
+}
+
+function updateCountdown() {
+    const now = new Date();
+    const diff = BIRTHDAY_DATE - now;
+    
+    if (diff <= 0) {
+        document.getElementById('countdownDays').textContent = '0';
+        document.getElementById('countdownHours').textContent = '0';
+        document.getElementById('countdownMins').textContent = '0';
+        document.getElementById('countdownSecs').textContent = '0';
+        document.getElementById('countdownText').textContent = '🎉 生日快乐！🎂';
+        return;
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    document.getElementById('countdownDays').textContent = days;
+    document.getElementById('countdownHours').textContent = hours;
+    document.getElementById('countdownMins').textContent = mins;
+    document.getElementById('countdownSecs').textContent = secs;
+}
+
+// 烟花效果
+let fireworksActive = false;
+let fireworksInterval;
+
+function startFireworks() {
+    fireworksActive = true;
+    fireworksInterval = setInterval(createFirework, 300);
+}
+
+function stopFireworks() {
+    fireworksActive = false;
+    clearInterval(fireworksInterval);
+}
+
+function createFirework() {
+    const colors = ['#ff6b6b', '#ffd700', '#ff6b6b', '#00ff88', '#00bfff', '#ff00ff', '#ffd700'];
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * (window.innerHeight * 0.6);
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    const firework = document.createElement('div');
+    firework.className = 'firework';
+    firework.style.left = x + 'px';
+    firework.style.top = y + 'px';
+    firework.style.background = color;
+    firework.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+    document.body.appendChild(firework);
+    
+    // 爆炸粒子
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'firework-particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.background = color;
+        particle.style.boxShadow = `0 0 5px ${color}`;
+        
+        const angle = (i / 20) * Math.PI * 2;
+        const velocity = 50 + Math.random() * 100;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        document.body.appendChild(particle);
+        
+        let px = x, py = y, opacity = 1;
+        const animate = () => {
+            px += vx * 0.02;
+            py += vy * 0.02 + 2; // 重力
+            opacity -= 0.02;
+            particle.style.left = px + 'px';
+            particle.style.top = py + 'px';
+            particle.style.opacity = opacity;
+            if (opacity > 0) {
+                requestAnimationFrame(animate);
+            } else {
+                particle.remove();
+            }
+        };
+        requestAnimationFrame(animate);
+    }
+    
+    setTimeout(() => firework.remove(), 500);
+}
+
+// 彩带效果
+let confettiActive = false;
+let confettiInterval;
+
+function startConfetti() {
+    confettiActive = true;
+    confettiInterval = setInterval(createConfetti, 100);
+}
+
+function stopConfetti() {
+    confettiActive = false;
+    clearInterval(confettiInterval);
+}
+
+function createConfetti() {
+    const colors = ['#ff6b6b', '#ffd700', '#ff69b4', '#00ff88', '#00bfff', '#ff00ff'];
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = Math.random() * window.innerWidth + 'px';
+    confetti.style.top = '-10px';
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(confetti);
+    
+    let cy = -10;
+    let cx = parseFloat(confetti.style.left);
+    let rotation = 0;
+    const speedY = 2 + Math.random() * 3;
+    const speedX = (Math.random() - 0.5) * 2;
+    const rotSpeed = (Math.random() - 0.5) * 10;
+    
+    const animate = () => {
+        cy += speedY;
+        cx += speedX;
+        rotation += rotSpeed;
+        confetti.style.top = cy + 'px';
+        confetti.style.left = cx + 'px';
+        confetti.style.transform = `rotate(${rotation}deg)`;
+        if (cy < window.innerHeight) {
+            requestAnimationFrame(animate);
+        } else {
+            confetti.remove();
+        }
+    };
+    requestAnimationFrame(animate);
+}
 
 // 导航栏状态（登录 / 未登录 / 购物车数量）
 function checkLoginNavCart() {
@@ -139,7 +447,72 @@ async function addToCart(product) {
         alert("加入失败");
     }
 }
+
+// 页面加载完成后检查生日
+window.addEventListener('load', () => {
+    checkLoginNavCart();
+    checkBirthday();
+});
 </script>
+
+<!-- 生日祝福弹窗 -->
+<div class="birthday-overlay" id="birthdayOverlay">
+    <div class="birthday-modal">
+        <span class="close-birthday" onclick="closeBirthday()">×</span>
+        
+        <!-- 装饰星星 -->
+        <div style="position:absolute;top:20px;left:30px;font-size:30px;animation:sparkle 1s infinite;">⭐</div>
+        <div style="position:absolute;top:40px;right:50px;font-size:25px;animation:sparkle 1.5s infinite;">🌟</div>
+        <div style="position:absolute;bottom:80px;left:40px;font-size:20px;animation:sparkle 0.8s infinite;">✨</div>
+        <div style="position:absolute;bottom:60px;right:40px;font-size:28px;animation:sparkle 1.2s infinite;">🎊</div>
+        
+        <!-- 生日标题 -->
+        <div class="birthday-title">🎂 生日快乐 🎂</div>
+        
+        <!-- 用户名 -->
+        <div style="font-size:1.5rem;color:#fff;margin-bottom:10px;">
+            亲爱的 <span style="color:#ffd700;font-weight:bold;">13528379080</span> 用户
+        </div>
+        
+        <!-- 蛋糕 -->
+        <div class="cake-container">🎂</div>
+        
+        <!-- 祝福语 -->
+        <div style="font-size:1.2rem;color:#fff;margin:20px 0;line-height:1.8;">
+            <p>🎉 祝你生日快乐！🎉</p>
+            <p>🎁 愿你心想事成，万事如意！🎁</p>
+            <p>🌟 前程似锦，天天开心！🌟</p>
+        </div>
+        
+        <!-- 倒计时 -->
+        <div id="countdownText" style="font-size:1.3rem;color:#fff;margin:15px 0;">
+            距离 2026.10.11 生日还有：
+        </div>
+        <div class="countdown">
+            <div class="countdown-item">
+                <span class="countdown-num" id="countdownDays">0</span>
+                <span>天</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-num" id="countdownHours">0</span>
+                <span>时</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-num" id="countdownMins">0</span>
+                <span>分</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-num" id="countdownSecs">0</span>
+                <span>秒</span>
+            </div>
+        </div>
+        
+        <!-- 底部装饰 -->
+        <div style="margin-top:20px;font-size:2rem;">
+            🎈 🎉 🎁 🎊 🥳 🎂 🎁 🎊 🎉 🎈
+        </div>
+    </div>
+</div>
 
 <!-- 顶部永久固定：跑马灯 + 导航栏 -->
 <div class="fixed top-0 left-0 w-full z-50">
@@ -486,7 +859,11 @@ window.addEventListener('scroll', () => {
   document.querySelectorAll('.fade-up').forEach(el=>{if(el.getBoundingClientRect().top<window.innerHeight*0.9)el.classList.add('show');});
 });
 document.getElementById('backToTop').onclick = ()=>window.scrollTo({top:0,behavior:'smooth'});
-window.addEventListener('load',()=>{checkLoginNavCart();document.querySelectorAll('.fade-up').forEach(el=>el.classList.add('show'));});
+window.addEventListener('load',()=>{
+    checkLoginNavCart();
+    checkBirthday();
+    document.querySelectorAll('.fade-up').forEach(el=>el.classList.add('show'));
+});
 </script>
 
 </body>
