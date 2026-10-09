@@ -264,15 +264,6 @@ window.addEventListener("load", () => {
 });
 </script>
 
-<!-- 防扒代码 -->
-<script>
-document.oncontextmenu = function(){return false;};
-document.onkeydown = function(e){
-    if(e.key=="F12"||(e.ctrlKey&&e.shiftKey&&e.key=="I")||(e.ctrlKey&&e.key=="u"))return false;
-};
-let originalW=innerWidth,originalH=innerHeight;
-setInterval(()=>{if(innerWidth<originalW||innerHeight<originalH)window.location.href="about:blank";debugger;},1000);
-console.log=console.warn=console.error=function(){};
-</script>
+
 </body>
 </html>

@@ -283,56 +283,7 @@ window.addEventListener('load', () => {
   }, 400);
 });
 
-// 防护
-document.oncontextmenu = () => false;
-document.onkeydown = (e) => {
-  if (e.key === 'F12' || (e.ctrlKey && e.key === 'u') || (e.ctrlKey && e.shiftKey && e.key === 'i')) {
-    return false;
-  }
-};
 </script>
 </body>
-
-<script>
-// ==============================================
-// 1. 禁止右键菜单（防右键另存、查看源码）
-// ==============================================
-document.oncontextmenu = function (e) {
-    e.preventDefault();
-};
-
-// ==============================================
-// 2. 禁止选中复制（可选）
-// ==============================================
-document.onselectstart = function (e) {
-    // 如果你不想禁选，把这整行注释掉即可
-    // e.preventDefault();
-};
-
-// ==============================================
-// 3. 禁止 F12 / Ctrl+Shift+I / Ctrl+U 查看源码
-// ==============================================
-document.onkeydown = function (e) {
-    // F12
-    if (e.key === 'F12') {
-        e.preventDefault();
-    }
-    // Ctrl+Shift+I
-    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-        e.preventDefault();
-    }
-    // Ctrl+U 查看网页源代码
-    if (e.ctrlKey && e.key === 'u') {
-        e.preventDefault();
-    }
-};
-
-// ==============================================
-// 4. 防 iframe 嵌套引用（防别人嵌套你的网站）
-// ==============================================
-if (window.top !== window.self) {
-    window.top.location = window.location.href;
-}
-</script>
 
 </html>
