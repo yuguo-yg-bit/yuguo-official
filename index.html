@@ -729,41 +729,114 @@ window.addEventListener('load', () => {
   cursor: pointer;
   z-index: 9999;
 }
-/* 聊天窗口默认隐藏 */
+/* 聊天弹窗 */
 .chat-window {
   position: fixed;
   right: 20px;
   bottom: 100px;
-  width: 320px;
-  height: 450px;
-  background: white;
+  width: 360px;
+  height: 480px;
+  background: #121212;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   display: none;
   z-index: 9998;
   overflow: hidden;
+  border: 1px solid #333;
+  flex-direction: column;
 }
+.chat-window.open { display: flex; }
+.chat-window .chat-header {
+  background: #1a1a1a; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #333;
+}
+.chat-window .chat-header h3 { color: #FFD700; font-size: 15px; margin: 0; }
+.chat-window .chat-header button { background: none; border: none; color: #888; font-size: 18px; cursor: pointer; }
+.chat-window .chat-body { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.chat-window .chat-body .msg { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.5; word-break: break-word; }
+.chat-window .chat-body .msg.service { align-self: flex-start; background: #1e1e1e; color: #ddd; border-bottom-left-radius: 4px; }
+.chat-window .chat-body .msg.user { align-self: flex-end; background: #222; color: #fff; border-bottom-right-radius: 4px; border: 1px solid #444; }
+.chat-window .chat-body .msg .time { font-size: 10px; color: #666; margin-top: 4px; text-align: right; }
+.chat-window .chat-body .order-card-inline { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 8px 10px; margin-top: 6px; font-size: 11px; }
+.chat-window .chat-body .order-card-inline .oc-no { color: #FFD700; font-weight: bold; }
+.chat-window .chat-body .order-card-inline p { color: #aaa; margin: 2px 0; }
+.chat-window .chat-footer { padding: 10px; border-top: 1px solid #333; display: flex; gap: 6px; align-items: center; }
+.chat-window .chat-footer input { flex: 1; padding: 10px 14px; background: #1a1a1a; border: 1px solid #333; border-radius: 20px; color: #fff; outline: none; font-size: 13px; }
+.chat-window .chat-footer input:focus { border-color: #FFD700; }
+.chat-window .chat-footer .send-btn { width: 36px; height: 36px; border-radius: 50%; background: #FFD700; color: #000; border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.chat-window .chat-footer .order-btn { padding: 8px 10px; background: #1a1a1a; color: #FFD700; border: 1px solid #FFD700; border-radius: 8px; cursor: pointer; font-size: 11px; white-space: nowrap; }
 </style>
 
-<!-- 客服按钮 -->
-<button class="service-float-btn" onclick="toggleChat()">💬练习在线客服</button>
+<!-- 在线客服按钮 -->
+<button class="service-float-btn" onclick="toggleChat()" title="在线客服">💬</button>
 
-<!-- 聊天窗口 -->
+<!-- 在线客服聊天窗口 -->
 <div class="chat-window" id="chatWindow">
-  <div style="padding:15px; background:#f5f5f5; font-weight:bold;">客服中心</div>
-  <div style="padding:10px; height:320px; overflow-y:auto;" id="chatMsgArea"></div>
-  <div style="display:flex; padding:10px; border-top:1px solid #eee;">
-    <button style="padding:8px; flex:1; background:#f2f2f2; border:none; border-radius:6px;" onclick="sendMyOrder()">发送我的订单</button>
+  <div class="chat-header">
+    <h3>💬 玉国科技在线客服</h3>
+    <button onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-body" id="chatMsgArea">
+    <div class="msg service">您好！我是玉国科技客服，有什么可以帮您的？<div class="time">刚刚</div></div>
+  </div>
+  <div class="chat-footer">
+    <button class="order-btn" onclick="sendMyOrders()">📋 我的订单</button>
+    <input type="text" id="chatInput" placeholder="输入消息..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+    <button class="send-btn" onclick="sendChatMsg()">➤</button>
   </div>
 </div>
 
 <script>
 function toggleChat() {
-  let w = document.getElementById('chatWindow');
-  w.style.display = w.style.display === 'block' ? 'none' : 'block';
+  var win = document.getElementById('chatWindow');
+  win.classList.toggle('open');
+  if (win.classList.contains('open')) {
+    document.getElementById('chatInput').focus();
+  }
 }
-function sendMyOrder() {
-  alert("将自动发送您的订单信息给客服");
+function nowTime() {
+  return new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+}
+function addChatMsg(text, isUser) {
+  var area = document.getElementById('chatMsgArea');
+  var div = document.createElement('div');
+  div.className = 'msg ' + (isUser ? 'user' : 'service');
+  div.innerHTML = text + '<div class="time">' + nowTime() + '</div>';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+function sendChatMsg() {
+  var input = document.getElementById('chatInput');
+  var text = input.value.trim();
+  if (!text) return;
+  addChatMsg(text, true);
+  input.value = '';
+  setTimeout(function() {
+    addChatMsg('收到您的消息，客服会尽快回复您～如需查看订单请点击下方「我的订单」按钮', false);
+  }, 600);
+}
+async function sendMyOrders() {
+  if (!currentUser) { addChatMsg('请先登录后再查看订单', false); return; }
+  try {
+    var res = await fetch('https://api.github.com/repos/' + GITHUB_CONFIG.username + '/' + GITHUB_CONFIG.repo + '/issues?labels=payment-record&state=all&per_page=50', {
+      headers: { Authorization: 'token ' + GITHUB_CONFIG.token }
+    });
+    var all = await res.json();
+    var myOrders = all.filter(function(i) { return i.body && i.body.indexOf(currentUser.phone) !== -1; });
+    if (myOrders.length === 0) { addChatMsg('您暂无订单记录', false); return; }
+    var html = '<b>📋 您的订单：</b>';
+    myOrders.slice(0, 5).forEach(function(o) {
+      var no = (o.body.match(/订单号：(.+)/) || [''])[1] || '未知';
+      var product = (o.body.match(/商品[名称]?[：:](.+)/) || ['', '未知'])[1];
+      var progress = (o.body.match(/物流进度：(\d+)/) || ['', '0'])[1];
+      var statusMap = ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'];
+      var status = statusMap[+progress] || '处理中';
+      html += '<div class="order-card-inline"><p class="oc-no">' + no + '</p><p>' + product.trim() + '</p><p>状态：' + status + '</p></div>';
+    });
+    if (myOrders.length > 5) html += '<p style="font-size:11px;color:#888;">...仅显示最近5条，更多请查看<a href="pay-record.html" style="color:#FFD700;">购买记录</a></p>';
+    addChatMsg(html, false);
+  } catch(e) {
+    addChatMsg('获取订单失败，请稍后重试', false);
+  }
 }
 </script>
 
