@@ -259,7 +259,6 @@ const percent = document.getElementById('percent');
 const loading = document.getElementById('loading');
 
 let current = 0;
-// 先自动跑到99%，绝不提前完成
 const timer = setInterval(() => {
   if (current < 99) {
     current++;
@@ -268,20 +267,24 @@ const timer = setInterval(() => {
   }
 }, 30);
 
-// 重点：必须等整个页面+所有图片完全加载完才到100%消失
-window.addEventListener('load', () => {
+function finishLoading() {
   clearInterval(timer);
   current = 100;
   progress.style.width = '100%';
   percent.textContent = '100%';
-
   setTimeout(() => {
     loading.style.opacity = 0;
     setTimeout(() => {
       loading.style.display = 'none';
     }, 700);
   }, 400);
-});
+}
+
+window.addEventListener('load', finishLoading);
+
+setTimeout(() => {
+  if (current < 100) finishLoading();
+}, 8000);
 
 </script>
 </body>
