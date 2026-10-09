@@ -190,6 +190,9 @@
         <div id="tab_user" class="pb-2 px-1 cursor-pointer text-[var(--text-secondary)]" onclick="switchTab('user')">
             <i class="bi bi-people mr-1"></i> 用户管理
         </div>
+        <div id="tab_service" class="pb-2 px-1 cursor-pointer text-[var(--text-secondary)]" onclick="switchTab('service')">
+            <i class="bi bi-headset mr-1"></i> 客服管理
+        </div>
     </div>
 
     <!-- 订单管理面板 -->
@@ -308,6 +311,24 @@
                 <p class="mt-2">正在加载用户...</p>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- 客服管理面板 -->
+<div id="panel_service" class="hidden">
+    <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)] mb-4">
+        <div class="flex flex-wrap gap-3 items-center">
+            <input id="serviceSearchPhone" type="text" placeholder="输入用户手机号查询" class="w-full md:w-64 px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+            <button onclick="searchServiceUser()" class="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary/90">
+                <i class="bi bi-search mr-1"></i> 查询
+            </button>
+            <span class="text-xs text-[var(--text-secondary)]">输入手机号查询该用户所有订单和购物车记录</span>
+        </div>
+    </div>
+    <div id="serviceResult" class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-[var(--text-secondary)] border border-[var(--border-color)]">
+        <i class="bi bi-headset text-4xl mb-3 block opacity-30"></i>
+        <p>请输入用户手机号进行查询</p>
+        <p class="text-xs mt-1">可查看该用户的所有订单状态、购物车活动，便于客服跟进</p>
     </div>
 </div>
 
@@ -510,20 +531,14 @@ function downloadFile(content, filename) {
 // ================== 标签切换 ==================
 function switchTab(tab) {
     currentTab = tab;
-    // 重置标签样式
-    document.getElementById('tab_order').classList.remove('tab-active');
-    document.getElementById('tab_user').classList.remove('tab-active');
-    document.getElementById('tab_order').classList.add('text-[var(--text-secondary)]');
-    document.getElementById('tab_user').classList.add('text-[var(--text-secondary)]');
-    // 隐藏面板
-    document.getElementById('panel_order').classList.add('hidden');
-    document.getElementById('panel_user').classList.add('hidden');
-    // 激活当前标签
+    ['order','user','service'].forEach(t => {
+        document.getElementById(`tab_${t}`).classList.remove('tab-active');
+        document.getElementById(`tab_${t}`).classList.add('text-[var(--text-secondary)]');
+        document.getElementById(`panel_${t}`).classList.add('hidden');
+    });
     document.getElementById(`tab_${tab}`).classList.add('tab-active');
     document.getElementById(`tab_${tab}`).classList.remove('text-[var(--text-secondary)]');
-    // 显示面板
     document.getElementById(`panel_${tab}`).classList.remove('hidden');
-    // 加载数据
     if (tab === 'order') loadOrders();
     if (tab === 'user') loadUsers();
 }
@@ -1294,6 +1309,74 @@ function exportUsers() {
     showToast('用户导出成功', 'success');
 }
 
+// ================== 客服管理 ==================
+async function searchServiceUser() {
+    const phone = document.getElementById('serviceSearchPhone').value.trim();
+    const resultEl = document.getElementById('serviceResult');
+    if (!phone) {
+        resultEl.innerHTML = '<div class="text-warning"><i class="bi bi-exclamation-triangle mr-1"></i>请输入手机号</div>';
+        return;
+    }
+    resultEl.innerHTML = '<div class="loading-spinner mx-auto"></div><p class="mt-2">正在查询...</p>';
+    try {
+        const [orderRes, cartRes] = await Promise.all([
+            fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.orderLabel}&state=all&per_page=100`, {
+                headers: { Authorization: `token ${CONFIG.token}` }
+            }),
+            fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=cart&state=all&per_page=50`, {
+                headers: { Authorization: `token ${CONFIG.token}` }
+            })
+        ]);
+        const orders = await orderRes.json();
+        const carts = await cartRes.json();
+        const userOrders = orders.filter(o => o.body?.includes(phone));
+        const userCarts = carts.filter(c => c.body?.includes(phone));
+        if (userOrders.length === 0 && userCarts.length === 0) {
+            resultEl.innerHTML = `<div class="text-[var(--text-secondary)]"><i class="bi bi-person-x text-3xl mb-2 block"></i><p>未找到手机号 ${phone} 的相关记录</p></div>`;
+            return;
+        }
+        let html = `<div class="text-left"><h4 class="font-bold text-primary mb-3"><i class="bi bi-person-check mr-1"></i>用户：${phone}</h4>`;
+        if (userOrders.length > 0) {
+            html += '<h5 class="text-sm font-bold text-[var(--text-secondary)] mb-2"><i class="bi bi-receipt mr-1"></i>订单记录 (' + userOrders.length + '条)</h5>';
+            html += '<div class="space-y-2 mb-4">';
+            userOrders.slice(0, 10).forEach(o => {
+                const body = o.body;
+                const orderNo = (body.match(/订单号：(.+)/) || ['', '无'])[1];
+                const product = (body.match(/商品[名称]?[：:](.+)/) || ['', '未知'])[1];
+                const amount = (body.match(/单价[：:](.+)/) || ['', '未知'])[1];
+                const progress = (body.match(/物流进度：(\d+)/) || ['', '0'])[1];
+                const status = CONFIG.statusTexts ? CONFIG.statusTexts[+progress] : ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'][+progress];
+                html += `<div class="bg-[var(--bg-body)] p-3 rounded-lg text-sm border border-[var(--border-color)]">
+                    <p><b>${orderNo}</b> | ${product.trim()} | ${amount}</p>
+                    <p class="text-xs text-[var(--text-secondary)]">状态：${status || '处理中'} | ${o.created_at?formatDate(o.created_at):''}</p>
+                </div>`;
+            });
+            if (userOrders.length > 10) html += '<p class="text-xs text-[var(--text-secondary)]">...仅显示最近10条</p>';
+            html += '</div>';
+        }
+        if (userCarts.length > 0) {
+            html += '<h5 class="text-sm font-bold text-[var(--text-secondary)] mb-2"><i class="bi bi-cart mr-1"></i>购物车记录 (' + userCarts.length + '项)</h5>';
+            html += '<div class="space-y-2">';
+            userCarts.slice(0, 5).forEach(c => {
+                const product = (c.body.match(/商品[：:](.+)/) || ['', '未知'])[1];
+                const price = (c.body.match(/单价[：:](.+)/) || ['', '未知'])[1];
+                html += `<div class="bg-[var(--bg-body)] p-2 rounded-lg text-sm border border-[var(--border-color)] flex justify-between">
+                    <span>${product.trim()}</span><span class="font-bold">${price}</span>
+                </div>`;
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        resultEl.innerHTML = html;
+    } catch(e) {
+        resultEl.innerHTML = `<div class="text-danger">查询失败：${e.message}</div>`;
+    }
+}
+
+document.getElementById('serviceSearchPhone').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') searchServiceUser();
+});
+
 // 初始化
 window.onload = function () {
     loadOrders();
@@ -1306,4 +1389,3 @@ window.onload = function () {
 </script>
 </body>
 </html>
-   
