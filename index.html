@@ -363,19 +363,36 @@
             font-size: 1rem; color: #aaa; text-align: center; margin-top: 8px;
         }
         @media (max-width: 560px) {
-            .bd-day-title { font-size: 2rem; }
-            .bd-day-msg { font-size: 1.2rem; }
-            .bd-day-cake-body { width: 150px; height: 160px; }
-            .cake-layer-1 { height: 38px; bottom: 8px; }
-            .cake-layer-2 { height: 34px; bottom: 42px; }
-            .cake-layer-3 { height: 28px; bottom: 70px; }
-            .bd-day-candles { bottom: 95px; gap: 10px; }
-            .bd-day-candle:nth-child(1) { height: 32px; }
-            .bd-day-candle:nth-child(2) { height: 40px; }
-            .bd-day-candle:nth-child(3) { height: 36px; }
-            .bd-day-candle:nth-child(4) { height: 44px; }
-            .bd-day-candle:nth-child(5) { height: 34px; }
-            .bd-day-flame { width: 10px; height: 14px; top: -13px; }
+            .bd-day-title { font-size: 1.6rem; margin-bottom: 8px; }
+            .bd-day-msg { font-size: 1rem; margin-bottom: 10px; }
+            .bd-day-cake-body { width: 130px; height: 145px; }
+            .cake-layer-1 { height: 30px; bottom: 6px; }
+            .cake-layer-2 { height: 27px; bottom: 34px; }
+            .cake-layer-3 { height: 22px; bottom: 57px; }
+            .bd-day-candles { bottom: 77px; gap: 7px; }
+            .bd-day-candle:nth-child(1) { height: 26px; }
+            .bd-day-candle:nth-child(2) { height: 32px; }
+            .bd-day-candle:nth-child(3) { height: 28px; }
+            .bd-day-candle:nth-child(4) { height: 34px; }
+            .bd-day-candle:nth-child(5) { height: 26px; }
+            .bd-day-flame { width: 8px; height: 11px; top: -10px; }
+            .bd-day-close { top: 8px; right: 10px; width: 32px; height: 32px; font-size: 18px; }
+            .bd-corner-emoji { font-size: 2rem; }
+            .bd-corner-emoji.top-left  { left: 8px; top: 60px; }
+            .bd-corner-emoji.top-right { right: 8px; top: 60px; }
+            .bd-corner-emoji.bottom-left  { left: 8px; bottom: 10px; }
+            .bd-corner-emoji.bottom-right { right: 8px; bottom: 10px; }
+            .bd-word-fade-wrap { top: 10px; gap: 4px; }
+            .bd-word-fade-wrap .bd-fade-word { font-size: 24px !important; }
+            .bd-gift-box { bottom: 30px; right: 10px; transform: scale(0.65); }
+            .bd-gift-box:hover { transform: scale(0.7); }
+            .bd-gift-tip { bottom: 100px; right: 5px; font-size: 10px; }
+            .bd-card-scene { bottom: 30px; left: 50%; width: 200px; height: 140px; perspective: 600px; }
+            .card-front h3 { font-size: 16px; }
+            .card-front p,.card-back p { font-size: 11px; line-height: 1.5; }
+            .card-back .card-sign { font-size: 10px; }
+            .bd-mic-btn { bottom: 14px; font-size: 13px; padding: 8px 16px; }
+            .bd-mask-overlay.reveal { background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%); }
         }
         .bd-day-flame.out{animation:flickerOut .3s ease-out forwards}
         @keyframes flickerOut{0%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.5)}100%{opacity:0;transform:scale(0)}}
