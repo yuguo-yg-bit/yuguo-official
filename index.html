@@ -960,6 +960,51 @@ function scatterTextParticles() {
     }
 }
 
+// ===== 生日快乐背景音乐（Web Audio 合成） =====
+function playBirthdayMelody() {
+    try {
+        var actx = new (window.AudioContext || window.webkitAudioContext)();
+        // 生日快乐歌 音符频率 (Hz)：G4 G4 A4 G4 C5 B4 | G4 G4 A4 G4 D5 C5 | G4 G4 G5 E5 C5 B4 A4 | F5 F5 E5 C5 D5 C5
+        var notes = [392,392,440,392,523,494, 392,392,440,392,587,523, 392,392,784,659,523,494,440, 698,698,659,523,587,523];
+        // 节拍时长（秒），0=延续，-1=休止
+        var beats = [0.5,0.5,0.5,0.5,0.7,0.9, 0.5,0.5,0.5,0.5,0.7,0.9, 0.3,0.3,0.7,0.5,0.5,0.5,0.5, 0.5,0.3,0.3,0.5,0.7,0.9];
+        var time = actx.currentTime + 1;
+        for (var i = 0; i < notes.length; i++) {
+            if (beats[i] <= 0) { time += Math.abs(beats[i]); continue; }
+            var osc = actx.createOscillator();
+            var gain = actx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(notes[i], time);
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(0.2, time + 0.02);
+            gain.gain.setValueAtTime(0.2, time + beats[i] * 0.7);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + beats[i]);
+            osc.connect(gain);
+            gain.connect(actx.destination);
+            osc.start(time);
+            osc.stop(time + beats[i] + 0.05);
+            time += beats[i];
+        }
+        // 加一点混响感（延迟 echo）
+        var echoTime = actx.currentTime + 1 + 0.15;
+        for (var j = 0; j < notes.length; j++) {
+            if (beats[j] <= 0) { echoTime += Math.abs(beats[j]); continue; }
+            var eo = actx.createOscillator();
+            var eg = actx.createGain();
+            eo.type = 'sine';
+            eo.frequency.setValueAtTime(notes[j], echoTime);
+            eg.gain.setValueAtTime(0, echoTime);
+            eg.gain.linearRampToValueAtTime(0.05, echoTime + 0.01);
+            eg.gain.exponentialRampToValueAtTime(0.001, echoTime + beats[j] * 0.6);
+            eo.connect(eg);
+            eg.connect(actx.destination);
+            eo.start(echoTime);
+            eo.stop(echoTime + beats[j] + 0.05);
+            echoTime += beats[j];
+        }
+    } catch(e) {}
+}
+
 // ===== 生日当天专属庆祝：整屏大单烟花 + 蛋糕吹蜡烛 + 语音 =====
 function showBirthdayDayCelebration(bd) {
     var overlay = document.getElementById('birthdayDayOverlay');
@@ -970,6 +1015,9 @@ function showBirthdayDayCelebration(bd) {
     createBigFirework();
     setTimeout(function() { createBigFirework(); }, 1500);
     setTimeout(function() { createBigFirework(); }, 3500);
+
+    // 生日快乐背景音乐（Web Audio 旋律合成）
+    playBirthdayMelody();
 
     // 吹bibi音效（Web Audio）
     try {
