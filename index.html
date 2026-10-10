@@ -710,70 +710,76 @@ function closeBirthdayDay() {
 }
 
 function createBigFirework() {
-    var colors = ['#ff6b6b', '#ffd700', '#ff69b4', '#00ff88', '#00bfff', '#ff00ff', '#ffaa00'];
+    var colors = ['#ff2d2d', '#ffd700', '#ff69b4', '#00ff88', '#00bfff', '#ff00ff', '#ff6600', '#ff0'];
     var cx = window.innerWidth / 2;
     var cy = window.innerHeight / 2;
 
     // 中心闪光
     var flash = document.createElement('div');
-    flash.style.cssText = 'position:fixed;left:' + (cx - 80) + 'px;top:' + (cy - 80) + 'px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.9),rgba(255,215,0,0.6),transparent);pointer-events:none;z-index:100005;opacity:1;';
+    flash.style.cssText = 'position:fixed;left:' + (cx - 100) + 'px;top:' + (cy - 100) + 'px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,1),rgba(255,215,0,0.7),transparent 70%);pointer-events:none;z-index:100005;opacity:1;';
     document.body.appendChild(flash);
     var fo = 1;
-    (function fadeFlash() {
-        fo -= 0.03;
-        flash.style.opacity = fo;
-        flash.style.transform = 'scale(' + (1 + (1 - fo) * 2) + ')';
-        if (fo > 0) requestAnimationFrame(fadeFlash);
-        else flash.remove();
-    })();
+    function stepFlash() { fo -= 0.025; flash.style.opacity = fo; flash.style.transform = 'scale(' + (0.5 + (1 - fo) * 3) + ')'; if (fo > 0) requestAnimationFrame(stepFlash); else flash.remove(); }
+    stepFlash();
 
-    var particles = 120;
-    for (var i = 0; i < particles; i++) {
+    // 主粒子组 — 单循环驱动
+    var mainParticles = [];
+    for (var i = 0; i < 150; i++) {
         var color = colors[i % colors.length];
-        var size = 5 + Math.random() * 7;
-        var particle = document.createElement('div');
-        particle.style.cssText = 'position:fixed;width:' + size + 'px;height:' + size + 'px;border-radius:50%;pointer-events:none;z-index:100005;left:' + cx + 'px;top:' + cy + 'px;background:' + color + ';box-shadow:0 0 ' + (size * 2) + 'px ' + color + ',0 0 ' + (size * 4) + 'px ' + color + ';';
-        document.body.appendChild(particle);
-        var angle = (i / particles) * Math.PI * 2;
-        var velocity = 150 + Math.random() * 350;
-        var vx = Math.cos(angle) * velocity;
-        var vy = Math.sin(angle) * velocity;
-        var px = cx, py = cy, opacity = 1;
-        var grav = 2 + Math.random() * 4;
-        (function animate() {
-            px += vx * 0.018;
-            py += vy * 0.018 + grav;
-            opacity -= 0.006;
-            particle.style.left = px + 'px';
-            particle.style.top = py + 'px';
-            particle.style.opacity = opacity;
-            if (opacity > 0) requestAnimationFrame(animate);
-            else particle.remove();
-        })();
+        var size = 5 + Math.random() * 8;
+        var el = document.createElement('div');
+        el.style.cssText = 'position:fixed;width:' + size + 'px;height:' + size + 'px;border-radius:50%;pointer-events:none;z-index:100005;left:' + cx + 'px;top:' + cy + 'px;background:' + color + ';box-shadow:0 0 ' + (size * 3) + 'px ' + color + ',0 0 ' + (size * 6) + 'px ' + color + ';';
+        document.body.appendChild(el);
+        var angle = (i / 150) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+        var vel = 200 + Math.random() * 400;
+        mainParticles.push({ el: el, x: cx, y: cy, vx: Math.cos(angle) * vel, vy: Math.sin(angle) * vel, o: 1, g: 3 + Math.random() * 5 });
     }
+    function stepMain() {
+        var any = false;
+        for (var k = 0; k < mainParticles.length; k++) {
+            var p = mainParticles[k];
+            if (p.o <= 0) continue;
+            p.x += p.vx * 0.02;
+            p.y += p.vy * 0.02 + p.g;
+            p.o -= 0.005;
+            p.el.style.left = p.x + 'px';
+            p.el.style.top = p.y + 'px';
+            p.el.style.opacity = p.o;
+            if (p.o <= 0) p.el.remove();
+            else any = true;
+        }
+        if (any) requestAnimationFrame(stepMain);
+    }
+    stepMain();
 
-    // 拖尾小粒子
-    for (var j = 0; j < 40; j++) {
-        var sc = document.createElement('div');
-        var sz = 2 + Math.random() * 3;
-        sc.style.cssText = 'position:fixed;width:' + sz + 'px;height:' + sz * 3 + 'px;border-radius:2px;pointer-events:none;z-index:100005;left:' + cx + 'px;top:' + cy + 'px;background:#ffd700;box-shadow:0 0 6px #ffd700;opacity:1;';
-        document.body.appendChild(sc);
-        var sa = (j / 40) * Math.PI * 2;
-        var sv = 200 + Math.random() * 200;
-        var svx = Math.cos(sa) * sv;
-        var svy = Math.sin(sa) * sv;
-        var spx = cx, spy = cy, sop = 1;
-        (function animS() {
-            spx += svx * 0.015;
-            spy += svy * 0.015;
-            sop -= 0.012;
-            sc.style.left = spx + 'px';
-            sc.style.top = spy + 'px';
-            sc.style.opacity = sop;
-            if (sop > 0) requestAnimationFrame(animS);
-            else sc.remove();
-        })();
+    // 金色拖尾
+    var trailParticles = [];
+    for (var j = 0; j < 60; j++) {
+        var tel = document.createElement('div');
+        var tsz = 2 + Math.random() * 4;
+        tel.style.cssText = 'position:fixed;width:' + tsz + 'px;height:' + (tsz * 4) + 'px;border-radius:2px;pointer-events:none;z-index:100005;left:' + cx + 'px;top:' + cy + 'px;background:#ffd700;box-shadow:0 0 8px #ffd700,0 0 16px #ffaa00;';
+        document.body.appendChild(tel);
+        var ta = (j / 60) * Math.PI * 2;
+        var tv = 250 + Math.random() * 250;
+        trailParticles.push({ el: tel, x: cx, y: cy, vx: Math.cos(ta) * tv, vy: Math.sin(ta) * tv, o: 1 });
     }
+    function stepTrail() {
+        var any = false;
+        for (var k = 0; k < trailParticles.length; k++) {
+            var tp = trailParticles[k];
+            if (tp.o <= 0) continue;
+            tp.x += tp.vx * 0.016;
+            tp.y += tp.vy * 0.016;
+            tp.o -= 0.01;
+            tp.el.style.left = tp.x + 'px';
+            tp.el.style.top = tp.y + 'px';
+            tp.el.style.opacity = tp.o;
+            if (tp.o <= 0) tp.el.remove();
+            else any = true;
+        }
+        if (any) requestAnimationFrame(stepTrail);
+    }
+    stepTrail();
 }
 
 // 导航栏状态（登录 / 未登录 / 购物车数量）
