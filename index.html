@@ -946,8 +946,10 @@ async function initWidgetChat() {
     input.placeholder = '输入消息...';
     startChatPoll();
   } catch (e) {
-    area.innerHTML = '<div class="msg service">连接客服失败，请稍后重试</div>';
     console.error(e);
+    addChatText('连接客服失败，请稍后关闭窗口重试', false);
+    input.disabled = false;
+    input.placeholder = '消息未同步 (点击重试)';
   }
 }
 async function sendChatMsg() {
@@ -957,11 +959,19 @@ async function sendChatMsg() {
   if (!currentUser) { addChatText('请先登录后咨询客服', false); return; }
   chatSending = true; input.disabled = true;
   try {
-    if (!chatConv) chatConv = await YuguoChat.ensureConversation(currentUser.phone);
+    if (!chatConv) {
+      chatConv = await YuguoChat.ensureConversation(currentUser.phone);
+      if (!chatInited) {
+        await syncWidgetMsgs();
+        chatInited = true;
+        startChatPoll();
+      }
+    }
     await YuguoChat.postMessage(chatConv.number, '顾客', text);
     input.value = '';
     await syncWidgetMsgs();
   } catch (e) {
+    console.error(e);
     addChatText('发送失败，请稍后重试', false);
   } finally {
     chatSending = false; input.disabled = false; input.focus();

@@ -109,7 +109,11 @@ async function syncMessages() {
 
 async function sendMessage() {
     const text = msgInput.value.trim();
-    if (!text || sending || !conv) return;
+    if (!text || sending) return;
+    if (!conv) {
+        try { conv = await YuguoChat.ensureConversation(currentUser.phone); }
+        catch (e) { console.error(e); renderTip('连接客服失败，请刷新重试'); return; }
+    }
     sending = true; sendBtn.disabled = true;
     try {
         await YuguoChat.postMessage(conv.number, '顾客', text);
@@ -117,6 +121,7 @@ async function sendMessage() {
         await syncMessages();
         msgInput.focus();
     } catch (e) {
+        console.error(e);
         renderTip('发送失败，请稍后重试');
     } finally {
         sending = false; sendBtn.disabled = false;
