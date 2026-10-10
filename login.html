@@ -98,8 +98,9 @@ async function handleLogin() {
             });
 
             if (user) {
-                // 登录成功，存储当前用户到localStorage
-                localStorage.setItem('currentUser', JSON.stringify({ phone }));
+                // 登录成功，存储当前用户到localStorage（含生日）
+                const regBirthday = (user.body || "").match(/生日：(\S+)/)?.[1] || '';
+                localStorage.setItem('currentUser', JSON.stringify({ phone, birthday: regBirthday }));
                 alert('登录成功！');
                 window.location.href = 'index.html';
             } else {

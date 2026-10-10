@@ -262,6 +262,108 @@
             .cake-container { font-size: 48px; margin: 4px 0; }
             .birthday-title { font-size: 1.45rem; }
         }
+
+        /* ===== 生日当天专属庆祝（大蛋糕 + 大单烟花） ===== */
+        .bd-day-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, #1a0a2e 0%, #000 70%);
+            z-index: 100001; display: none; justify-content: center; align-items: center;
+            flex-direction: column; overflow: hidden;
+        }
+        .bd-day-overlay.show { display: flex; }
+        .bd-day-close {
+            position: absolute; top: 20px; right: 20px; z-index: 100002;
+            width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.1);
+            border: 2px solid #ffd700; color: #ffd700; font-size: 28px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .bd-day-cake-wrap { position: relative; text-align: center; margin-bottom: 20px; }
+        .bd-day-cake-body {
+            width: 180px; height: 140px; margin: 0 auto; position: relative;
+        }
+        .cake-layer-1 {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 50px;
+            background: linear-gradient(180deg, #d4845a 0%, #a0522d 100%);
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(139,69,19,0.5);
+        }
+        .cake-layer-2 {
+            position: absolute; bottom: 45px; left: 10%; width: 80%; height: 40px;
+            background: linear-gradient(180deg, #f5d6c6 0%, #d4845a 100%);
+            border-radius: 10px; box-shadow: 0 2px 10px rgba(210,180,140,0.4);
+        }
+        .cake-layer-3 {
+            position: absolute; bottom: 80px; left: 20%; width: 60%; height: 35px;
+            background: linear-gradient(180deg, #fff5ee 0%, #f5d6c6 100%);
+            border-radius: 8px; box-shadow: 0 2px 8px rgba(255,255,255,0.3);
+        }
+        .cake-plate {
+            position: absolute; bottom: -10px; left: -10%; width: 120%; height: 15px;
+            background: linear-gradient(180deg, #f0e6d3, #c0b090);
+            border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .bd-day-candles {
+            position: absolute; bottom: 110px; left: 0; width: 100%; height: 60px;
+            display: flex; justify-content: center; gap: 12px; align-items: flex-end;
+        }
+        .bd-day-candle {
+            width: 8px; border-radius: 3px 3px 0 0;
+            background: repeating-linear-gradient(0deg, #ff6b6b, #ff6b6b 6px, #fff 6px, #fff 10px);
+            position: relative;
+        }
+        .bd-day-candle:nth-child(1) { height: 40px; }
+        .bd-day-candle:nth-child(2) { height: 50px; }
+        .bd-day-candle:nth-child(3) { height: 45px; }
+        .bd-day-candle:nth-child(4) { height: 55px; }
+        .bd-day-candle:nth-child(5) { height: 42px; }
+        .bd-day-flame {
+            position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+            width: 12px; height: 18px; background: radial-gradient(ellipse, #ffd700, #ff6600);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flicker 0.15s infinite alternate;
+            box-shadow: 0 0 12px #ffd700, 0 0 25px #ff6600;
+        }
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scaleY(1) scaleX(1); }
+            50% { transform: translateX(-50%) scaleY(0.85) scaleX(1.15); }
+            100% { transform: translateX(-50%) scaleY(1.1) scaleX(0.9); }
+        }
+        .bd-day-title {
+            font-size: 3rem; font-weight: bold; text-align: center;
+            background: linear-gradient(45deg, #ff6b6b, #ffd700, #ff69b4, #ffd700);
+            background-size: 300% auto; -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; animation: gradShift 2s linear infinite;
+            margin-bottom: 8px;
+        }
+        @keyframes gradShift {
+            0% { background-position: 0% center; }
+            100% { background-position: 300% center; }
+        }
+        .bd-day-msg {
+            font-size: 1.5rem; color: #ffd700; text-align: center;
+            animation: pulse 1s infinite; text-shadow: 0 0 20px rgba(255,215,0,0.6);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .bd-day-sub {
+            font-size: 1rem; color: #aaa; text-align: center; margin-top: 8px;
+        }
+        @media (max-width: 560px) {
+            .bd-day-title { font-size: 2rem; }
+            .bd-day-msg { font-size: 1.2rem; }
+            .bd-day-cake-body { width: 140px; height: 110px; }
+            .cake-layer-1 { height: 40px; }
+            .cake-layer-2 { height: 32px; bottom: 36px; }
+            .cake-layer-3 { height: 28px; bottom: 63px; }
+            .bd-day-candles { bottom: 87px; gap: 8px; }
+            .bd-day-candle:nth-child(1) { height: 32px; }
+            .bd-day-candle:nth-child(2) { height: 40px; }
+            .bd-day-candle:nth-child(3) { height: 36px; }
+            .bd-day-candle:nth-child(4) { height: 44px; }
+            .bd-day-candle:nth-child(5) { height: 34px; }
+            .bd-day-flame { width: 10px; height: 14px; top: -13px; }
+        }
     </style>
 </head>
 <body>
@@ -274,35 +376,108 @@ const GITHUB_CONFIG = {
 };
 const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
 
-// 生日祝福相关
-const BIRTHDAY_USER = '13528379080';
-const BIRTHDAY_DATE = new Date('2026-10-11T00:00:00');
+// ===== 动态生日系统（替代硬编码 BIRTHDAY_USER） =====
+function parseBirthday(birthdayStr) {
+    if (!birthdayStr) return null;
+    var m = birthdayStr.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (!m) return null;
+    return { y: +m[1], m: +m[2], d: +m[3] };
+}
+
+/** 今年的生日 Date */
+function thisYearBirthday(bd) {
+    if (!bd) return null;
+    var now = new Date();
+    var t = new Date(now.getFullYear(), bd.m - 1, bd.d, 0, 0, 0);
+    return t;
+}
+
+/** 是否生日当天 */
+function isBirthdayToday(bd) {
+    if (!bd) return false;
+    var bs = thisYearBirthday(bd);
+    if (!bs) return false;
+    var today = new Date();
+    return today.getFullYear() === bs.getFullYear() && today.getMonth() === bs.getMonth() && today.getDate() === bs.getDate();
+}
+
+/** 距离生日还有多少天（今天算0，明天算1） */
+function daysUntilBirthday(bd) {
+    if (!bd) return 999;
+    var bs = thisYearBirthday(bd);
+    if (!bs) return 999;
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    if (bs < today) bs = new Date(now.getFullYear() + 1, bd.m - 1, bd.d, 0, 0, 0);
+    return Math.ceil((bs - today) / (1000 * 60 * 60 * 24));
+}
+
+/** 是否在生日的 N 天内（含当天） */
+function isBirthdayWithinDays(bd, n) {
+    var d = daysUntilBirthday(bd);
+    return d >= 0 && d <= n;
+}
+
+async function ensureBirthday() {
+    if (!currentUser || currentUser.birthday) return currentUser;
+    if (!currentUser.phone) return currentUser;
+    try {
+        var res = await fetch('https://api.github.com/repos/' + GITHUB_CONFIG.username + '/' + GITHUB_CONFIG.repo + '/issues?labels=user-register&state=all&per_page=100', {
+            headers: { Authorization: 'token ' + GITHUB_CONFIG.token }
+        });
+        var issues = await res.json();
+        if (!Array.isArray(issues)) return currentUser;
+        var hit = issues.find(function(i) { return (i.body || '').indexOf('手机号：' + currentUser.phone) >= 0; });
+        if (hit && hit.body) {
+            var bd = (hit.body.match(/生日：(\S+)/) || ['',''])[1];
+            if (bd) {
+                currentUser.birthday = bd;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+        }
+    } catch(e) { /* 拉取失败不阻塞 */ }
+    return currentUser;
+}
 
 function checkBirthday() {
-    if (currentUser && currentUser.phone === BIRTHDAY_USER) {
-        setTimeout(() => {
-            showBirthdayCelebration();
-        }, 500);
+    if (!currentUser) return;
+    // 存量用户可能没生日字段，先异步拉取，再用 setTimeout 重查
+    if (!currentUser.birthday) {
+        ensureBirthday().then(function() {
+            checkBirthday(); // 递归检查
+        });
+        return;
+    }
+    var bd = parseBirthday(currentUser.birthday);
+    if (!bd) return;
+    if (isBirthdayToday(bd)) {
+        setTimeout(function() { showBirthdayDayCelebration(bd); }, 800);
+    } else if (isBirthdayWithinDays(bd, 3)) {
+        setTimeout(function() { showBirthdaySoonCelebration(bd); }, 500);
     }
 }
 
-function renderBirthdayProduct() {
-    const slot = document.getElementById('birthdayProductSlot');
+async function renderBirthdayProduct() {
+    var slot = document.getElementById('birthdayProductSlot');
     if (!slot) return;
-    if (currentUser && currentUser.phone === BIRTHDAY_USER) {
-        slot.innerHTML = `
-        <div class="bg-card rounded-2xl border-2 border-gold p-8 flex flex-col items-center justify-center card-hover relative" style="box-shadow:0 0 30px rgba(255,215,0,0.3);">
-            <div class="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">生日专享</div>
-            <div class="w-24 h-24 rounded-full bg-gold/10 flex items-center justify-center mb-6 animate-float">
-                <i class="fa-solid fa-cake-candles text-gold text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2 text-gold">🎂 生日祝福礼包</h3>
-            <p class="text-red-400 text-2xl font-bold mb-4">-¥6.66</p>
-            <p class="text-gray-400 text-sm text-center mb-6">中年男人的生日祝福<br>商家倒贴，仅限今日！</p>
-            <button onclick="addToCart({name:'🎂生日祝福礼包',price:'-¥6.66'}, this)" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2 disabled:opacity-60">加入购物车</button>
-            <button onclick="showBirthdayDetail()" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看祝福详情</button>
-        </div>`;
+    if (!currentUser) return;
+    if (!currentUser.birthday) {
+        await ensureBirthday(); // 存量用户拉取生日
     }
+    if (!currentUser.birthday) return;
+    var bd = parseBirthday(currentUser.birthday);
+    if (!bd) return;
+    if (!isBirthdayWithinDays(bd, 3)) return;
+    var isToday = isBirthdayToday(bd);
+    slot.innerHTML = '<div class="bg-card rounded-2xl border-2 border-gold p-8 flex flex-col items-center justify-center card-hover relative" style="box-shadow:0 0 30px rgba(255,215,0,0.3);">' +
+        '<div class="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">' + (isToday ? '今天生日！' : '生日专享') + '</div>' +
+        '<div class="w-24 h-24 rounded-full bg-gold/10 flex items-center justify-center mb-6 animate-float"><i class="fa-solid fa-cake-candles text-gold text-3xl"></i></div>' +
+        '<h3 class="text-xl font-bold mb-2 text-gold">🎂 生日祝福礼包</h3>' +
+        '<p class="text-red-400 text-2xl font-bold mb-4">-¥6.66</p>' +
+        '<p class="text-gray-400 text-sm text-center mb-6">中年男人的生日祝福<br>商家倒贴' + (isToday ? '，生日快乐！' : '，仅限今日！') + '</p>' +
+        '<button onclick="addToCart({name:\'🎂生日祝福礼包\',price:\'-¥6.66\'}, this)" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2 disabled:opacity-60">加入购物车</button>' +
+        '<button onclick="showBirthdayDetail()" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看祝福详情</button>' +
+        '</div>';
 }
 
 function showBirthdayDetail() {
@@ -313,25 +488,35 @@ function closeBirthdayDetail() {
     document.getElementById('birthdayDetailOverlay').classList.remove('show');
 }
 
-function showBirthdayCelebration() {
-    const overlay = document.getElementById('birthdayOverlay');
+function showBirthdaySoonCelebration(bd) {
+    var overlay = document.getElementById('birthdayOverlay');
+    var phone = currentUser ? (currentUser.phone || '用户') : '用户';
+    document.getElementById('bdUserName').textContent = phone;
+    document.getElementById('bdDateLabel').textContent = bd.m + '.' + bd.d;
+    var bs = thisYearBirthday(bd);
+    BIRTHDAY_TARGET = bs;
     overlay.classList.add('show');
     startFireworks();
     startConfetti();
     updateCountdown();
-    setInterval(updateCountdown, 1000);
+    if (!BD_COUNTDOWN_TIMER) BD_COUNTDOWN_TIMER = setInterval(updateCountdown, 1000);
 }
 
+var BIRTHDAY_TARGET = null;
+var BD_COUNTDOWN_TIMER = null;
+
 function closeBirthday() {
-    const overlay = document.getElementById('birthdayOverlay');
+    var overlay = document.getElementById('birthdayOverlay');
     overlay.classList.remove('show');
     stopFireworks();
     stopConfetti();
+    if (BD_COUNTDOWN_TIMER) { clearInterval(BD_COUNTDOWN_TIMER); BD_COUNTDOWN_TIMER = null; }
 }
 
 function updateCountdown() {
-    const now = new Date();
-    const diff = BIRTHDAY_DATE - now;
+    var now = new Date();
+    if (!BIRTHDAY_TARGET) return;
+    var diff = BIRTHDAY_TARGET - now;
     
     if (diff <= 0) {
         document.getElementById('countdownDays').textContent = '0';
@@ -465,6 +650,74 @@ function createConfetti() {
     requestAnimationFrame(animate);
 }
 
+// ===== 生日当天专属庆祝：整屏大单烟花 + 蛋糕吹蜡烛 + 语音 =====
+function showBirthdayDayCelebration(bd) {
+    var overlay = document.getElementById('birthdayDayOverlay');
+    overlay.classList.add('show');
+    createBigFirework();
+    // 延迟再放一个更大的
+    setTimeout(function() { createBigFirework(); }, 1500);
+    setTimeout(function() { createBigFirework(); }, 3500);
+    // 语音：男孩生日快乐
+    try {
+        var u = new SpeechSynthesisUtterance('男孩，生日快乐！');
+        u.lang = 'zh-CN';
+        u.rate = 0.85;
+        u.pitch = 1.1;
+        u.volume = 1;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+    } catch(e) { /* 浏览器不支持语音 */ }
+    // 音效：叮咚~
+    try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 200, 400].forEach(function(d, i) {
+            var o = ctx.createOscillator();
+            var g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.value = [880, 1100, 1320][i];
+            g.gain.setValueAtTime(0.3, ctx.currentTime + d / 1000);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d / 1000 + 0.5);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(ctx.currentTime + d / 1000);
+            o.stop(ctx.currentTime + d / 1000 + 0.6);
+        });
+    } catch(e) {}
+}
+
+function closeBirthdayDay() {
+    document.getElementById('birthdayDayOverlay').classList.remove('show');
+}
+
+function createBigFirework() {
+    var colors = ['#ff6b6b', '#ffd700', '#ff69b4', '#00ff88', '#00bfff', '#ff00ff', '#ffaa00'];
+    var cx = window.innerWidth / 2;
+    var cy = window.innerHeight / 2;
+    var particles = 80;
+    for (var i = 0; i < particles; i++) {
+        var color = colors[i % colors.length];
+        var particle = document.createElement('div');
+        particle.style.cssText = 'position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:100000;left:' + cx + 'px;top:' + cy + 'px;background:' + color + ';box-shadow:0 0 8px ' + color + ';';
+        document.body.appendChild(particle);
+        var angle = (i / particles) * Math.PI * 2;
+        var velocity = 120 + Math.random() * 280;
+        var vx = Math.cos(angle) * velocity;
+        var vy = Math.sin(angle) * velocity;
+        var px = cx, py = cy, opacity = 1;
+        var grav = 1.5 + Math.random() * 3;
+        (function animate() {
+            px += vx * 0.016;
+            py += vy * 0.016 + grav;
+            opacity -= 0.008;
+            particle.style.left = px + 'px';
+            particle.style.top = py + 'px';
+            particle.style.opacity = opacity;
+            if (opacity > 0) requestAnimationFrame(animate);
+            else particle.remove();
+        })();
+    }
+}
+
 // 导航栏状态（登录 / 未登录 / 购物车数量）
 function checkLoginNavCart() {
     const userArea = document.getElementById('userArea');
@@ -589,7 +842,7 @@ window.addEventListener('load', () => {
 
         <!-- 用户名 -->
         <div class="bd-user">
-            亲爱的 <span style="color:#ffd700;font-weight:bold;">13528379080</span> 用户
+            亲爱的 <span style="color:#ffd700;font-weight:bold;" id="bdUserName">用户</span> 用户
         </div>
 
         <!-- 蛋糕 -->
@@ -604,7 +857,7 @@ window.addEventListener('load', () => {
 
         <!-- 倒计时 -->
         <div id="countdownText" class="countdown-text">
-            距离 2026.10.11 生日还有：
+            距离 <span id="bdDateLabel">--</span> 生日还有：
         </div>
         <div class="countdown">
             <div class="countdown-item">
@@ -653,6 +906,29 @@ window.addEventListener('load', () => {
         </div>
         <div class="bd-footer-deco" style="margin-top:10px;">🎈 🎉 🎁 🎊 🥳</div>
     </div>
+</div>
+
+<!-- 生日当天专属庆祝：大蛋糕 + 大单烟花 + 吹蜡烛 -->
+<div class="bd-day-overlay" id="birthdayDayOverlay">
+    <button class="bd-day-close" onclick="closeBirthdayDay()">✕</button>
+    <div class="bd-day-cake-wrap">
+        <div class="bd-day-cake-body">
+            <div class="bd-day-candles">
+                <div class="bd-day-candle"><div class="bd-day-flame"></div></div>
+                <div class="bd-day-candle"><div class="bd-day-flame"></div></div>
+                <div class="bd-day-candle"><div class="bd-day-flame"></div></div>
+                <div class="bd-day-candle"><div class="bd-day-flame"></div></div>
+                <div class="bd-day-candle"><div class="bd-day-flame"></div></div>
+            </div>
+            <div class="cake-layer-3"></div>
+            <div class="cake-layer-2"></div>
+            <div class="cake-layer-1"></div>
+            <div class="cake-plate"></div>
+        </div>
+    </div>
+    <div class="bd-day-title">🎂 生日快乐 🎂</div>
+    <div class="bd-day-msg">男孩，生日快乐！</div>
+    <div class="bd-day-sub">玉国科技祝你天天开心，越来越强！</div>
 </div>
 
 <!-- 顶部永久固定：跑马灯 + 导航栏 -->

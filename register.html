@@ -95,12 +95,16 @@ async function handleRegister() {
     // 密码哈希
     const pwdHash = await hashPassword(password);
 
+    const birthday = document.getElementById('birthday').value.trim();
+    if (!birthday) { alert('请选择生日日期！'); return; }
+
     // 构造GitHub Issue数据
     const issueData = {
         title: `用户注册 | ${phone}`,
         body: `### 用户信息
 - 手机号：${phone}
 - 密码哈希值：${pwdHash}
+- 生日：${birthday}
 - 注册时间：${new Date().toLocaleString('zh-CN')}`,
         labels: ["user-register"]
     };
@@ -168,6 +172,11 @@ async function handleRegister() {
             <div>
                 <label class="block text-sm text-gray-400 mb-1">确认密码</label>
                 <input type="password" id="confirmPwd" placeholder="请再次输入密码" class="w-full bg-dark border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-gold outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">🎂 生日 (月/日)</label>
+                <input type="date" id="birthday" class="w-full bg-dark border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-gold outline-none" style="color-scheme:dark;">
+                <p class="text-xs text-gray-500 mt-1">生日当天会有惊喜哦！</p>
             </div>
             <div>
                 <label class="block text-sm text-gray-400 mb-1">人类验证</label>
