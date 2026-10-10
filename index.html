@@ -377,9 +377,27 @@
             .bd-day-candle:nth-child(5) { height: 34px; }
             .bd-day-flame { width: 10px; height: 14px; top: -13px; }
         }
+        .bd-day-flame.out{animation:flickerOut .3s ease-out forwards}
+        @keyframes flickerOut{0%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.5)}100%{opacity:0;transform:scale(0)}}
+        #starfieldCanvas,#fireworkCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none}
+        #starfieldCanvas{z-index:-1}#fireworkCanvas{z-index:100006}
+        .neon-text{color:#fff;text-shadow:0 0 7px #fff,0 0 10px #fff,0 0 21px #fff,0 0 42px #ffd700,0 0 82px #ffd700;animation:neonPulse 1.5s infinite alternate}
+        @keyframes neonPulse{0%{text-shadow:0 0 4px #fff,0 0 10px #ffd700,0 0 20px #ffd700,0 0 40px #ffd700}100%{text-shadow:0 0 8px #fff,0 0 18px #ffd700,0 0 35px #ffd700,0 0 70px #ffaa00,0 0 100px #ffaa00}}
+        .bd-balloon{position:fixed;font-size:3rem;pointer-events:none;z-index:100005;animation:balloonUp linear forwards}
+        @keyframes balloonUp{0%{transform:translateY(0)rotate(0deg)scale(1);opacity:.9}50%{opacity:.7}100%{transform:translateY(-110vh)rotate(20deg)scale(.6);opacity:0}}
+        .ripple{position:fixed;border-radius:50%;border:2px solid #ffd700;pointer-events:none;z-index:100007;animation:rippleOut 1s ease-out forwards}
+        @keyframes rippleOut{0%{width:0;height:0;opacity:.8}100%{width:300px;height:300px;opacity:0;margin-left:-150px;margin-top:-150px}}
+        .tw-cursor{color:#ffd700;animation:twBlink .6s step-end infinite}
+        @keyframes twBlink{50%{opacity:0}}
+        .bd-mic-btn{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:100003;background:rgba(255,215,0,.12);border:2px solid #ffd700;color:#ffd700;font-size:16px;padding:10px 22px;border-radius:30px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .3s}
+        .bd-mic-btn:hover{background:rgba(255,215,0,.25);box-shadow:0 0 20px rgba(255,215,0,.4)}
+        .bd-mic-btn.listening{background:rgba(255,60,60,.3);border-color:#f44;color:#f44;animation:micPulse .4s infinite}
+        @keyframes micPulse{0%,100%{box-shadow:0 0 5px #f44}50%{box-shadow:0 0 25px #f44,0 0 50px #f44}}
     </style>
 </head>
 <body>
+<canvas id="starfieldCanvas"></canvas>
+<canvas id="fireworkCanvas"></canvas>
 
 <script>
 const GITHUB_CONFIG = {
@@ -667,6 +685,9 @@ function createConfetti() {
 function showBirthdayDayCelebration(bd) {
     var overlay = document.getElementById('birthdayDayOverlay');
     overlay.classList.add('show');
+    // 入场序列
+    launchCelebrationSequence();
+    initMicBlow();
     createBigFirework();
     setTimeout(function() { createBigFirework(); }, 1500);
     setTimeout(function() { createBigFirework(); }, 3500);
@@ -710,9 +731,12 @@ function closeBirthdayDay() {
 }
 
 function createBigFirework() {
-    var colors = ['#ff2d2d', '#ffd700', '#ff69b4', '#00ff88', '#00bfff', '#ff00ff', '#ff6600', '#ff0'];
-    var cx = window.innerWidth / 2;
-    var cy = window.innerHeight / 2;
+    var c = document.getElementById('fireworkCanvas');
+    var ctx = c.getContext('2d');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    var cx = c.width / 2;
+    var cy = c.height / 2;
+    var colors = ['#ff2d2d','#ffd700','#ff69b4','#00ff88','#00bfff','#ff00ff','#ff6600','#ff0'];
 
     // 中心闪光
     var flash = document.createElement('div');
@@ -722,64 +746,183 @@ function createBigFirework() {
     function stepFlash() { fo -= 0.025; flash.style.opacity = fo; flash.style.transform = 'scale(' + (0.5 + (1 - fo) * 3) + ')'; if (fo > 0) requestAnimationFrame(stepFlash); else flash.remove(); }
     stepFlash();
 
-    // 主粒子组 — 单循环驱动
-    var mainParticles = [];
-    for (var i = 0; i < 150; i++) {
-        var color = colors[i % colors.length];
-        var size = 5 + Math.random() * 8;
-        var el = document.createElement('div');
-        el.style.cssText = 'position:fixed;width:' + size + 'px;height:' + size + 'px;border-radius:50%;pointer-events:none;z-index:100005;left:' + cx + 'px;top:' + cy + 'px;background:' + color + ';box-shadow:0 0 ' + (size * 3) + 'px ' + color + ',0 0 ' + (size * 6) + 'px ' + color + ';';
-        document.body.appendChild(el);
-        var angle = (i / 150) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-        var vel = 200 + Math.random() * 400;
-        mainParticles.push({ el: el, x: cx, y: cy, vx: Math.cos(angle) * vel, vy: Math.sin(angle) * vel, o: 1, g: 3 + Math.random() * 5 });
+    // 主粒子
+    for (var i = 0; i < 100; i++) {
+        var angle = (i / 100) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+        var vel = 3 + Math.random() * 8;
+        fireParticles.push({
+            x: cx, y: cy,
+            vx: Math.cos(angle) * vel,
+            vy: Math.sin(angle) * vel,
+            life: 1, decay: 0.006 + Math.random() * 0.005,
+            color: colors[i % colors.length],
+            radius: 2 + Math.random() * 3,
+            grav: 0.05 + Math.random() * 0.08
+        });
     }
-    function stepMain() {
-        var any = false;
-        for (var k = 0; k < mainParticles.length; k++) {
-            var p = mainParticles[k];
-            if (p.o <= 0) continue;
-            p.x += p.vx * 0.02;
-            p.y += p.vy * 0.02 + p.g;
-            p.o -= 0.005;
-            p.el.style.left = p.x + 'px';
-            p.el.style.top = p.y + 'px';
-            p.el.style.opacity = p.o;
-            if (p.o <= 0) p.el.remove();
-            else any = true;
-        }
-        if (any) requestAnimationFrame(stepMain);
-    }
-    stepMain();
-
     // 金色拖尾
-    var trailParticles = [];
-    for (var j = 0; j < 60; j++) {
-        var tel = document.createElement('div');
-        var tsz = 2 + Math.random() * 4;
-        tel.style.cssText = 'position:fixed;width:' + tsz + 'px;height:' + (tsz * 4) + 'px;border-radius:2px;pointer-events:none;z-index:100005;left:' + cx + 'px;top:' + cy + 'px;background:#ffd700;box-shadow:0 0 8px #ffd700,0 0 16px #ffaa00;';
-        document.body.appendChild(tel);
-        var ta = (j / 60) * Math.PI * 2;
-        var tv = 250 + Math.random() * 250;
-        trailParticles.push({ el: tel, x: cx, y: cy, vx: Math.cos(ta) * tv, vy: Math.sin(ta) * tv, o: 1 });
+    for (var j = 0; j < 35; j++) {
+        var angle2 = (j / 35) * Math.PI * 2;
+        var vel2 = 4 + Math.random() * 6;
+        fireParticles.push({
+            x: cx, y: cy,
+            vx: Math.cos(angle2) * vel2,
+            vy: Math.sin(angle2) * vel2,
+            life: 1, decay: 0.014 + Math.random() * 0.008,
+            color: '#ffd700', radius: 1 + Math.random() * 2, grav: 0
+        });
     }
-    function stepTrail() {
-        var any = false;
-        for (var k = 0; k < trailParticles.length; k++) {
-            var tp = trailParticles[k];
-            if (tp.o <= 0) continue;
-            tp.x += tp.vx * 0.016;
-            tp.y += tp.vy * 0.016;
-            tp.o -= 0.01;
-            tp.el.style.left = tp.x + 'px';
-            tp.el.style.top = tp.y + 'px';
-            tp.el.style.opacity = tp.o;
-            if (tp.o <= 0) tp.el.remove();
-            else any = true;
+    fireLoopOn();
+}
+
+// ===== Canvas 星空 =====
+function initStarfield() {
+    var c = document.getElementById('starfieldCanvas');
+    var ctx = c.getContext('2d');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    var stars = [];
+    for (var i = 0; i < 200; i++) stars.push({ x: Math.random() * c.width, y: Math.random() * c.height, r: Math.random() * 1.8 + 0.4, s: Math.random() * Math.PI * 2 });
+    (function draw() {
+        ctx.clearRect(0, 0, c.width, c.height);
+        for (var i = 0; i < stars.length; i++) {
+            var s = stars[i], a = 0.3 + 0.7 * Math.abs(Math.sin(s.s + Date.now() * 0.001));
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,' + a + ')'; ctx.fill();
+            if (s.r > 1.3) {
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.r * 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,215,0,' + (a * 0.3) + ')'; ctx.fill();
+            }
         }
-        if (any) requestAnimationFrame(stepTrail);
+        requestAnimationFrame(draw);
+    })();
+}
+
+// ===== Canvas 烟花粒子（全局） =====
+var fireParticles = [], fireLoopRunning = false;
+function fireLoopOn() {
+    if (fireLoopRunning) return; fireLoopRunning = true;
+    var c = document.getElementById('fireworkCanvas');
+    var ctx = c.getContext('2d');
+    (function draw() {
+        c.width = c.width;
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillRect(0, 0, c.width, c.height);
+        for (var k = fireParticles.length - 1; k >= 0; k--) {
+            var p = fireParticles[k];
+            p.x += p.vx; p.y += p.vy + p.grav; p.life -= p.decay;
+            if (p.life <= 0) { fireParticles.splice(k, 1); continue; }
+            ctx.globalAlpha = p.life;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color; ctx.fill();
+            ctx.shadowBlur = p.radius * 5; ctx.shadowColor = p.color; ctx.fill(); ctx.shadowBlur = 0;
+        }
+        ctx.globalAlpha = 1;
+        if (fireParticles.length > 0) requestAnimationFrame(draw);
+        else fireLoopRunning = false;
+    })();
+}
+
+// ===== 气球 =====
+function spawnBalloons() {
+    var emojis = ['🎈','🎉','🎊','🎂','🎁'];
+    for (var i = 0; i < 8; i++) {
+        var b = document.createElement('div');
+        b.className = 'bd-balloon';
+        b.textContent = emojis[i % emojis.length];
+        b.style.left = (10 + Math.random() * 80) + '%';
+        b.style.bottom = -(40 + Math.random() * 80) + 'px';
+        b.style.animationDuration = (4 + Math.random() * 6) + 's';
+        b.style.animationDelay = (Math.random() * 2) + 's';
+        b.style.fontSize = (2 + Math.random() * 3) + 'rem';
+        document.body.appendChild(b);
+        setTimeout(function(el) { el.remove(); }, 10000, b);
     }
-    stepTrail();
+}
+
+// ===== 打字机 =====
+function typewriter(el, text, speed, cb) {
+    var i = 0;
+    el.textContent = '';
+    var cursor = document.createElement('span');
+    cursor.className = 'tw-cursor';
+    cursor.textContent = '|';
+    el.parentNode.appendChild(cursor);
+    function type() {
+        if (i < text.length) {
+            el.textContent += text[i]; i++;
+            setTimeout(type, speed);
+        } else {
+            cursor.remove();
+            if (cb) cb();
+        }
+    }
+    type();
+}
+
+// ===== 点击波纹 =====
+function initRipple() {
+    document.addEventListener('click', function(e) {
+        var r = document.createElement('div');
+        r.className = 'ripple';
+        r.style.left = e.clientX + 'px';
+        r.style.top = e.clientY + 'px';
+        document.body.appendChild(r);
+        setTimeout(function() { r.remove(); }, 1000);
+    });
+}
+
+// ===== 吹蜡烛（麦克风） =====
+function initMicBlow() {
+    var btn = document.getElementById('bdMicBtn');
+    if (!btn) return;
+    btn.onclick = function() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            blowCandlesOut(); return;
+        }
+        btn.classList.add('listening');
+        btn.innerHTML = '<i class="fa-solid fa-microphone"></i> 正在听…';
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var src = ctx.createMediaStreamSource(stream);
+            var analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+            src.connect(analyser);
+            var data = new Uint8Array(analyser.frequencyBinCount);
+            var blowCount = 0;
+            var iv = setInterval(function() {
+                analyser.getByteFrequencyData(data);
+                var avg = 0;
+                for (var i = 0; i < data.length; i++) avg += data[i];
+                avg /= data.length;
+                if (avg > 40) { blowCount++; }
+                if (blowCount >= 3) {
+                    clearInterval(iv);
+                    stream.getTracks().forEach(function(t) { t.stop(); });
+                    ctx.close();
+                    btn.classList.remove('listening');
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> 蜡烛吹灭啦！';
+                    setTimeout(function() { btn.style.display = 'none'; }, 2000);
+                    blowCandlesOut();
+                }
+            }, 150);
+        }).catch(function() { blowCandlesOut(); });
+    };
+}
+
+function blowCandlesOut() {
+    var flames = document.querySelectorAll('.bd-day-flame');
+    flames.forEach(function(f) { f.classList.add('out'); });
+    // 吹灭烟花
+    for (var b = 0; b < 2; b++) {
+        setTimeout(function() { createBigFirework(); }, b * 600);
+    }
+}
+
+// ===== 页面入场：气球+打字机 =====
+function launchCelebrationSequence() {
+    spawnBalloons();
+    var twEl = document.getElementById('bdDayMsg');
+    if (twEl) { typewriter(twEl, '生日快乐！', 120); }
 }
 
 // 导航栏状态（登录 / 未登录 / 购物车数量）
@@ -995,8 +1138,9 @@ window.addEventListener('load', () => {
         </div>
     </div>
     <div class="bd-day-title">🎂 生日快乐 🎂</div>
-    <div class="bd-day-msg">生日快乐！</div>
+    <div class="bd-day-msg"><span id="bdDayMsg">生日快乐！</span></div>
     <div class="bd-day-sub">玉国科技祝你天天开心，越来越强！</div>
+    <button class="bd-mic-btn" id="bdMicBtn"><i class="fa-solid fa-microphone"></i> 对着麦克风吹蜡烛</button>
 </div>
 
 <!-- 顶部永久固定：跑马灯 + 导航栏 -->
@@ -1502,6 +1646,8 @@ window.addEventListener('scroll', () => {
 });
 document.getElementById('backToTop').onclick = ()=>window.scrollTo({top:0,behavior:'smooth'});
 window.addEventListener('load',()=>{
+    initStarfield();
+    initRipple();
     checkLoginNavCart();
     checkBirthday();
     renderBirthdayProduct();
