@@ -393,11 +393,51 @@
         .bd-mic-btn:hover{background:rgba(255,215,0,.25);box-shadow:0 0 20px rgba(255,215,0,.4)}
         .bd-mic-btn.listening{background:rgba(255,60,60,.3);border-color:#f44;color:#f44;animation:micPulse .4s infinite}
         @keyframes micPulse{0%,100%{box-shadow:0 0 5px #f44}50%{box-shadow:0 0 25px #f44,0 0 50px #f44}}
+        /* Confetti & Hearts Canvas */
+        #confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100008}
+        #heartsCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100004}
+        /* 涂鸦风礼盒 */
+        .bd-gift-box{position:absolute;bottom:60px;right:40px;z-index:100003;cursor:pointer;transition:transform .3s}
+        .bd-gift-box:hover{transform:scale(1.08)}
+        .bd-gift-box .box-body{width:80px;height:70px;background:linear-gradient(135deg,#c0392b,#e74c3c);border-radius:8px;position:relative;box-shadow:0 4px 15px rgba(0,0,0,.5)}
+        .bd-gift-box .box-lid{width:96px;height:24px;background:linear-gradient(135deg,#e74c3c,#ff6b6b);border-radius:6px 6px 0 0;position:absolute;top:-20px;left:-8px;transition:transform .6s ease-out;transform-origin:left bottom;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+        .bd-gift-box.open .box-lid{transform:rotate(-55deg) translateY(-8px)}
+        .bd-gift-box .box-ribbon-h{width:80px;height:10px;background:#ffd700;position:absolute;top:30px;left:0}
+        .bd-gift-box .box-ribbon-v{width:10px;height:70px;background:#ffd700;position:absolute;top:0;left:35px}
+        .bd-gift-tip{position:absolute;bottom:130px;right:30px;color:#ffd700;font-size:12px;z-index:100003;animation:giftTipPulse 1.5s infinite}
+        @keyframes giftTipPulse{0%,100%{opacity:.5}50%{opacity:1}}
+        /* 贺卡翻转 */
+        .bd-card-scene{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);z-index:100003;width:260px;height:180px;perspective:800px}
+        .bd-card-inner{width:100%;height:100%;transition:transform .8s;transform-style:preserve-3d;cursor:pointer;position:relative}
+        .bd-card-inner.flipped{transform:rotateY(180deg)}
+        .bd-card-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:'KaiTi','STKaiti','楷体',serif}
+        .card-front{background:linear-gradient(135deg,#8b0000,#b22222);border:3px solid #ffd700;box-shadow:0 0 30px rgba(255,215,0,.3)}
+        .card-front h3{color:#ffd700;font-size:20px;margin:0 0 8px 0}
+        .card-front p{color:#fff;font-size:13px;margin:0}
+        .card-back{background:linear-gradient(135deg,#1a0a2e,#2d1050);border:3px solid #ffd700;transform:rotateY(180deg);box-shadow:0 0 30px rgba(255,215,0,.3);overflow-y:auto}
+        .card-back p{color:#ffd700;font-size:13px;line-height:1.8;text-align:center;margin:0}
+        .card-back .card-sign{color:#ffa500;margin-top:10px;font-size:12px}
+        /* 遮罩转场 */
+        .bd-mask-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:100010;background:radial-gradient(circle at 50% 50%,transparent 0%,#000 100%);pointer-events:none;opacity:0;transition:opacity .8s}
+        .bd-mask-overlay.reveal{opacity:1;background:radial-gradient(circle at 50% 50%,transparent 70%,#000 100%)}
+        .bd-mask-overlay.hide{opacity:0;background:radial-gradient(circle at 50% 50%,#000 0%,transparent 100%)}
+        /* 逐词渐入 */
+        .bd-fade-word{display:inline-block;opacity:0;transform:translateY(15px);animation:wordFadeIn .6s forwards}
+        @keyframes wordFadeIn{to{opacity:1;transform:translateY(0)}}
+        /* 文字粒子（散开后重组在打字机上方） */
+        .bd-text-particle{position:fixed;color:#ffd700;font-size:24px;pointer-events:none;z-index:100006;font-weight:bold;animation:textParticleScatter 2s ease-out forwards}
+        @keyframes textParticleScatter{0%{opacity:1;transform:translate(0,0) scale(1)}60%{opacity:.6;transform:translate(var(--tx),var(--ty)) scale(.8) rotate(var(--tr))}100%{opacity:0;transform:translate(var(--tx2),var(--ty2)) scale(0) rotate(var(--tr2))}}
+        /* 视差背景层 */
+        .bd-day-overlay.show .bd-parallax-bg{position:absolute;width:150%;height:150%;top:-25%;left:-25%;background:radial-gradient(ellipse at 30% 50%,rgba(255,215,0,.08) 0%,transparent 60%),radial-gradient(ellipse at 70% 30%,rgba(255,105,180,.06) 0%,transparent 60%);animation:parallaxShift 8s ease-in-out infinite alternate}
+        @keyframes parallaxShift{0%{transform:translate(-3%,-3%)}100%{transform:translate(3%,3%)}}
+        .bd-word-fade-wrap{position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:100003;display:flex;gap:8px}
     </style>
 </head>
 <body>
 <canvas id="starfieldCanvas"></canvas>
 <canvas id="fireworkCanvas"></canvas>
+<canvas id="confettiCanvas"></canvas>
+<canvas id="heartsCanvas"></canvas>
 
 <script>
 const GITHUB_CONFIG = {
@@ -633,52 +673,291 @@ function createFirework() {
     setTimeout(() => firework.remove(), 500);
 }
 
-// 彩带效果
-let confettiActive = false;
-let confettiInterval;
+// ===== Canvas 彩屑系统（性能版） =====
+var ccCanvas = document.getElementById('confettiCanvas');
+var ccCtx = ccCanvas.getContext('2d');
+var ccParticles = [];
+var ccActive = false;
+var ccAnimId;
 
-function startConfetti() {
-    confettiActive = true;
-    confettiInterval = setInterval(createConfetti, 100);
+function resizeConfettiCanvas() {
+    ccCanvas.width = window.innerWidth;
+    ccCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfettiCanvas);
+resizeConfettiCanvas();
+
+function startConfetti(duration) {
+    ccActive = true;
+    duration = duration || 8000;
+    var spawnInterval = setInterval(function() {
+        if (!ccActive) { clearInterval(spawnInterval); return; }
+        for (var j = 0; j < 6; j++) {
+            ccParticles.push({
+                x: Math.random() * ccCanvas.width,
+                y: -10,
+                vx: (Math.random() - 0.5) * 4,
+                vy: 2 + Math.random() * 5,
+                w: 6 + Math.random() * 8,
+                h: 4 + Math.random() * 6,
+                rot: Math.random() * 360,
+                rotV: (Math.random() - 0.5) * 8,
+                color: ['#ffd700','#ff6b6b','#ff69b4','#00ff88','#00bfff','#ff00ff'][Math.floor(Math.random()*6)],
+                opacity: 0.8 + Math.random() * 0.2,
+                wobble: Math.random() * Math.PI * 2,
+                wobbleSpeed: 0.02 + Math.random() * 0.05
+            });
+        }
+    }, 60);
+    setTimeout(function() { ccActive = false; clearInterval(spawnInterval); }, duration);
+    if (!ccAnimId) ccAnimId = requestAnimationFrame(stepConfetti);
+}
+
+function stepConfetti() {
+    ccCtx.clearRect(0, 0, ccCanvas.width, ccCanvas.height);
+    ccParticles = ccParticles.filter(function(p) { return p.y < ccCanvas.height + 20 && p.opacity > 0.01; });
+    for (var i = 0; i < ccParticles.length; i++) {
+        var p = ccParticles[i];
+        p.vy += 0.05;
+        p.wobble += p.wobbleSpeed;
+        p.x += p.vx + Math.sin(p.wobble) * 1.5;
+        p.y += p.vy;
+        p.rot += p.rotV;
+        if (p.y > ccCanvas.height * 0.8) p.opacity -= 0.008;
+        ccCtx.save();
+        ccCtx.globalAlpha = p.opacity;
+        ccCtx.translate(p.x, p.y);
+        ccCtx.rotate(p.rot * Math.PI / 180);
+        ccCtx.fillStyle = p.color;
+        ccCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        ccCtx.restore();
+    }
+    if (ccParticles.length > 0 || ccActive) {
+        ccAnimId = requestAnimationFrame(stepConfetti);
+    } else {
+        ccAnimId = null;
+    }
 }
 
 function stopConfetti() {
-    confettiActive = false;
-    clearInterval(confettiInterval);
+    ccActive = false;
 }
 
-function createConfetti() {
-    const colors = ['#ff6b6b', '#ffd700', '#ff69b4', '#00ff88', '#00bfff', '#ff00ff'];
-    const confetti = document.createElement('div');
-    confetti.className = 'confetti';
-    confetti.style.left = Math.random() * window.innerWidth + 'px';
-    confetti.style.top = '-10px';
-    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-    document.body.appendChild(confetti);
-    
-    let cy = -10;
-    let cx = parseFloat(confetti.style.left);
-    let rotation = 0;
-    const speedY = 2 + Math.random() * 3;
-    const speedX = (Math.random() - 0.5) * 2;
-    const rotSpeed = (Math.random() - 0.5) * 10;
-    
-    const animate = () => {
-        cy += speedY;
-        cx += speedX;
-        rotation += rotSpeed;
-        confetti.style.top = cy + 'px';
-        confetti.style.left = cx + 'px';
-        confetti.style.transform = `rotate(${rotation}deg)`;
-        if (cy < window.innerHeight) {
-            requestAnimationFrame(animate);
-        } else {
-            confetti.remove();
-        }
-    };
-    requestAnimationFrame(animate);
+// ===== Canvas 爱心漂浮粒子 =====
+var hCanvas = document.getElementById('heartsCanvas');
+var hCtx = hCanvas.getContext('2d');
+var heartsArr = [];
+var heartsActive = false;
+var heartsAnimId;
+
+function resizeHeartsCanvas() {
+    hCanvas.width = window.innerWidth;
+    hCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeHeartsCanvas);
+resizeHeartsCanvas();
+
+function startHearts() {
+    heartsActive = true;
+    var spawnH = setInterval(function() {
+        if (!heartsActive) { clearInterval(spawnH); return; }
+        heartsArr.push({
+            x: Math.random() * hCanvas.width,
+            y: hCanvas.height + 20,
+            vy: -1.5 - Math.random() * 3,
+            vx: (Math.random() - 0.5) * 1,
+            size: 8 + Math.random() * 18,
+            opacity: 0.6 + Math.random() * 0.4,
+            phase: Math.random() * Math.PI * 2,
+            drift: (Math.random() - 0.5) * 0.02
+        });
+    }, 300);
+    if (!heartsAnimId) heartsAnimId = requestAnimationFrame(stepHearts);
+}
+
+function stopHearts() {
+    heartsActive = false;
+}
+
+function drawHeart(ctx, x, y, s) {
+    ctx.beginPath();
+    var by = y, bx = x, bs = s;
+    ctx.moveTo(bx, by + bs * 0.3);
+    ctx.bezierCurveTo(bx, by, bx - bs * 0.5, by, bx - bs * 0.5, by + bs * 0.3);
+    ctx.bezierCurveTo(bx - bs * 0.5, by + bs * 0.7, bx, by + bs * 0.85, bx, by + bs);
+    ctx.bezierCurveTo(bx, by + bs * 0.85, bx + bs * 0.5, by + bs * 0.7, bx + bs * 0.5, by + bs * 0.3);
+    ctx.bezierCurveTo(bx + bs * 0.5, by, bx, by, bx, by + bs * 0.3);
+    ctx.fill();
+}
+
+function stepHearts() {
+    hCtx.clearRect(0, 0, hCanvas.width, hCanvas.height);
+    heartsArr = heartsArr.filter(function(h) { return h.y > -50 && h.opacity > 0.01; });
+    for (var i = 0; i < heartsArr.length; i++) {
+        var h = heartsArr[i];
+        h.y += h.vy;
+        h.x += h.vx + Math.sin(h.phase) * 2;
+        h.phase += h.drift;
+        if (h.y < 100) h.opacity -= 0.01;
+        hCtx.save();
+        hCtx.globalAlpha = h.opacity;
+        hCtx.fillStyle = '#ff69b4';
+        hCtx.shadowColor = '#ff69b4';
+        hCtx.shadowBlur = 6;
+        drawHeart(hCtx, h.x, h.y, h.size);
+        hCtx.restore();
+    }
+    if (heartsArr.length > 0 || heartsActive) {
+        heartsAnimId = requestAnimationFrame(stepHearts);
+    } else {
+        heartsAnimId = null;
+    }
+}
+
+// ===== 点击蛋糕爆炸 =====
+var cakeExplosionId = null;
+var cakeExplosionParts = [];
+
+function explodeCake(e) {
+    var cx = window.innerWidth / 2;
+    var cy = window.innerHeight / 2;
+    cakeExplosionParts = [];
+    for (var i = 0; i < 60; i++) {
+        var ang = Math.random() * Math.PI * 2;
+        var spd = 100 + Math.random() * 300;
+        cakeExplosionParts.push({
+            x: cx, y: cy,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            radius: 3 + Math.random() * 5,
+            color: ['#ffd700','#ff6b6b','#ff69b4','#ff4500','#00ff88'][Math.floor(Math.random()*5)],
+            alpha: 1,
+            life: 1
+        });
+    }
+    if (cakeExplosionId) cancelAnimationFrame(cakeExplosionId);
+    cakeExplosionId = requestAnimationFrame(stepCakeExplosion);
+}
+
+function stepCakeExplosion() {
+    ccCtx.save();
+    for (var i = 0; i < cakeExplosionParts.length; i++) {
+        var p = cakeExplosionParts[i];
+        p.x += p.vx * 0.016;
+        p.y += p.vy * 0.016;
+        p.vy += 150 * 0.016;
+        p.life -= 0.012;
+        if (p.life <= 0) continue;
+        ccCtx.globalAlpha = p.life;
+        ccCtx.fillStyle = p.color;
+        ccCtx.shadowColor = p.color;
+        ccCtx.shadowBlur = 8;
+        ccCtx.beginPath();
+        ccCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ccCtx.fill();
+    }
+    ccCtx.restore();
+    cakeExplosionParts = cakeExplosionParts.filter(function(p) { return p.life > 0; });
+    if (cakeExplosionParts.length > 0) {
+        cakeExplosionId = requestAnimationFrame(stepCakeExplosion);
+    } else {
+        cakeExplosionId = null;
+    }
+}
+
+// ===== 礼盒打开 =====
+var giftOpened = false;
+function openGiftBox() {
+    if (giftOpened) return;
+    giftOpened = true;
+    var box = document.getElementById('bdGiftBox');
+    box.classList.add('open');
+    var tip = box.previousElementSibling;
+    if (tip) tip.style.display = 'none';
+    startConfetti(3000);
+    explodeCake();
+    try {
+        var gctx2 = new (window.AudioContext || window.webkitAudioContext)();
+        var go = gctx2.createOscillator();
+        var gg = gctx2.createGain();
+        go.type = 'sine';
+        go.frequency.setValueAtTime(600, gctx2.currentTime);
+        go.frequency.exponentialRampToValueAtTime(1200, gctx2.currentTime + 0.15);
+        gg.gain.setValueAtTime(0.12, gctx2.currentTime);
+        gg.gain.exponentialRampToValueAtTime(0.001, gctx2.currentTime + 0.3);
+        go.connect(gg); gg.connect(gctx2.destination);
+        go.start(); go.stop(gctx2.currentTime + 0.3);
+    } catch(e) {}
+}
+
+// ===== 贺卡翻转 =====
+var cardFlipped = false;
+function flipCard() {
+    cardFlipped = !cardFlipped;
+    var inner = document.getElementById('bdCardInner');
+    if (cardFlipped) {
+        inner.classList.add('flipped');
+    } else {
+        inner.classList.remove('flipped');
+    }
+}
+
+// ===== 完整入场序列 =====
+function launchCelebrationSequence() {
+    var mask = document.getElementById('bdMaskOverlay');
+    mask.classList.add('reveal');
+    setTimeout(function() { mask.classList.remove('reveal'); mask.classList.add('hide'); }, 600);
+    setTimeout(function() { fadeInWords(); }, 800);
+    setTimeout(function() { startHearts(); }, 1200);
+    setTimeout(function() { startConfetti(10000); }, 1500);
+    setTimeout(function() { spawnBalloons(); }, 2000);
+    setTimeout(function() { scatterTextParticles(); }, 2600);
+}
+
+// ===== 逐词渐入 =====
+function fadeInWords() {
+    var wrap = document.getElementById('bdWordFadeWrap');
+    wrap.innerHTML = '';
+    var words = ['生', '日', '快', '乐', '！'];
+    for (var i = 0; i < words.length; i++) {
+        var span = document.createElement('span');
+        span.className = 'bd-fade-word';
+        span.textContent = words[i];
+        span.style.animationDelay = (i * 0.15) + 's';
+        span.style.fontSize = '32px';
+        span.style.fontWeight = 'bold';
+        span.style.color = '#ffd700';
+        span.style.textShadow = '0 0 15px #ffd700';
+        wrap.appendChild(span);
+    }
+}
+
+// ===== 文字粒子散开 =====
+function scatterTextParticles() {
+    var chars = ['生', '日', '快', '乐'];
+    var cx = window.innerWidth / 2;
+    var cy = 80;
+    for (var i = 0; i < chars.length; i++) {
+        var el = document.createElement('div');
+        el.className = 'bd-text-particle';
+        el.textContent = chars[i];
+        el.style.left = (cx - 50 + i * 30) + 'px';
+        el.style.top = cy + 'px';
+        var tx = (Math.random() - 0.5) * 400;
+        var ty = -100 - Math.random() * 300;
+        var tx2 = tx * 2.5;
+        var ty2 = ty * 2;
+        var tr = (Math.random() - 0.5) * 720;
+        var tr2 = tr * 2;
+        el.style.setProperty('--tx', tx + 'px');
+        el.style.setProperty('--ty', ty + 'px');
+        el.style.setProperty('--tx2', tx2 + 'px');
+        el.style.setProperty('--ty2', ty2 + 'px');
+        el.style.setProperty('--tr', tr + 'deg');
+        el.style.setProperty('--tr2', tr2 + 'deg');
+        document.body.appendChild(el);
+        setTimeout(function() { if (el.parentNode) el.remove(); }, 2200);
+    }
 }
 
 // ===== 生日当天专属庆祝：整屏大单烟花 + 蛋糕吹蜡烛 + 语音 =====
@@ -724,6 +1003,8 @@ function showBirthdayDayCelebration(bd) {
 
 function closeBirthdayDay() {
     document.getElementById('birthdayDayOverlay').classList.remove('show');
+    stopConfetti();
+    stopHearts();
     // 关闭后继续放3轮大烟花
     createBigFirework();
     setTimeout(function() { createBigFirework(); }, 800);
@@ -1117,12 +1398,36 @@ window.addEventListener('load', () => {
 
 <!-- 生日当天专属庆祝：大蛋糕 + 大单烟花 + 吹蜡烛 -->
 <div class="bd-day-overlay" id="birthdayDayOverlay">
+    <div class="bd-mask-overlay reveal" id="bdMaskOverlay"></div>
+    <div class="bd-parallax-bg"></div>
     <button class="bd-day-close" onclick="closeBirthdayDay()">✕</button>
     <div class="bd-corner-emoji top-left">🎉</div>
     <div class="bd-corner-emoji top-right">🎊</div>
     <div class="bd-corner-emoji bottom-left">🥳</div>
     <div class="bd-corner-emoji bottom-right">🎈</div>
-    <div class="bd-day-cake-wrap">
+    <!-- 礼盒 -->
+    <div class="bd-gift-tip">🖱️ 点我拆礼物</div>
+    <div class="bd-gift-box" id="bdGiftBox" onclick="openGiftBox()">
+        <div class="box-lid"></div>
+        <div class="box-ribbon-v"></div>
+        <div class="box-ribbon-h"></div>
+        <div class="box-body"></div>
+    </div>
+    <!-- 贺卡翻转 -->
+    <div class="bd-card-scene" id="bdCardScene">
+        <div class="bd-card-inner" id="bdCardInner" onclick="flipCard()">
+            <div class="bd-card-face card-front">
+                <h3>🎂 生日贺卡</h3>
+                <p>点击翻开 →</p>
+            </div>
+            <div class="bd-card-face card-back">
+                <p>兄弟，又老一岁了。<br>别慌，男人四十一枝花，<br>你这是含苞待放！<br>钱够花就行，<br>觉够睡就好，<br>身体是革命的本钱。<br>生日快乐，干杯🍻</p>
+                <span class="card-sign">— 鱼果商城 敬上</span>
+            </div>
+        </div>
+    </div>
+    <div class="bd-word-fade-wrap" id="bdWordFadeWrap"></div>
+    <div class="bd-day-cake-wrap" onclick="explodeCake(event)" style="cursor:pointer">
         <div class="bd-day-cake-body">
             <div class="bd-day-candles">
                 <div class="bd-day-candle"><div class="bd-day-flame"></div></div>
