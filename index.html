@@ -243,7 +243,7 @@ function renderBirthdayProduct() {
             <h3 class="text-xl font-bold mb-2 text-gold">🎂 生日祝福礼包</h3>
             <p class="text-red-400 text-2xl font-bold mb-4">-¥6.66</p>
             <p class="text-gray-400 text-sm text-center mb-6">中年男人的生日祝福<br>商家倒贴，仅限今日！</p>
-            <button onclick="addToCart({name:'🎂生日祝福礼包',price:'-¥6.66'})" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2">加入购物车</button>
+            <button onclick="addToCart({name:'🎂生日祝福礼包',price:'-¥6.66'}, this)" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2 disabled:opacity-60">加入购物车</button>
             <button onclick="showBirthdayDetail()" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看祝福详情</button>
         </div>`;
     }
@@ -444,18 +444,46 @@ async function loadCartCount() {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
             headers: { "Authorization": `token ${GITHUB_CONFIG.token}` }
         });
+        if (!res.ok) throw new Error(res.status);
         const list = await res.json();
-        const cnt = list.filter(i=>i.body?.includes(currentUser.phone)).length;
-        document.getElementById('cartCount').innerText = cnt;
+        // 只统计未删除的
+        const cnt = list.filter(i => i.state === 'open' && i.body?.includes(currentUser.phone)).length;
+        const el = document.getElementById('cartCount');
+        if (el) {
+            el.innerText = cnt;
+            el.style.display = cnt > 0 ? 'flex' : 'none';
+        }
     }catch(e){}
 }
 
+// 轻提示
+function cartToast(text, isError) {
+    let t = document.getElementById('cartToast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'cartToast';
+        t.className = 'fixed top-24 left-1/2 -translate-x-1/2 z-[999] px-5 py-3 rounded-lg text-sm font-medium shadow-lg';
+        t.style.transition = 'opacity .3s';
+        document.body.appendChild(t);
+    }
+    t.style.background = isError ? '#ef4444' : '#FFD700';
+    t.style.color = isError ? '#fff' : '#000';
+    t.innerText = text;
+    t.style.opacity = '1';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+}
+
 // 加入购物车（实时刷新）
-async function addToCart(product) {
-    if(!currentUser) { alert("请先登录"); return; }
+async function addToCart(product, btn) {
+    if(!currentUser) {
+        if (confirm('加入购物车需要先登录，是否前往登录页？')) location.href = 'login.html';
+        return;
+    }
+    if (btn) { btn.disabled = true; btn.dataset.old = btn.innerText; btn.innerText = '加入中...'; }
     try {
         const body = `用户：${currentUser.phone}\n商品：${product.name}\n单价：${product.price}\n数量：1\n状态：购物车`;
-        await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`, {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`, {
             method: 'POST',
             headers: {
                 "Authorization": `token ${GITHUB_CONFIG.token}`,
@@ -467,10 +495,17 @@ async function addToCart(product) {
                 labels: ["cart"]
             })
         });
-        alert("已加入购物车");
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        cartToast('✓ 已加入购物车');
+        // 按钮即时反馈
+        if (btn) {
+            btn.innerText = '✓ 已加入';
+            setTimeout(() => { btn.disabled = false; btn.innerText = btn.dataset.old || '加入购物车'; }, 1500);
+        }
         loadCartCount();
     }catch(e){
-        alert("加入失败");
+        cartToast('加入失败，请重试', true);
+        if (btn) { btn.disabled = false; btn.innerText = btn.dataset.old || '加入购物车'; }
     }
 }
 
@@ -696,7 +731,7 @@ window.addEventListener('load', () => {
         <h3 class="text-xl font-bold mb-2 text-white">3D打印蛋仔（黑金版）</h3>
         <p class="text-gold text-2xl font-bold mb-4">¥3.00</p>
         <p class="text-gray-400 text-sm text-center mb-6">环保PLA材质<br>高精度打印+手工打磨</p>
-        <button onclick="addToCart({name:'3D打印蛋仔（黑金版）',price:'¥3.00'})" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2">加入购物车</button>
+        <button onclick="addToCart({name:'3D打印蛋仔（黑金版）',price:'¥3.00'}, this)" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2 disabled:opacity-60">加入购物车</button>
         <a href="danzai.html" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看详情</a>
       </div>
       <div id="birthdayProductSlot">
@@ -773,7 +808,10 @@ window.addEventListener('load', () => {
 <div class="chat-window" id="chatWindow">
   <div class="chat-header">
     <h3>💬 玉国科技在线客服</h3>
-    <button onclick="toggleChat()">✕</button>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <a href="service.html" style="color:#FFD700;font-size:12px;text-decoration:none;">客服中心 →</a>
+      <button onclick="toggleChat()">✕</button>
+    </div>
   </div>
   <div class="chat-body" id="chatMsgArea">
     <div class="msg service">您好！我是玉国科技客服，有什么可以帮您的？<div class="time">刚刚</div></div>
@@ -785,44 +823,113 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
+<script src="chat.js"></script>
 <script>
+// ===== 首页悬浮客服：与 service.html、后台共用同一套真实会话 =====
+var chatConv = null, chatRendered = 0, chatPoll = null, chatSending = false, chatInited = false;
+
 function toggleChat() {
   var win = document.getElementById('chatWindow');
   win.classList.toggle('open');
-  if (win.classList.contains('open')) {
-    document.getElementById('chatInput').focus();
-  }
+  if (win.classList.contains('open')) { initWidgetChat(); document.getElementById('chatInput').focus(); }
+  else stopChatPoll();
 }
 function nowTime() {
   return new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
 }
-function addChatMsg(text, isUser) {
+function addChatText(text, isUser, time) {
   var area = document.getElementById('chatMsgArea');
   var div = document.createElement('div');
   div.className = 'msg ' + (isUser ? 'user' : 'service');
-  div.innerHTML = text + '<div class="time">' + nowTime() + '</div>';
+  div.textContent = text;
+  var t = document.createElement('div');
+  t.className = 'time';
+  t.textContent = time || nowTime();
+  div.appendChild(t);
   area.appendChild(div);
   area.scrollTop = area.scrollHeight;
 }
-function sendChatMsg() {
+// 仅用于展示订单卡片等富文本
+function addChatMsg(html, isUser) {
+  var area = document.getElementById('chatMsgArea');
+  var div = document.createElement('div');
+  div.className = 'msg ' + (isUser ? 'user' : 'service');
+  div.innerHTML = html + '<div class="time">' + nowTime() + '</div>';
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+async function syncWidgetMsgs() {
+  var msgs = await YuguoChat.listMessages(chatConv.number);
+  var area = document.getElementById('chatMsgArea');
+  if (chatRendered === 0 && msgs.length) area.innerHTML = '';
+  msgs.slice(chatRendered).forEach(function(m) {
+    var at = new Date(m.at).toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'});
+    addChatText(m.text, m.role === '顾客', m.time || at);
+  });
+  chatRendered = msgs.length;
+  return msgs.length;
+}
+async function initWidgetChat() {
+  var area = document.getElementById('chatMsgArea');
+  var input = document.getElementById('chatInput');
+  if (!currentUser) {
+    area.innerHTML = '<div class="msg service">登录后即可与玉国科技客服实时对话' +
+      '<div class="time"><a href="login.html" style="color:#FFD700;">去登录</a> · <a href="register.html" style="color:#FFD700;">注册</a></div></div>';
+    input.disabled = true;
+    input.placeholder = '请先登录';
+    return;
+  }
+  if (chatInited) { startChatPoll(); return; }
+  input.disabled = true;
+  try {
+    chatConv = await YuguoChat.ensureConversation(currentUser.phone);
+    var n = await syncWidgetMsgs();
+    if (!n) { area.innerHTML = ''; addChatText('您好！我是玉国科技客服，有什么可以帮您的？', false); }
+    chatInited = true;
+    input.disabled = false;
+    input.placeholder = '输入消息...';
+    startChatPoll();
+  } catch (e) {
+    area.innerHTML = '<div class="msg service">连接客服失败，请稍后重试</div>';
+    console.error(e);
+  }
+}
+async function sendChatMsg() {
   var input = document.getElementById('chatInput');
   var text = input.value.trim();
-  if (!text) return;
-  addChatMsg(text, true);
-  input.value = '';
-  setTimeout(function() {
-    addChatMsg('收到您的消息，客服会尽快回复您～如需查看订单请点击下方「我的订单」按钮', false);
-  }, 600);
+  if (!text || chatSending) return;
+  if (!currentUser) { addChatText('请先登录后咨询客服', false); return; }
+  chatSending = true; input.disabled = true;
+  try {
+    if (!chatConv) chatConv = await YuguoChat.ensureConversation(currentUser.phone);
+    await YuguoChat.postMessage(chatConv.number, '顾客', text);
+    input.value = '';
+    await syncWidgetMsgs();
+  } catch (e) {
+    addChatText('发送失败，请稍后重试', false);
+  } finally {
+    chatSending = false; input.disabled = false; input.focus();
+  }
 }
+function startChatPoll() {
+  stopChatPoll();
+  chatPoll = setInterval(function() {
+    if (document.hidden || !document.getElementById('chatWindow').classList.contains('open')) return;
+    if (chatConv) syncWidgetMsgs();
+  }, 5000);
+}
+function stopChatPoll() { if (chatPoll) clearInterval(chatPoll); chatPoll = null; }
+document.addEventListener('visibilitychange', function() { if (document.hidden) stopChatPoll(); else if (chatInited) startChatPoll(); });
+
 async function sendMyOrders() {
-  if (!currentUser) { addChatMsg('请先登录后再查看订单', false); return; }
+  if (!currentUser) { addChatText('请先登录后再查看订单', false); return; }
   try {
     var res = await fetch('https://api.github.com/repos/' + GITHUB_CONFIG.username + '/' + GITHUB_CONFIG.repo + '/issues?labels=payment-record&state=all&per_page=50', {
       headers: { Authorization: 'token ' + GITHUB_CONFIG.token }
     });
     var all = await res.json();
-    var myOrders = all.filter(function(i) { return i.body && i.body.indexOf(currentUser.phone) !== -1; });
-    if (myOrders.length === 0) { addChatMsg('您暂无订单记录', false); return; }
+    var myOrders = (Array.isArray(all) ? all : []).filter(function(i) { return i.body && i.body.indexOf(currentUser.phone) !== -1; });
+    if (myOrders.length === 0) { addChatText('您暂无订单记录', false); return; }
     var html = '<b>📋 您的订单：</b>';
     myOrders.slice(0, 5).forEach(function(o) {
       var no = (o.body.match(/订单号：(.+)/) || [''])[1] || '未知';
@@ -830,12 +937,12 @@ async function sendMyOrders() {
       var progress = (o.body.match(/物流进度：(\d+)/) || ['', '0'])[1];
       var statusMap = ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'];
       var status = statusMap[+progress] || '处理中';
-      html += '<div class="order-card-inline"><p class="oc-no">' + no + '</p><p>' + product.trim() + '</p><p>状态：' + status + '</p></div>';
+      html += '<div class="order-card-inline"><p class="oc-no">' + YuguoChat.esc(no) + '</p><p>' + YuguoChat.esc(product.trim()) + '</p><p>状态：' + status + '</p></div>';
     });
     if (myOrders.length > 5) html += '<p style="font-size:11px;color:#888;">...仅显示最近5条，更多请查看<a href="pay-record.html" style="color:#FFD700;">购买记录</a></p>';
     addChatMsg(html, false);
   } catch(e) {
-    addChatMsg('获取订单失败，请稍后重试', false);
+    addChatText('获取订单失败，请稍后重试', false);
   }
 }
 </script>

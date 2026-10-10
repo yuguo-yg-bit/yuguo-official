@@ -315,20 +315,69 @@
 </div>
 
 <!-- 客服管理面板 -->
+<style>
+    .adm-conv-item { cursor: pointer; transition: all .15s ease; border-left: 3px solid transparent; }
+    .adm-conv-item:hover { background: var(--bg-body); }
+    .adm-conv-item.active { background: rgba(22,93,255,.08); border-left-color: #165DFF; }
+    .adm-msg { max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
+    .adm-msg.customer { align-self: flex-start; background: var(--bg-body); border: 1px solid var(--border-color); border-bottom-left-radius: 4px; }
+    .adm-msg.admin { align-self: flex-end; background: #165DFF; color: #fff; border-bottom-right-radius: 4px; }
+    .adm-msg .adm-time { font-size: 10px; opacity: .65; margin-top: 3px; text-align: right; }
+    .adm-unread { background: #F53F3F; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 10px; }
+</style>
 <div id="panel_service" class="hidden">
-    <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)] mb-4">
-        <div class="flex flex-wrap gap-3 items-center">
-            <input id="serviceSearchPhone" type="text" placeholder="输入用户手机号查询" class="w-full md:w-64 px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
-            <button onclick="searchServiceUser()" class="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary/90">
-                <i class="bi bi-search mr-1"></i> 查询
-            </button>
-            <span class="text-xs text-[var(--text-secondary)]">输入手机号查询该用户所有订单和购物车记录</span>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        <!-- 左：会话列表 -->
+        <div class="lg:col-span-1">
+            <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)] mb-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold"><i class="bi bi-chat-dots mr-1"></i>客户会话</h3>
+                    <button onclick="loadServiceConversations()" class="bg-primary text-white px-3 py-1 rounded text-sm hover:bg-primary/90">
+                        <i class="bi bi-arrow-clockwise mr-1"></i>刷新
+                    </button>
+                </div>
+                <div id="convList" class="space-y-2 max-h-[52vh] overflow-y-auto">
+                    <div class="text-center text-[var(--text-secondary)] py-6"><div class="loading-spinner mx-auto"></div><p class="mt-2 text-sm">加载会话中...</p></div>
+                </div>
+            </div>
+
+            <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)]">
+                <h3 class="font-bold mb-3"><i class="bi bi-search mr-1"></i>按手机号查询</h3>
+                <div class="flex gap-2 mb-3">
+                    <input id="serviceSearchPhone" type="text" placeholder="输入用户手机号查询" class="flex-1 px-3 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary text-sm">
+                    <button onclick="searchServiceUser()" class="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary/90">查询</button>
+                </div>
+                <div id="serviceResult" class="text-xs text-[var(--text-secondary)]">可查看该用户的订单和购物车记录，便于客服跟进</div>
+            </div>
         </div>
-    </div>
-    <div id="serviceResult" class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-[var(--text-secondary)] border border-[var(--border-color)]">
-        <i class="bi bi-headset text-4xl mb-3 block opacity-30"></i>
-        <p>请输入用户手机号进行查询</p>
-        <p class="text-xs mt-1">可查看该用户的所有订单状态、购物车活动，便于客服跟进</p>
+
+        <!-- 右：对话窗口 -->
+        <div class="lg:col-span-2">
+            <div class="bg-[var(--bg-panel)] rounded-xl shadow-sm border border-[var(--border-color)] flex flex-col" style="height:74vh;">
+                <div class="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
+                    <div>
+                        <p id="convTitle" class="font-bold">选择左侧会话开始回复</p>
+                        <p id="convSub" class="text-xs text-[var(--text-secondary)]"></p>
+                    </div>
+                    <span id="convUnread" class="adm-unread hidden">未读</span>
+                </div>
+
+                <div id="convMsgs" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                    <div class="text-center text-[var(--text-secondary)] py-10 text-sm">
+                        <i class="bi bi-headset text-3xl mb-2 block opacity-30"></i>
+                        还没有打开任何会话
+                    </div>
+                </div>
+
+                <div class="p-3 border-t border-[var(--border-color)] flex gap-2">
+                    <input id="adminReply" type="text" placeholder="输入回复内容..." class="flex-1 px-4 py-2 rounded-lg border border-[var(--border-color)] bg-transparent outline-none focus:border-primary">
+                    <button id="adminSendBtn" onclick="sendAdminReply()" class="bg-primary text-white px-5 py-2 rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50" disabled>
+                        <i class="bi bi-send mr-1"></i>发送
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -428,6 +477,7 @@
     </div>
 </div>
 
+<script src="chat.js"></script>
 <script>
 // ================== 核心配置（完全保留你的原有配置） ==================
 const CONFIG = {
@@ -541,6 +591,8 @@ function switchTab(tab) {
     document.getElementById(`panel_${tab}`).classList.remove('hidden');
     if (tab === 'order') loadOrders();
     if (tab === 'user') loadUsers();
+    if (tab === 'service') { loadServiceConversations(); startServicePolling(); }
+    else stopServicePolling();
 }
 
 // ================== 视图切换 ==================
@@ -1156,7 +1208,9 @@ async function loadUsers() {
         const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.userLabel}&state=all&per_page=100`, {
             headers: { Authorization: `token ${CONFIG.token}` }
         });
-        allUsers = await res.json();
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        allUsers = Array.isArray(data) ? data : [];
         renderUsers(allUsers);
         updateUserStats(allUsers);
     } catch (e) {
@@ -1172,12 +1226,16 @@ function updateUserStats(users) {
     document.getElementById('todayUser').innerText = today;
 }
 
-function parseUserBody(body) {
+function parseUserBody(body, title) {
+    body = body || '';
+    // 兼容注册页写入的 `- 手机号：xxx` 与旧数据的 `• 手机号：xxx`，中英文冒号均可
+    const pick = (key) => body.match(new RegExp(`[-•*]\\s*${key}\\s*[：:]\\s*([^\\s]+)`))?.[1]
+                       || body.match(new RegExp(`${key}\\s*[：:]\\s*([^\\s]+)`))?.[1] || '';
     return {
-        phone: body.match(/•\s*手机号：(\S+)/)?.[1] || '',
-        pwdHash: body.match(/•\s*密码哈希值：(\S+)/)?.[1] || '',
-        regTime: body.match(/•\s*注册时间：(.+)/)?.[1] || '',
-        status: body.match(/•\s*账号状态：(\S+)/)?.[1] || '正常'
+        phone: pick('手机号') || (title?.match(/(\d{11})/) || [])[1] || title || '',
+        pwdHash: pick('密码哈希值') || pick('密码哈希'),
+        regTime: body.match(/注册时间\s*[：:]\s*(.+)/)?.[1]?.trim() || '',
+        status: pick('账号状态') || '正常'
     };
 }
 
@@ -1196,7 +1254,7 @@ function renderUsers(users) {
 
     let html = '';
     users.forEach(u => {
-        const info = parseUserBody(u.body);
+        const info = parseUserBody(u.body, u.title);
         const days = Math.floor((new Date() - new Date(u.created_at)) / 86400000);
         html += `
 <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border">
@@ -1223,7 +1281,7 @@ function renderUsers(users) {
 function filterUsers() {
     const kw = document.getElementById('userSearch').value.trim();
     const filtered = allUsers.filter(u => {
-        const info = parseUserBody(u.body);
+        const info = parseUserBody(u.body, u.title);
         return !kw || info.phone.includes(kw);
     });
     renderUsers(filtered);
@@ -1302,7 +1360,7 @@ function exportUsers() {
     if (allUsers.length === 0) return showToast('暂无用户', 'warning');
     let content = '手机号,密码哈希,注册时间,状态\n';
     allUsers.forEach(u => {
-        const info = parseUserBody(u.body);
+        const info = parseUserBody(u.body, u.title);
         content += `${info.phone},${info.pwdHash},${info.regTime},${info.status}\n`;
     });
     downloadFile(content, `用户列表_${new Date().toLocaleDateString()}.csv`);
@@ -1375,6 +1433,130 @@ async function searchServiceUser() {
 
 document.getElementById('serviceSearchPhone').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') searchServiceUser();
+});
+
+// 用户搜索与排序
+document.getElementById('userSearch').addEventListener('input', filterUsers);
+document.getElementById('userSort').addEventListener('change', filterUsers);
+
+// ================== 客服会话（与顾客端共用 chat.js 协议） ==================
+let serviceConvs = [];
+let activeConv = null;      // { number, phone }
+let convRendered = 0;       // 当前窗口已渲染的消息条数
+let servicePoll = null;
+let servicePollTick = 0;
+
+function convPreview(c) {
+    if (!c.last) return '暂无消息';
+    const who = c.last.role === '顾客' ? '顾客：' : '我：';
+    const one = String(c.last.text).replace(/\s+/g, ' ');
+    return who + (one.length > 26 ? one.slice(0, 26) + '…' : one);
+}
+
+async function loadServiceConversations() {
+    const listEl = document.getElementById('convList');
+    try {
+        serviceConvs = await YuguoChat.listConversations();
+        if (!serviceConvs.length) {
+            listEl.innerHTML = '<div class="text-center text-[var(--text-secondary)] py-6 text-sm">暂无客户会话<br><span class="text-xs">顾客在前台发起咨询后会出现在这里</span></div>';
+            return;
+        }
+        listEl.innerHTML = serviceConvs.map(c => `
+<div class="adm-conv-item p-3 rounded-lg border border-[var(--border-color)] ${activeConv && activeConv.number === c.number ? 'active' : ''}" onclick="openConversation(${c.number})">
+    <div class="flex justify-between items-center gap-2">
+        <p class="font-bold text-sm">${YuguoChat.esc(c.phone)}</p>
+        ${c.unread ? '<span class="adm-unread">待回复</span>' : ''}
+    </div>
+    <p class="text-xs text-[var(--text-secondary)] mt-1">${YuguoChat.esc(convPreview(c))}</p>
+    <p class="text-[10px] text-[var(--text-secondary)] mt-1">${c.last ? formatDate(c.last.at) : formatDate(c.created_at)}</p>
+</div>`).join('');
+        if (activeConv) syncActiveConv();
+    } catch (e) {
+        console.error(e);
+        listEl.innerHTML = '<div class="text-center text-danger py-6 text-sm">会话加载失败，请刷新</div>';
+    }
+}
+
+function openConversation(number) {
+    const conv = serviceConvs.find(c => c.number === number);
+    if (!conv) return;
+    activeConv = conv;
+    convRendered = 0;
+    document.getElementById('convTitle').textContent = '会话 · ' + conv.phone;
+    document.getElementById('convSub').textContent = '创建于 ' + formatDate(conv.created_at);
+    document.getElementById('convUnread').classList.toggle('hidden', !conv.unread);
+    document.getElementById('adminSendBtn').disabled = false;
+    document.getElementById('adminReply').disabled = false;
+    document.getElementById('adminReply').placeholder = `回复 ${conv.phone}...`;
+    document.getElementById('convMsgs').innerHTML = '<div class="text-center text-[var(--text-secondary)] py-6 text-sm"><div class="loading-spinner mx-auto"></div></div>';
+    loadServiceConversations();
+}
+
+function renderConvBubble(m) {
+    const box = document.getElementById('convMsgs');
+    const isAdmin = m.role !== '顾客';
+    const div = document.createElement('div');
+    div.className = 'adm-msg ' + (isAdmin ? 'admin' : 'customer');
+    div.textContent = m.text;
+    const t = document.createElement('div');
+    t.className = 'adm-time';
+    t.textContent = m.time || new Date(m.at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    div.appendChild(t);
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+async function syncActiveConv() {
+    if (!activeConv) return;
+    const msgs = await YuguoChat.listMessages(activeConv.number);
+    const box = document.getElementById('convMsgs');
+    if (convRendered === 0) {
+        box.innerHTML = '';
+        if (!msgs.length) box.innerHTML = '<div class="text-center text-[var(--text-secondary)] py-6 text-sm">该会话暂无消息</div>';
+    }
+    msgs.slice(convRendered).forEach(renderConvBubble);
+    convRendered = msgs.length;
+}
+
+async function sendAdminReply() {
+    const input = document.getElementById('adminReply');
+    const text = input.value.trim();
+    if (!text || !activeConv) return;
+    const btn = document.getElementById('adminSendBtn');
+    btn.disabled = true;
+    try {
+        await YuguoChat.postMessage(activeConv.number, '客服', text);
+        input.value = '';
+        if (convRendered === 0) document.getElementById('convMsgs').innerHTML = '';
+        renderConvBubble({ role: '客服', time: YuguoChat.stamp(), text, at: new Date().toISOString() });
+        convRendered++;
+        activeConv.unread = false;
+        document.getElementById('convUnread').classList.add('hidden');
+        loadServiceConversations();
+    } catch (e) {
+        showToast('回复失败，请重试', 'error');
+    } finally {
+        btn.disabled = false;
+        input.focus();
+    }
+}
+
+function startServicePolling() {
+    stopServicePolling();
+    servicePoll = setInterval(() => {
+        if (document.hidden) return;
+        servicePollTick++;
+        if (activeConv) syncActiveConv();                       // 每 5 秒拉当前会话
+        if (servicePollTick % 4 === 0) loadServiceConversations(); // 每 20 秒刷列表（新会话/未读）
+    }, 5000);
+}
+function stopServicePolling() { if (servicePoll) clearInterval(servicePoll); servicePoll = null; }
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopServicePolling();
+    else if (currentTab === 'service') startServicePolling();
+});
+document.getElementById('adminReply').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendAdminReply();
 });
 
 // 初始化

@@ -12,7 +12,7 @@
         .chat-header h2 { color: #ffd700; font-size: 18px; font-weight: 600; }
         .chat-header a { color: #ffd700; text-decoration: none; font-size: 16px; }
         .chat-body { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.5; word-break: break-word; }
+        .msg { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
         .msg.service { align-self: flex-start; background: #1a1a1a; color: #eee; border-bottom-left-radius: 4px; }
         .msg.user { align-self: flex-end; background: #222; color: #fff; border-bottom-right-radius: 4px; border: 1px solid #333; }
         .msg .time { font-size: 11px; color: #888; margin-top: 4px; text-align: right; }
@@ -23,10 +23,13 @@
         .chat-footer input { flex: 1; padding: 12px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 24px; color: #fff; outline: none; }
         .chat-footer input:focus { border-color: #ffd700; }
         .chat-footer .send-btn { padding: 0 20px; height: 42px; background: #ffd700; color: #000; font-weight: bold; border: none; border-radius: 24px; cursor: pointer; }
+        .chat-footer .send-btn:disabled { opacity: .5; cursor: not-allowed; }
         .chat-footer .order-btn { padding: 10px 14px; background: #1a1a1a; color: #ffd700; border: 1px solid #ffd700; border-radius: 8px; white-space: nowrap; cursor: pointer; font-size: 13px; }
         .no-login { text-align: center; padding: 60px 20px; }
         .no-login h3 { color: #ffd700; font-size: 24px; margin-bottom: 12px; }
         .no-login a { color: #ffd700; }
+        .loading-tip { align-self: center; color: #666; font-size: 13px; margin-top: 8px; }
+        .sys-tip { align-self: center; background: #161616; border: 1px dashed #333; color: #999; font-size: 12px; padding: 6px 14px; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -34,96 +37,157 @@
 <div class="chat-header">
     <a href="index.html"><i class="fa-solid fa-arrow-left"></i> 返回</a>
     <h2><i class="fa-solid fa-headset"></i> 客服中心</h2>
-    <div></div>
+    <div id="loginState" class="text-xs" style="color:#888;"></div>
 </div>
 
 <div class="chat-body" id="chatBox">
-    <div class="msg service">您好！我是玉国科技客服，有什么可以帮您的？<div class="time">刚刚</div></div>
+    <div class="loading-tip">正在连接客服...</div>
 </div>
 
-<div class="chat-footer">
+<div class="chat-footer" id="chatFooter" style="display:none;">
     <button class="order-btn" id="sendOrder"><i class="fa-solid fa-receipt"></i> 我的订单</button>
     <input type="text" id="msgInput" placeholder="输入消息...">
     <button class="send-btn" id="sendBtn"><i class="fa-solid fa-paper-plane"></i> 发送</button>
 </div>
 
+<div class="chat-footer" id="loginFooter" style="display:none; justify-content:center; gap:12px;">
+    <a href="login.html" class="send-btn" style="text-decoration:none; display:flex; align-items:center;">登录后咨询客服</a>
+    <a href="register.html" class="order-btn" style="text-decoration:none; display:flex; align-items:center;">注册账号</a>
+</div>
+
+<script src="chat.js"></script>
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
-};
+// 接口配置统一由 chat.js 提供，此处不再重复硬编码
+const API = YuguoChat.API;
+const HEADERS = YuguoChat.HEADERS;
+
 const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
 const chatBox = document.getElementById('chatBox');
 const msgInput = document.getElementById('msgInput');
 const sendBtn = document.getElementById('sendBtn');
-const sendOrderBtn = document.getElementById('sendOrder');
 
-function nowTime() { return new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}); }
+let conv = null;        // 会话 issue
+let rendered = 0;       // 已渲染到第几条（按位置计）
+let pollTimer = null;
+let sending = false;
 
-function addMessage(text, isUser, isOrder) {
+const esc = YuguoChat.esc;
+
+function renderBubble(text, isUser, time) {
     const div = document.createElement('div');
     div.className = 'msg ' + (isUser ? 'user' : 'service');
-    if (isOrder) {
-        div.innerHTML = text + '<div class="time">' + nowTime() + '</div>';
-    } else {
-        div.innerHTML = text + '<div class="time">' + nowTime() + '</div>';
-    }
+    div.textContent = text;
+    const t = document.createElement('div');
+    t.className = 'time';
+    t.textContent = time || YuguoChat.stamp();
+    div.appendChild(t);
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-sendBtn.addEventListener('click', () => {
+function renderTip(text) {
+    const div = document.createElement('div');
+    div.className = 'sys-tip';
+    div.textContent = text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 增量渲染：只画新消息
+async function syncMessages() {
+    if (!conv) return;
+    const msgs = await YuguoChat.listMessages(conv.number);
+    if (rendered === 0 && msgs.length) chatBox.innerHTML = '';   // 首次载入历史
+    msgs.slice(rendered).forEach(m => {
+        const at = new Date(m.at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        renderBubble(m.text, m.role === '顾客', m.time || at);
+    });
+    rendered = msgs.length;
+    return msgs.length;
+}
+
+async function sendMessage() {
     const text = msgInput.value.trim();
-    if (!text) return;
-    addMessage(text, true);
-    msgInput.value = '';
-    setTimeout(() => {
-        addMessage('收到您的消息，客服会尽快回复您～如需查看订单请点击下方「我的订单」按钮', false);
-    }, 600);
-});
-
-msgInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') sendBtn.click();
-});
-
-sendOrderBtn.addEventListener('click', async () => {
-    if (!currentUser) {
-        addMessage('请先<a href="login.html" style="color:#ffd700;">登录</a>后再查看订单', false);
-        return;
-    }
+    if (!text || sending || !conv) return;
+    sending = true; sendBtn.disabled = true;
     try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=payment-record&state=all&per_page=50`, {
-            headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
-        });
+        await YuguoChat.postMessage(conv.number, '顾客', text);
+        msgInput.value = '';
+        await syncMessages();
+        msgInput.focus();
+    } catch (e) {
+        renderTip('发送失败，请稍后重试');
+    } finally {
+        sending = false; sendBtn.disabled = false;
+    }
+}
+
+function startPolling() {
+    stopPolling();
+    pollTimer = setInterval(() => { if (!document.hidden) syncMessages(); }, 5000);
+}
+function stopPolling() { clearInterval(pollTimer); pollTimer = null; }
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopPolling();
+    else { syncMessages(); startPolling(); }
+});
+
+document.getElementById('sendOrder').addEventListener('click', async () => {
+    try {
+        const res = await fetch(`${API}/issues?labels=payment-record&state=all&per_page=50`, { headers: HEADERS });
         const all = await res.json();
-        const myOrders = all.filter(i => i.body?.includes(currentUser.phone));
-        if (myOrders.length === 0) {
-            addMessage('您暂无订单记录', false);
-            return;
-        }
+        const mine = (Array.isArray(all) ? all : []).filter(i => i.body?.includes(currentUser.phone));
+        if (!mine.length) { renderTip('您暂无订单记录'); return; }
         let html = '<b>📋 您的订单：</b>';
-        myOrders.slice(0, 10).forEach(o => {
+        mine.slice(0, 10).forEach(o => {
             const no = (o.body.match(/订单号：(.+)/) || [''])[1] || '未知';
             const product = (o.body.match(/商品[名称]?[：:](.+)/) || ['', '未知'])[1];
             const progress = (o.body.match(/物流进度：(\d+)/) || ['', '0'])[1];
-            const statusMap = ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'];
-            const status = statusMap[+progress] || '处理中';
-            html += '<div class="order-inline"><p class="on">' + no + '</p><p>' + product.trim() + '</p><p>状态：' + status + '</p></div>';
+            const status = ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'][+progress] || '处理中';
+            html += '<div class="order-inline"><p class="on">' + esc(no) + '</p><p>' + esc(product.trim()) + '</p><p>状态：' + status + '</p></div>';
         });
-        if (myOrders.length > 10) html += '<p style="font-size:13px;color:#888;">...仅显示最近10条</p>';
-        addMessage(html, true, true);
-    } catch(e) {
-        addMessage('获取订单失败，请稍后重试', false);
+        if (mine.length > 10) html += '<p style="font-size:13px;color:#888;">...仅显示最近10条</p>';
+        const div = document.createElement('div');
+        div.className = 'msg user';
+        div.innerHTML = html + '<div class="time">' + YuguoChat.stamp() + '</div>';
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (e) {
+        renderTip('获取订单失败，请稍后重试');
     }
 });
 
-if (!currentUser) {
-    setTimeout(() => {
-        addMessage('⚠️ 您尚未登录，部分功能不可用。<br>请先<a href="login.html" style="color:#ffd700;">登录</a>或<a href="register.html" style="color:#ffd700;">注册</a>', false);
-    }, 500);
-}
+sendBtn.addEventListener('click', sendMessage);
+msgInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+window.addEventListener('load', async () => {
+    if (!currentUser) {
+        chatBox.innerHTML = `
+            <div class="no-login">
+                <h3>⚠️ 您尚未登录</h3>
+                <p style="color:#aaa; margin-bottom:16px;">登录后即可与玉国科技客服实时对话</p>
+                <a href="login.html">去登录 →</a>
+            </div>`;
+        document.getElementById('loginFooter').style.display = 'flex';
+        return;
+    }
+    document.getElementById('loginState').textContent = currentUser.phone;
+    document.getElementById('chatFooter').style.display = 'flex';
+    try {
+        conv = await YuguoChat.ensureConversation(currentUser.phone);
+        const count = await syncMessages();
+        if (!count) {
+            chatBox.innerHTML = '';
+            renderBubble('您好！我是玉国科技客服，有什么可以帮您的？', false);
+            renderTip('客服会实时收到您的消息，请稍候回复');
+        }
+        startPolling();
+    } catch (e) {
+        console.error(e);
+        chatBox.innerHTML = '<div class="loading-tip" style="color:#ef4444;">连接客服失败，请刷新重试</div>';
+    }
+});
 </script>
 </body>
 </html>

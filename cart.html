@@ -95,7 +95,8 @@ async function loadCart() {
             headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
         });
         const all = await res.json();
-        cartList = all.filter(i => i.body?.includes(currentUser.phone));
+        // 只取未删除的（state=open），已关闭的视为已删除
+        cartList = all.filter(i => i.state === 'open' && i.body?.includes(currentUser.phone));
 
         if (cartList.length === 0) {
             listEl.classList.add("hidden");
@@ -124,7 +125,7 @@ async function loadCart() {
                         <div class="text-gold/80">${price}</div>
                     </div>
                 </div>
-                <button onclick="delCart(${item.number})" class="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                <button onclick="delCart(${item.number})" class="bg-red-500 hover:bg-red-600 transition-colors text-white px-3 py-1 rounded text-sm">
                     <i class="fa-solid fa-trash mr-1"></i>删除
                 </button>
             </div>`;
@@ -142,13 +143,43 @@ async function loadCart() {
 }
 
 async function delCart(id) {
-    if (!confirm("确定删除？")) return;
-    await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${id}`, {
-        method: "PATCH",
-        headers: { Authorization: `token ${GITHUB_CONFIG.token}` },
-        body: JSON.stringify({ state: "closed" })
-    });
+    if (!confirm("确定删除该商品？")) return;
+    const btn = event.currentTarget;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>删除中';
+    try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${id}`, {
+            method: "PATCH",
+            headers: { Authorization: `token ${GITHUB_CONFIG.token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ state: "closed" })
+        });
+        if (!res.ok) throw new Error("删除失败");
+        showToastMsg("已从购物车移除");
+    } catch (e) {
+        showToastMsg("删除失败，请重试", true);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-trash mr-1"></i>删除';
+        return;
+    }
     loadCart();
+    // 同步首页角标
+    if (window.opener && !window.opener.closed) window.opener.loadCartCount?.();
+}
+
+function showToastMsg(text, isError) {
+    let t = document.getElementById("cartToast");
+    if (!t) {
+        t = document.createElement("div");
+        t.id = "cartToast";
+        t.className = "fixed top-24 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-lg text-sm font-medium shadow-lg transition-all";
+        document.body.appendChild(t);
+    }
+    t.style.background = isError ? "#ef4444" : "#FFD700";
+    t.style.color = isError ? "#fff" : "#000";
+    t.innerText = text;
+    t.style.opacity = "1";
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.opacity = "0"; }, 2000);
 }
 
 function goToPay() {
@@ -207,8 +238,13 @@ async function confirmPay() {
 function autoRefreshCart() {
     loadCart();
     clearInterval(refreshTimer);
-    refreshTimer = setInterval(loadCart, 2000);
+    refreshTimer = setInterval(loadCart, 10000);
 }
+// 页面切回前台时立即刷新，切到后台暂停轮询（省 API 配额）
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) clearInterval(refreshTimer);
+    else { loadCart(); refreshTimer = setInterval(loadCart, 10000); }
+});
 </script>
 
 <!-- 顶部固定栏 -->
