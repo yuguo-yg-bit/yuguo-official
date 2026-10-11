@@ -997,6 +997,7 @@ document.addEventListener('click', function() {
 }, { once: false });
 
 function playBirthdayMelody() {
+    if (bdMelodyStarted) return;  // 防重复播放
     bdMelodyStarted = true;
     var btn = document.getElementById('bdMusicToggle');
     if (btn) { btn.textContent = '🔊'; btn.classList.remove('muted'); }
