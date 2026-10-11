@@ -1092,6 +1092,8 @@ function showBirthdayDayCelebration(bd) {
     createBigFirework();
     setTimeout(function() { createBigFirework(); }, 1500);
     setTimeout(function() { createBigFirework(); }, 3500);
+    // 大烟花放完后，循环播放 10 种专业烟花
+    setTimeout(function() { startFireworkSequence(); }, 5000);
 
     // 生日快乐背景音乐（Web Audio 旋律合成）
     playBirthdayMelody();
@@ -1130,10 +1132,11 @@ function closeBirthdayDay() {
     document.getElementById('birthdayDayOverlay').classList.remove('show');
     stopConfetti();
     stopHearts();
-    // 关闭后继续放3轮大烟花
+    stopFireworkSequence();
+    // 关闭后先来一轮大烟花 + 然后开始 10 种烟花循环
     createBigFirework();
     setTimeout(function() { createBigFirework(); }, 800);
-    setTimeout(function() { createBigFirework(); }, 1800);
+    setTimeout(function() { startFireworkSequence(); }, 2000);
 }
 
 function createBigFirework() {
@@ -1203,27 +1206,317 @@ function initStarfield() {
     })();
 }
 
-// ===== Canvas 烟花粒子（全局） =====
-var fireParticles = [], fireLoopRunning = false;
+// ===== 10种烟花样式 =====
+var fwTypeNames = ['peony','chrysanthemum','willow','palm','ring','dahlia','crossette','spider','spiral','brocade'];
+
+function launchFwFromType(type) {
+    var c = document.getElementById('fireworkCanvas');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    var cx = c.width / 2 + (Math.random() - 0.5) * c.width * 0.4;
+    var cy = c.height * 0.3 + Math.random() * c.height * 0.25;
+    var colors = ['#ff2d2d','#ffd700','#ff69b4','#00ff88','#00bfff','#ff00ff','#ff6600','#ffa500','#7fff00','#ff1493'];
+
+    switch(type) {
+        case 'peony':     launchPeony(cx, cy, colors); break;
+        case 'chrysanthemum': launchChrysanthemum(cx, cy, colors); break;
+        case 'willow':    launchWillow(cx, cy); break;
+        case 'palm':      launchPalm(cx, cy); break;
+        case 'ring':      launchRing(cx, cy, colors); break;
+        case 'dahlia':    launchDahlia(cx, cy, colors); break;
+        case 'crossette': launchCrossette(cx, cy, colors); break;
+        case 'spider':    launchSpider(cx, cy, colors); break;
+        case 'spiral':    launchSpiral(cx, cy, colors); break;
+        case 'brocade':   launchBrocade(cx, cy); break;
+    }
+    fireLoopOn();
+}
+
+// 1. Peony 牡丹 — 球形饱满，无拖尾，干净圆润
+function launchPeony(cx, cy, colors) {
+    var total = 150, burstRadius = 4 + Math.random() * 4;
+    for (var i = 0; i < total; i++) {
+        var phi = Math.acos(2 * Math.random() - 1);
+        var theta = Math.random() * Math.PI * 2;
+        var vel = burstRadius * (0.6 + Math.random() * 0.4);
+        fireParticles.push({
+            x: cx, y: cy,
+            vx: Math.sin(phi) * Math.cos(theta) * vel,
+            vy: Math.sin(phi) * Math.sin(theta) * vel,
+            life: 1, decay: 0.008 + Math.random() * 0.006,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            radius: 1.5 + Math.random() * 2,
+            grav: 0.02 + Math.random() * 0.03,
+            trail: false, tail: null
+        });
+    }
+}
+
+// 2. Chrysanthemum 菊花 — 经典放射+长拖尾
+function launchChrysanthemum(cx, cy, colors) {
+    var total = 120;
+    for (var i = 0; i < total; i++) {
+        var angle = (i / total) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+        var vel = 5 + Math.random() * 7;
+        var c = colors[i % colors.length];
+        fireParticles.push({
+            x: cx, y: cy,
+            vx: Math.cos(angle) * vel,
+            vy: Math.sin(angle) * vel,
+            life: 1, decay: 0.004 + Math.random() * 0.003,
+            color: c, radius: 1.5 + Math.random() * 2,
+            grav: 0.04 + Math.random() * 0.06,
+            trail: true, tailLen: 8 + Math.floor(Math.random() * 10),
+            tailColor: c
+        });
+    }
+}
+
+// 3. Willow 垂柳 — 金色慢落长尾巴
+function launchWillow(cx, cy) {
+    var total = 80;
+    for (var i = 0; i < total; i++) {
+        var angle = (Math.random() - 0.5) * 0.8 - Math.PI / 2;
+        var vel = 3 + Math.random() * 5;
+        fireParticles.push({
+            x: cx + (Math.random() - 0.5) * 20, y: cy,
+            vx: Math.cos(angle) * vel * 0.5,
+            vy: Math.sin(angle) * vel,
+            life: 1, decay: 0.002 + Math.random() * 0.002,
+            color: '#ffd700', radius: 1 + Math.random() * 1.5,
+            grav: 0.08 + Math.random() * 0.12,
+            trail: true, tailLen: 30 + Math.floor(Math.random() * 30),
+            tailColor: '#ffd700'
+        });
+    }
+}
+
+// 4. Palm 棕榈（椰树）— 火箭升空，炸开弧形下垂
+function launchPalm(cx, cy) {
+    var total = 60;
+    for (var i = 0; i < total; i++) {
+        var angle = -Math.PI / 2 + (i / (total - 1) - 0.5) * Math.PI * 0.6;
+        var vel = 6 + Math.random() * 4;
+        fireParticles.push({
+            x: cx, y: cy,
+            vx: Math.cos(angle) * vel,
+            vy: Math.sin(angle) * vel,
+            life: 1, decay: 0.003 + Math.random() * 0.002,
+            color: i % 2 === 0 ? '#ffd700' : '#ffa500',
+            radius: 1.5 + Math.random() * 2.5,
+            grav: 0.12 + Math.random() * 0.08,
+            trail: true, tailLen: 20 + Math.floor(Math.random() * 15),
+            tailColor: '#ffa500'
+        });
+    }
+}
+
+// 5. Ring 圆环 — 空心圆圈
+function launchRing(cx, cy, colors) {
+    var rings = 2 + Math.floor(Math.random() * 3);
+    for (var r = 0; r < rings; r++) {
+        var total = 50 + r * 15;
+        var rVel = 3 + r * 1.5;
+        var tilt = (Math.random() - 0.5) * 0.4;
+        for (var i = 0; i < total; i++) {
+            var angle = (i / total) * Math.PI * 2;
+            fireParticles.push({
+                x: cx, y: cy,
+                vx: Math.cos(angle) * rVel,
+                vy: Math.sin(angle) * rVel * Math.cos(tilt),
+                life: 1, decay: 0.01 + Math.random() * 0.005,
+                color: colors[(r * 3 + i) % colors.length],
+                radius: 2 + Math.random() * 2,
+                grav: 0.02, trail: false, tail: null
+            });
+        }
+    }
+}
+
+// 6. Dahlia 大丽花 — 花瓣少、粒子大
+function launchDahlia(cx, cy, colors) {
+    var petals = 16 + Math.floor(Math.random() * 8);
+    for (var i = 0; i < petals; i++) {
+        var angle = (i / petals) * Math.PI * 2;
+        var vel = 6 + Math.random() * 5;
+        var c = colors[i % colors.length];
+        // 每片花瓣 3 颗大粒子
+        for (var j = 0; j < 3; j++) {
+            var spread = (j - 1) * 0.12;
+            fireParticles.push({
+                x: cx, y: cy,
+                vx: Math.cos(angle + spread) * vel * (0.8 + j * 0.2),
+                vy: Math.sin(angle + spread) * vel * (0.8 + j * 0.2),
+                life: 1, decay: 0.005 + Math.random() * 0.004,
+                color: c, radius: 3 + Math.random() * 4,
+                grav: 0.04 + Math.random() * 0.04,
+                trail: true, tailLen: 4 + Math.floor(Math.random() * 4),
+                tailColor: c
+            });
+        }
+    }
+}
+
+// 7. Crossette 十字裂 — 大粒子飞一段再分裂
+function launchCrossette(cx, cy, colors) {
+    var total = 30;
+    for (var i = 0; i < total; i++) {
+        var angle = (i / total) * Math.PI * 2;
+        var vel = 4 + Math.random() * 4;
+        fireParticles.push({
+            x: cx, y: cy,
+            vx: Math.cos(angle) * vel,
+            vy: Math.sin(angle) * vel,
+            life: 1, decay: 0.015,
+            color: colors[i % colors.length],
+            radius: 3 + Math.random() * 2,
+            grav: 0.02,
+            split: true, splitAt: 0.5 + Math.random() * 0.3
+        });
+    }
+}
+
+// 8. Spider 蜘蛛 — 笔直长线
+function launchSpider(cx, cy, colors) {
+    var legs = 8 + Math.floor(Math.random() * 8);
+    for (var i = 0; i < legs; i++) {
+        var angle = (i / legs) * Math.PI * 2;
+        var vel = 8 + Math.random() * 4;
+        for (var j = 0; j < 6; j++) {
+            fireParticles.push({
+                x: cx, y: cy,
+                vx: (Math.cos(angle) + (Math.random() - 0.5) * 0.1) * vel * (0.6 + j * 0.12),
+                vy: (Math.sin(angle) + (Math.random() - 0.5) * 0.1) * vel * (0.6 + j * 0.12),
+                life: 1, decay: 0.006 + Math.random() * 0.003,
+                color: colors[i % colors.length],
+                radius: 1.5 + Math.random() * 1.5,
+                grav: 0.01, trail: false, tail: null
+            });
+        }
+    }
+}
+
+// 9. Spiral 螺旋 — 粒子螺旋向外甩
+function launchSpiral(cx, cy, colors) {
+    var total = 100;
+    for (var i = 0; i < total; i++) {
+        var t = i / total;
+        var radius = t * 8;
+        var angle = t * Math.PI * 8 + Math.random() * 0.5;
+        fireParticles.push({
+            x: cx + Math.cos(angle) * radius * 3,
+            y: cy + Math.sin(angle) * radius * 3,
+            vx: Math.cos(angle) * radius * 0.8,
+            vy: Math.sin(angle) * radius * 0.8,
+            life: 1, decay: 0.006 + Math.random() * 0.005,
+            color: colors[i % colors.length],
+            radius: 1.5 + Math.random() * 2,
+            grav: 0.03 + Math.random() * 0.03,
+            trail: true, tailLen: 5 + Math.floor(Math.random() * 8),
+            tailColor: colors[i % colors.length]
+        });
+    }
+}
+
+// 10. Brocade 锦缎 — 细密闪烁碎光
+function launchBrocade(cx, cy) {
+    var total = 200;
+    for (var i = 0; i < total; i++) {
+        var angle = Math.random() * Math.PI * 2;
+        var vel = 2 + Math.random() * 6;
+        fireParticles.push({
+            x: cx + (Math.random() - 0.5) * 10,
+            y: cy + (Math.random() - 0.5) * 10,
+            vx: Math.cos(angle) * vel,
+            vy: Math.sin(angle) * vel,
+            life: 1, decay: 0.01 + Math.random() * 0.01,
+            color: Math.random() < 0.7 ? '#ffd700' : '#fff',
+            radius: 0.5 + Math.random() * 1.5,
+            grav: 0.04 + Math.random() * 0.06,
+            trail: false, tail: null,
+            twinkle: Math.random() < 0.5
+        });
+    }
+}
+
+// 烟花循环播放
+var fwSeqIdx = 0, fwSeqTimer = null;
+function startFireworkSequence() {
+    fwSeqIdx = 0;
+    _nextFwInSeq();
+}
+function _nextFwInSeq() {
+    if (fwSeqIdx >= fwTypeNames.length * 2) {
+        // 两轮放完后回到开头
+        fwSeqIdx = 0;
+    }
+    var type = fwTypeNames[fwSeqIdx % fwTypeNames.length];
+    launchFwFromType(type);
+    fwSeqIdx++;
+    fwSeqTimer = setTimeout(_nextFwInSeq, 1800 + Math.random() * 1200);
+}
+function stopFireworkSequence() {
+    if (fwSeqTimer) { clearTimeout(fwSeqTimer); fwSeqTimer = null; }
+}
+
+// 更新主粒子循环以支持拖尾和分裂
+var fireTrailHistory = {};
 function fireLoopOn() {
     if (fireLoopRunning) return; fireLoopRunning = true;
     var c = document.getElementById('fireworkCanvas');
     var ctx = c.getContext('2d');
+    var trailBuf = [];
     (function draw() {
         c.width = c.width;
-        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
         ctx.fillRect(0, 0, c.width, c.height);
+
+        // 处理拖尾历史
+        for (var ti = trailBuf.length - 1; ti >= 0; ti--) {
+            var tb = trailBuf[ti];
+            tb.life -= 0.03;
+            if (tb.life <= 0) { trailBuf.splice(ti, 1); continue; }
+            ctx.globalAlpha = tb.life * 0.4;
+            ctx.beginPath(); ctx.arc(tb.x, tb.y, tb.r, 0, Math.PI * 2);
+            ctx.fillStyle = tb.color; ctx.fill();
+        }
+
         for (var k = fireParticles.length - 1; k >= 0; k--) {
             var p = fireParticles[k];
-            p.x += p.vx; p.y += p.vy + p.grav; p.life -= p.decay;
+            p.x += p.vx; p.y += p.vy + p.grav;
+            p.vx *= 0.99; p.vy *= 0.99;
+            p.life -= p.decay;
+
+            // Crossette 分裂
+            if (p.split && p.life < p.splitAt && !p._didSplit) {
+                p._didSplit = true;
+                for (var s = 0; s < 4; s++) {
+                    var sa = (s / 4) * Math.PI * 2 + Math.random() * 0.2;
+                    fireParticles.push({
+                        x: p.x, y: p.y,
+                        vx: Math.cos(sa) * 4,
+                        vy: Math.sin(sa) * 4,
+                        life: 0.7, decay: 0.02 + Math.random() * 0.02,
+                        color: p.color, radius: 1.5 + Math.random() * 1.5,
+                        grav: 0.06, trail: false, tail: null
+                    });
+                }
+            }
+
             if (p.life <= 0) { fireParticles.splice(k, 1); continue; }
-            ctx.globalAlpha = p.life;
+
+            // 拖尾记录
+            if (p.trail) {
+                trailBuf.push({ x: p.x, y: p.y, r: p.radius * 0.7, color: p.tailColor || p.color, life: 1 });
+                if (trailBuf.length > 600) trailBuf.shift();
+            }
+
+            ctx.globalAlpha = p.twinkle ? p.life * (0.5 + 0.5 * Math.sin(Date.now() * 0.03)) : p.life;
             ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
             ctx.fillStyle = p.color; ctx.fill();
-            ctx.shadowBlur = p.radius * 5; ctx.shadowColor = p.color; ctx.fill(); ctx.shadowBlur = 0;
+            ctx.shadowBlur = p.radius * 4; ctx.shadowColor = p.color; ctx.fill(); ctx.shadowBlur = 0;
         }
         ctx.globalAlpha = 1;
-        if (fireParticles.length > 0) requestAnimationFrame(draw);
+        if (fireParticles.length > 0 || trailBuf.length > 0) requestAnimationFrame(draw);
         else fireLoopRunning = false;
     })();
 }
