@@ -278,6 +278,10 @@
             border: 2px solid #ffd700; color: #ffd700; font-size: 28px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
+        .bd-day-close:hover{background:#e74c3c;transform:rotate(90deg);transition:all .3s}
+        .bd-music-toggle{position:absolute;top:20px;right:80px;width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,215,0,.5);background:rgba(0,0,0,.6);color:#ffd700;font-size:20px;cursor:pointer;z-index:100010;display:flex;align-items:center;justify-content:center;transition:all .3s}
+        .bd-music-toggle:hover{background:rgba(255,215,0,.15);border-color:#ffd700}
+        .bd-music-toggle.muted{color:#666;border-color:rgba(255,255,255,.2)}
         .bd-corner-emoji {
             position: fixed; font-size: 5rem; pointer-events: none; z-index: 100006;
             animation: bdCornerBounce 0.6s ease-in-out infinite alternate;
@@ -377,6 +381,7 @@
             .bd-day-candle:nth-child(5) { height: 26px; }
             .bd-day-flame { width: 8px; height: 11px; top: -10px; }
             .bd-day-close { top: 8px; right: 10px; width: 32px; height: 32px; font-size: 18px; }
+            .bd-music-toggle { top: 8px; right: 50px; width: 32px; height: 32px; font-size: 16px; }
             .bd-corner-emoji { font-size: 2rem; }
             .bd-corner-emoji.top-left  { left: 8px; top: 60px; }
             .bd-corner-emoji.top-right { right: 8px; top: 60px; }
@@ -984,9 +989,17 @@ function scatterTextParticles() {
 // ===== 生日快乐背景音乐（Web Audio 合成，循环播放，仅生日当天） =====
 var bdMelodyTimer = null;
 var bdMelodyCtx = null;
+var bdMelodyStarted = false;
+
+// 全局用户手势唤醒 AudioContext（解决浏览器自动播放拦截）
+document.addEventListener('click', function() {
+    if (bdMelodyCtx && bdMelodyCtx.state === 'suspended') { bdMelodyCtx.resume(); }
+}, { once: false });
 
 function playBirthdayMelody() {
-    // 立即播放第一遍，然后每 15 秒循环
+    bdMelodyStarted = true;
+    var btn = document.getElementById('bdMusicToggle');
+    if (btn) { btn.textContent = '🔊'; btn.classList.remove('muted'); }
     _playMelodyOnce();
     bdMelodyTimer = setInterval(_playMelodyOnce, 15000);
 }
@@ -994,6 +1007,33 @@ function playBirthdayMelody() {
 function stopBirthdayMelody() {
     if (bdMelodyTimer) { clearInterval(bdMelodyTimer); bdMelodyTimer = null; }
     if (bdMelodyCtx) { try { bdMelodyCtx.close(); } catch(e) {} bdMelodyCtx = null; }
+    bdMelodyStarted = false;
+}
+
+function toggleBirthdayMusic() {
+    var btn = document.getElementById('bdMusicToggle');
+    if (!bdMelodyStarted) {
+        // 重新播放
+        playBirthdayMelody();
+        btn.textContent = '🔊';
+        btn.classList.remove('muted');
+        return;
+    }
+    if (bdMelodyTimer) {
+        // 当前在播放 → 暂停
+        clearInterval(bdMelodyTimer);
+        bdMelodyTimer = null;
+        if (bdMelodyCtx) { try { bdMelodyCtx.suspend(); } catch(e) {} }
+        btn.textContent = '🔇';
+        btn.classList.add('muted');
+    } else {
+        // 当前暂停 → 恢复
+        if (bdMelodyCtx) { try { bdMelodyCtx.resume(); } catch(e) {} }
+        _playMelodyOnce();
+        bdMelodyTimer = setInterval(_playMelodyOnce, 15000);
+        btn.textContent = '🔊';
+        btn.classList.remove('muted');
+    }
 }
 
 function _playMelodyOnce() {
@@ -1089,7 +1129,6 @@ function closeBirthdayDay() {
     document.getElementById('birthdayDayOverlay').classList.remove('show');
     stopConfetti();
     stopHearts();
-    stopBirthdayMelody();
     // 关闭后继续放3轮大烟花
     createBigFirework();
     setTimeout(function() { createBigFirework(); }, 800);
@@ -1486,6 +1525,7 @@ window.addEventListener('load', () => {
     <div class="bd-mask-overlay reveal" id="bdMaskOverlay"></div>
     <div class="bd-parallax-bg"></div>
     <button class="bd-day-close" onclick="closeBirthdayDay()">✕</button>
+    <button class="bd-music-toggle" id="bdMusicToggle" onclick="toggleBirthdayMusic()" title="暂停/播放音乐">🔊</button>
     <div class="bd-corner-emoji top-left">🎉</div>
     <div class="bd-corner-emoji top-right">🎊</div>
     <div class="bd-corner-emoji bottom-left">🥳</div>
