@@ -97,6 +97,7 @@ async function handleRegister() {
 
     const birthday = document.getElementById('birthday').value.trim();
     if (!birthday) { alert('请选择生日日期！'); return; }
+    const gender = document.getElementById('gender').value;
 
     // 构造GitHub Issue数据
     const issueData = {
@@ -105,6 +106,7 @@ async function handleRegister() {
 - 手机号：${phone}
 - 密码哈希值：${pwdHash}
 - 生日：${birthday}
+- 性别：${gender}
 - 注册时间：${new Date().toLocaleString('zh-CN')}`,
         labels: ["user-register"]
     };
@@ -177,6 +179,13 @@ async function handleRegister() {
                 <label class="block text-sm text-gray-400 mb-1">🎂 生日 (月/日)</label>
                 <input type="date" id="birthday" class="w-full bg-dark border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-gold outline-none" style="color-scheme:dark;">
                 <p class="text-xs text-gray-500 mt-1">生日当天会有惊喜哦！</p>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">性别</label>
+                <select id="gender" class="w-full bg-dark border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-gold outline-none" style="color-scheme:dark;">
+                    <option value="男" selected>男</option>
+                    <option value="女">女</option>
+                </select>
             </div>
             <div>
                 <label class="block text-sm text-gray-400 mb-1">人类验证</label>

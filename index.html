@@ -515,6 +515,152 @@ function isBirthdayWithinDays(bd, n) {
     return d >= 0 && d <= n;
 }
 
+/** 当前年龄：出生年份 + 今年生日是否已过 */
+function calcAge(bd) {
+    if (!bd) return null;
+    var now = new Date();
+    var age = now.getFullYear() - bd.y;
+    var m = now.getMonth() + 1, d = now.getDate();
+    if (m < bd.m || (m === bd.m && d < bd.d)) age--;
+    return age < 0 ? 0 : age;
+}
+
+/** 按 性别 + 年龄 划分 6 类人群：boy / man / elderMan / girl / woman / elderWoman */
+function personaGroup(bd, gender) {
+    var age = calcAge(bd);
+    if (age === null) age = 30; // 兜底按中年
+    var female = gender === '女';
+    if (age < 18) return female ? 'girl' : 'boy';
+    if (age >= 60) return female ? 'elderWoman' : 'elderMan';
+    return female ? 'woman' : 'man';
+}
+
+/** 6 类人群的祝福语（未填性别的存量用户默认男） */
+var BLESSINGS = {
+    boy: {
+        title: '🎈 小男子汉的生日祝福 🎈',
+        product: '小男子汉的生日祝福',
+        short: ['🎉 小小男子汉，生日快乐！', '🚀 愿你每天都有新发现、新惊喜！', '⚽ 勇敢、聪明、快乐地长大！'],
+        card: '小小男子汉，生日快乐！<br>愿你勇敢又聪明，<br>每天都有新发现，<br>跌倒了自己爬起来，<br>长大做顶天立地的男子汉！<br>生日快乐，加油💪',
+        detail: [
+            '🎉 小朋友，生日快乐！',
+            '🚀 你今天又长大一岁啦——',
+            '🎨 愿你的好奇心永远装不下，',
+            '⚽ 跑得比谁都快，笑得比谁都响；',
+            '📚 作业按时写完就好，别着急；',
+            '🍭 糖可以多吃一块，今天你说了算！',
+            '🌟 愿你：',
+            '💪 勇敢——遇到困难不哭鼻子；',
+            '🧠 聪明——每天都能学到新东西；',
+            '😄 快乐——天天都有好心情。',
+            '🎁 全世界的小男子汉，生日快乐！'
+        ]
+    },
+    man: {
+        title: '🎂 中年男人的生日祝福 🎂',
+        product: '中年男人的生日祝福',
+        short: ['🎉 兄弟，生日快乐！', '💪 中年是男人的黄金时代', '🌟 钱包鼓鼓，身体棒棒！'],
+        card: '兄弟，又老了一岁了。<br>别慌，男人四十一枝花，<br>你这是含苞待放！<br>钱够花就行，<br>觉够睡就好，<br>身体是革命的本钱。<br>生日快乐，干杯🍻',
+        detail: [
+            '🎉 兄弟，又老了一岁！',
+            '💪 但别慌，中年才是男人的黄金时代——',
+            '🏠 事业稳了，家庭有了，心态成熟了，',
+            '🍺 该吃的苦都吃过了，该看的风景也看了不少。',
+            '🌟 愿你：',
+            '💰 钱包越来越鼓，头发越来越少但气质越来越强；',
+            '👨‍👩‍👧 家人健康平安，孩子听话懂事；',
+            '🏋️ 身体是革命的本钱，别忘了偶尔运动；',
+            '🍵 少熬夜，多喝茶，心态年轻就是最大的资本。',
+            '🎁 全世界的中年男人联合起来——',
+            '我们不是老了，我们只是成熟了！',
+            '🍻 生日快乐，兄弟！🍻'
+        ]
+    },
+    elderMan: {
+        title: '🍵 老年男士的生日祝福 🍵',
+        product: '老年男士的生日祝福',
+        short: ['🎉 生日快乐，身体康健！', '🏮 儿孙绕膝，福气满堂', '🍵 少操点心，多享点福！'],
+        card: '老人家，生日快乐！<br>一甲子风雨走过来，<br>如今儿孙绕膝、福气满堂。<br>少操点心，多享点福，<br>茶要慢慢喝，路要慢慢走。<br>祝您福如东海，寿比南山！🍵',
+        detail: [
+            '🎉 老人家，生日快乐！',
+            '🏮 大半辈子风雨走过来，您辛苦了——',
+            '👨‍👩‍👧‍👦 如今儿孙绕膝，正是享福的时候；',
+            '🍵 茶要慢慢喝，路要慢慢走，觉要睡足；',
+            '💊 身体有小毛病别硬扛，该查就查；',
+            '😄 儿女的事少操心，他们都能照顾好自己。',
+            '🌟 祝您：',
+            '🎋 福如东海，寿比南山；',
+            '🏮 岁岁平安，年年康健；',
+            '😊 天天精神好，笑口常开。',
+            '🎁 生日快乐，健康长寿！'
+        ]
+    },
+    girl: {
+        title: '🎀 小公主的生日祝福 🎀',
+        product: '小公主的生日祝福',
+        short: ['🎉 小公主，生日快乐！', '🌸 愿你像花儿一样漂亮', '🎀 每天都甜甜的、开开心心的！'],
+        card: '小公主，生日快乐！<br>愿你像花儿一样漂亮，<br>像糖果一样甜甜的，<br>哭鼻子也没关系，<br>因为大家都宠你呀！<br>生日快乐，要开心哦🎀',
+        detail: [
+            '🎉 小朋友，生日快乐！',
+            '🌸 你今天又长大一岁啦——',
+            '🎨 愿你的世界永远是彩色的，',
+            '🦋 像蝴蝶一样自由，像糖果一样甜甜的；',
+            '📚 作业按时写完就好，别着急；',
+            '🍰 蛋糕可以多吃一块，今天你说了算！',
+            '🌟 愿你：',
+            '😊 开心——每天都有小小的快乐；',
+            '💖 善良——被全世界温柔以待；',
+            '🌷 漂亮——越长越好看，气质满满。',
+            '🎁 全世界的小公主，生日快乐！'
+        ]
+    },
+    woman: {
+        title: '🌷 女神的生日祝福 🌷',
+        product: '女神的生日祝福',
+        short: ['🎉 女神，生日快乐！', '🌷 愿你永远十八岁', '✨ 美貌与智慧并存，快乐常在！'],
+        card: '女神，生日快乐！<br>十八岁只是开始，<br>现在才是最好的年纪——<br>有故事，有底气，有光芒。<br>愿你眼里有光，心中有爱，<br>永远漂亮，永远自在！🌷',
+        detail: [
+            '🎉 女神，生日快乐！',
+            '🌷 又美了一岁，岁月只添风情，不添烦恼；',
+            '💃 该买的买，该玩的玩，对自己好一点；',
+            '💼 工作要稳，身体更重要，别硬撑；',
+            '👭 好友常聚，心事说出来就轻了；',
+            '💖 愿你：',
+            '🌸 眼里有光，心中有爱；',
+            '✨ 美貌与智慧并存，钱包与快乐齐飞；',
+            '😊 天天都是最好的状态。',
+            '🎁 生日快乐，永远十八岁！🌷'
+        ]
+    },
+    elderWoman: {
+        title: '🌸 长辈的生日祝福 🌸',
+        product: '长辈的生日祝福',
+        short: ['🎉 生日快乐，笑口常开！', '🌸 儿孙满堂，福气满满', '💐 身体健康，岁岁平安！'],
+        card: '老人家，生日快乐！<br>一辈子操劳，<br>把家撑得暖暖的，<br>如今儿女成行、孙辈绕膝。<br>少操点心，多享点福。<br>祝您福寿安康，天天开心！🌸',
+        detail: [
+            '🎉 老人家，生日快乐！',
+            '🌷 一辈子操劳，把家撑得暖暖的，您辛苦了——',
+            '👨‍👩‍👧‍👦 如今儿女成行、孙辈绕膝，正是享福的时候；',
+            '🍵 想吃什么就吃，想去哪玩就去，别总惦记着别人；',
+            '💊 身体要按时检查，小毛病别硬扛；',
+            '😄 儿孙的事少操心，他们都盼着您身体好。',
+            '🌟 祝您：',
+            '🎋 福寿安康，岁岁平安；',
+            '🌸 笑口常开，心情舒畅；',
+            '😊 天天都有好精神。',
+            '🎁 生日快乐，健康长寿！🌸'
+        ]
+    }
+};
+
+/** 取当前用户对应的人群与年龄 */
+function getPersona() {
+    var bd = currentUser ? parseBirthday(currentUser.birthday) : null;
+    var gender = (currentUser && currentUser.gender) || '男'; // 存量用户默认男
+    var key = personaGroup(bd, gender);
+    return { key: key, data: BLESSINGS[key], age: bd ? calcAge(bd) : null, gender: gender };
+}
+
 async function ensureBirthday() {
     if (!currentUser || currentUser.birthday) return currentUser;
     if (!currentUser.phone) return currentUser;
@@ -529,6 +675,8 @@ async function ensureBirthday() {
             var bd = (hit.body.match(/生日：(\S+)/) || ['',''])[1];
             if (bd) {
                 currentUser.birthday = bd;
+                var gd = (hit.body.match(/性别：([男女])/) || ['',''])[1];
+                if (gd) currentUser.gender = gd;
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
             }
         }
@@ -566,18 +714,29 @@ async function renderBirthdayProduct() {
     if (!bd) return;
     if (!isBirthdayWithinDays(bd, 3)) return;
     var isToday = isBirthdayToday(bd);
+    var p = getPersona();
     slot.innerHTML = '<div class="bg-card rounded-2xl border-2 border-gold p-8 flex flex-col items-center justify-center card-hover relative" style="box-shadow:0 0 30px rgba(255,215,0,0.3);">' +
         '<div class="absolute top-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">' + (isToday ? '今天生日！' : '生日专享') + '</div>' +
         '<div class="w-24 h-24 rounded-full bg-gold/10 flex items-center justify-center mb-6 animate-float"><i class="fa-solid fa-cake-candles text-gold text-3xl"></i></div>' +
         '<h3 class="text-xl font-bold mb-2 text-gold">🎂 生日祝福礼包</h3>' +
         '<p class="text-red-400 text-2xl font-bold mb-4">-¥6.66</p>' +
-        '<p class="text-gray-400 text-sm text-center mb-6">中年男人的生日祝福<br>商家倒贴' + (isToday ? '，生日快乐！' : '，仅限今日！') + '</p>' +
+        '<p class="text-gray-400 text-sm text-center mb-6">' + p.data.product + (p.age !== null ? '（今年 ' + p.age + ' 岁）' : '') + '<br>商家倒贴' + (isToday ? '，生日快乐！' : '，仅限今日！') + '</p>' +
         '<button onclick="addToCart({name:\'🎂生日祝福礼包\',price:\'-¥6.66\'}, this)" class="w-full bg-gold text-black py-2 rounded-lg font-medium glow mb-2 disabled:opacity-60">加入购物车</button>' +
         '<button onclick="showBirthdayDetail()" class="w-full border border-gold text-gold py-2 rounded-lg text-center text-sm">查看祝福详情</button>' +
         '</div>';
 }
 
 function showBirthdayDetail() {
+    var p = getPersona();
+    var titleEl = document.getElementById('bdDetailTitle');
+    var bodyEl = document.getElementById('bdDetailBody');
+    if (titleEl) titleEl.textContent = p.data.title;
+    if (bodyEl) {
+        var html = '';
+        if (p.age !== null) html += '<p>🎂 这是你的 <b>' + p.age + '</b> 岁生日，生日快乐！</p>';
+        html += p.data.detail.map(function(line) { return '<p>' + line + '</p>'; }).join('');
+        bodyEl.innerHTML = html;
+    }
     document.getElementById('birthdayDetailOverlay').classList.add('show');
 }
 
@@ -588,8 +747,12 @@ function closeBirthdayDetail() {
 function showBirthdaySoonCelebration(bd) {
     var overlay = document.getElementById('birthdayOverlay');
     var phone = currentUser ? (currentUser.phone || '用户') : '用户';
+    var p = getPersona();
     document.getElementById('bdUserName').textContent = phone;
+    document.getElementById('bdUserAge').textContent = p.age !== null ? '（今年 ' + p.age + ' 岁）' : '';
     document.getElementById('bdDateLabel').textContent = bd.m + '.' + bd.d;
+    var bsEl = document.getElementById('bdBlessing');
+    if (bsEl) bsEl.innerHTML = p.data.short.map(function(line) { return '<p>' + line + '</p>'; }).join('');
     var bs = thisYearBirthday(bd);
     BIRTHDAY_TARGET = bs;
     overlay.classList.add('show');
@@ -1086,6 +1249,14 @@ function _playMelodyOnce() {
 function showBirthdayDayCelebration(bd) {
     var overlay = document.getElementById('birthdayDayOverlay');
     overlay.classList.add('show');
+    // 按人群填充贺卡与标题
+    var p = getPersona();
+    var cardEl = document.getElementById('bdCardBlessing');
+    if (cardEl) cardEl.innerHTML = p.data.card;
+    var dayTitleEl = document.getElementById('bdDayTitle');
+    if (dayTitleEl) dayTitleEl.textContent = p.data.title;
+    var subEl = document.getElementById('bdDaySub');
+    if (subEl) subEl.textContent = p.age !== null ? '玉国科技祝你 ' + p.age + ' 岁生日快乐，天天开心，越来越强！' : '玉国科技祝你天天开心，越来越强！';
     // 入场序列
     launchCelebrationSequence();
     initMicBlow();
@@ -1748,14 +1919,14 @@ window.addEventListener('load', () => {
 
         <!-- 用户名 -->
         <div class="bd-user">
-            亲爱的 <span style="color:#ffd700;font-weight:bold;" id="bdUserName">用户</span> 用户
+            亲爱的 <span style="color:#ffd700;font-weight:bold;" id="bdUserName">用户</span> 用户 <span id="bdUserAge" style="color:#ffd700;"></span>
         </div>
 
         <!-- 蛋糕 -->
         <div class="cake-container">🎂</div>
 
         <!-- 祝福语 -->
-        <div class="bd-blessing">
+        <div class="bd-blessing" id="bdBlessing">
             <p>🎉 祝你生日快乐！🎉</p>
             <p>🎁 愿你心想事成，万事如意！🎁</p>
             <p>🌟 前程似锦，天天开心！🌟</p>
@@ -1795,8 +1966,8 @@ window.addEventListener('load', () => {
 <div class="birthday-overlay" id="birthdayDetailOverlay">
     <div class="birthday-modal" style="max-width:500px;">
         <span class="close-birthday" onclick="closeBirthdayDetail()">×</span>
-        <div class="birthday-title detail">🎂 中年男人的生日祝福 🎂</div>
-        <div class="bd-detail-body">
+        <div class="birthday-title detail" id="bdDetailTitle">🎂 生日祝福 🎂</div>
+        <div class="bd-detail-body" id="bdDetailBody">
             <p>🎉 兄弟，又老了一岁！</p>
             <p>💪 但别慌，中年才是男人的黄金时代——</p>
             <p>🏠 事业稳了，家庭有了，心态成熟了，</p>
@@ -1840,7 +2011,7 @@ window.addEventListener('load', () => {
                 <p>点击翻开 →</p>
             </div>
             <div class="bd-card-face card-back">
-                <p>兄弟，又老一岁了。<br>别慌，男人四十一枝花，<br>你这是含苞待放！<br>钱够花就行，<br>觉够睡就好，<br>身体是革命的本钱。<br>生日快乐，干杯🍻</p>
+                <p id="bdCardBlessing">兄弟，又老一岁了。<br>别慌，男人四十一枝花，<br>你这是含苞待放！<br>钱够花就行，<br>觉够睡就好，<br>身体是革命的本钱。<br>生日快乐，干杯🍻</p>
                 <span class="card-sign">— 鱼果商城 敬上</span>
             </div>
         </div>
@@ -1861,9 +2032,9 @@ window.addEventListener('load', () => {
             <div class="cake-plate"></div>
         </div>
     </div>
-    <div class="bd-day-title">🎂 生日快乐 🎂</div>
+    <div class="bd-day-title" id="bdDayTitle">🎂 生日快乐 🎂</div>
     <div class="bd-day-msg"><span id="bdDayMsg">生日快乐！</span></div>
-    <div class="bd-day-sub">玉国科技祝你天天开心，越来越强！</div>
+    <div class="bd-day-sub" id="bdDaySub">玉国科技祝你天天开心，越来越强！</div>
     <button class="bd-mic-btn" id="bdMicBtn"><i class="fa-solid fa-microphone"></i> 对着麦克风吹蜡烛</button>
 </div>
 

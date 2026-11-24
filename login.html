@@ -98,9 +98,10 @@ async function handleLogin() {
             });
 
             if (user) {
-                // 登录成功，存储当前用户到localStorage（含生日）
+                // 登录成功，存储当前用户到localStorage（含生日、性别）
                 const regBirthday = (user.body || "").match(/生日：(\S+)/)?.[1] || '';
-                localStorage.setItem('currentUser', JSON.stringify({ phone, birthday: regBirthday }));
+                const regGender = (user.body || "").match(/性别：([男女])/)?.[1] || '男';
+                localStorage.setItem('currentUser', JSON.stringify({ phone, birthday: regBirthday, gender: regGender }));
                 alert('登录成功！');
                 window.location.href = 'index.html';
             } else {
