@@ -465,13 +465,9 @@
 <canvas id="confettiCanvas"></canvas>
 <canvas id="heartsCanvas"></canvas>
 
+<script src="db.js"></script>
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
-};
-const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
+const currentUser = YGDb.currentUser();
 
 // ===== 动态生日系统（替代硬编码 BIRTHDAY_USER） =====
 function parseBirthday(birthdayStr) {
@@ -665,20 +661,11 @@ async function ensureBirthday() {
     if (!currentUser || currentUser.birthday) return currentUser;
     if (!currentUser.phone) return currentUser;
     try {
-        var res = await fetch('https://api.github.com/repos/' + GITHUB_CONFIG.username + '/' + GITHUB_CONFIG.repo + '/issues?labels=user-register&state=all&per_page=100', {
-            headers: { Authorization: 'token ' + GITHUB_CONFIG.token }
-        });
-        var issues = await res.json();
-        if (!Array.isArray(issues)) return currentUser;
-        var hit = issues.find(function(i) { return (i.body || '').indexOf('手机号：' + currentUser.phone) >= 0; });
-        if (hit && hit.body) {
-            var bd = (hit.body.match(/生日：(\S+)/) || ['',''])[1];
-            if (bd) {
-                currentUser.birthday = bd;
-                var gd = (hit.body.match(/性别：([男女])/) || ['',''])[1];
-                if (gd) currentUser.gender = gd;
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            }
+        var user = await YGDb.Users.find(currentUser.phone);
+        if (user && user.birthday) {
+            currentUser.birthday = user.birthday;
+            if (user.gender) currentUser.gender = user.gender;
+            YGDb.setSession(currentUser);
         }
     } catch(e) { /* 拉取失败不阻塞 */ }
     return currentUser;
@@ -1819,7 +1806,7 @@ function checkLoginNavCart() {
 
 // 退出登录
 function logout() {
-    localStorage.removeItem('currentUser');
+    YGDb.clearSession();
     location.href = 'index.html';
 }
 
@@ -1827,13 +1814,7 @@ function logout() {
 async function loadCartCount() {
     if(!currentUser) return;
     try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
-            headers: { "Authorization": `token ${GITHUB_CONFIG.token}` }
-        });
-        if (!res.ok) throw new Error(res.status);
-        const list = await res.json();
-        // 只统计未删除的
-        const cnt = list.filter(i => i.state === 'open' && i.body?.includes(currentUser.phone)).length;
+        const cnt = await YGDb.Cart.count(currentUser.phone);
         const el = document.getElementById('cartCount');
         if (el) {
             el.innerText = cnt;
@@ -1868,20 +1849,7 @@ async function addToCart(product, btn) {
     }
     if (btn) { btn.disabled = true; btn.dataset.old = btn.innerText; btn.innerText = '加入中...'; }
     try {
-        const body = `用户：${currentUser.phone}\n商品：${product.name}\n单价：${product.price}\n数量：1\n状态：购物车`;
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`, {
-            method: 'POST',
-            headers: {
-                "Authorization": `token ${GITHUB_CONFIG.token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                title: `购物车-${currentUser.phone}-${Date.now()}`,
-                body: body,
-                labels: ["cart"]
-            })
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        await YGDb.Cart.add(currentUser.phone, product.name, product.price);
         cartToast('✓ 已加入购物车');
         // 按钮即时反馈
         if (btn) {
@@ -2373,20 +2341,14 @@ document.addEventListener('visibilitychange', function() { if (document.hidden) 
 async function sendMyOrders() {
   if (!currentUser) { addChatText('请先登录后再查看订单', false); return; }
   try {
-    var res = await fetch('https://api.github.com/repos/' + GITHUB_CONFIG.username + '/' + GITHUB_CONFIG.repo + '/issues?labels=payment-record&state=all&per_page=50', {
-      headers: { Authorization: 'token ' + GITHUB_CONFIG.token }
-    });
-    var all = await res.json();
-    var myOrders = (Array.isArray(all) ? all : []).filter(function(i) { return i.body && i.body.indexOf(currentUser.phone) !== -1; });
-    if (myOrders.length === 0) { addChatText('您暂无订单记录', false); return; }
+    var myOrders = await YGDb.Orders.list(currentUser.phone);
+    if (!myOrders.length) { addChatText('您暂无订单记录', false); return; }
     var html = '<b>📋 您的订单：</b>';
     myOrders.slice(0, 5).forEach(function(o) {
-      var no = (o.body.match(/订单号：(.+)/) || [''])[1] || '未知';
-      var product = (o.body.match(/商品[名称]?[：:](.+)/) || ['', '未知'])[1];
-      var progress = (o.body.match(/物流进度：(\d+)/) || ['', '0'])[1];
+      var progress = o.progress || 0;
       var statusMap = ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'];
       var status = statusMap[+progress] || '处理中';
-      html += '<div class="order-card-inline"><p class="oc-no">' + YuguoChat.esc(no) + '</p><p>' + YuguoChat.esc(product.trim()) + '</p><p>状态：' + status + '</p></div>';
+      html += '<div class="order-card-inline"><p class="oc-no">' + YuguoChat.esc(o.order_no || '未知') + '</p><p>' + YuguoChat.esc((o.product || '未知商品').trim()) + '</p><p>状态：' + status + '</p></div>';
     });
     if (myOrders.length > 5) html += '<p style="font-size:11px;color:#888;">...仅显示最近5条，更多请查看<a href="pay-record.html" style="color:#FFD700;">购买记录</a></p>';
     addChatMsg(html, false);

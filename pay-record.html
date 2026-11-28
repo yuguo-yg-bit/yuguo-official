@@ -62,14 +62,9 @@
 </head>
 <body>
 
+<script src="db.js"></script>
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
-};
-
-const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+const currentUser = YGDb.currentUser();
 if (!currentUser) {
     alert('你未登录！请登录！');
     window.location.href = 'login.html';
@@ -85,7 +80,7 @@ function checkLoginNav() {
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
+    YGDb.clearSession();
     window.location.href = 'login.html';
 }
 </script>
@@ -215,27 +210,15 @@ async function loadPaymentRecords() {
   const list = document.getElementById('recordList');
   const empty = document.getElementById('emptyState');
   try {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=payment-record&state=all`, {
-      headers: {
-        "Authorization": `token ${GITHUB_CONFIG.token}`,
-        "Accept": "application/vnd.github.v3+json"
-      }
-    });
-    if (res.ok) {
-      const issues = await res.json();
-      const myOrders = issues.filter(issue => {
-          const body = issue.body || "";
-          return body.includes(currentUser.phone);
-      });
-      allRecords = myOrders;
-      renderRecords(myOrders);
-      if (myOrders.length === 0) {
-          list.classList.add('hidden');
-          empty.classList.remove('hidden');
-      } else {
-          list.classList.remove('hidden');
-          empty.classList.add('hidden');
-      }
+    const myOrders = await YGDb.Orders.list(currentUser.phone);
+    allRecords = myOrders;
+    renderRecords(myOrders);
+    if (myOrders.length === 0) {
+        list.classList.add('hidden');
+        empty.classList.remove('hidden');
+    } else {
+        list.classList.remove('hidden');
+        empty.classList.add('hidden');
     }
   } catch (e) {
     list.innerHTML = `<div class="bg-card p-8 text-center text-red-400">加载失败：${e.message}</div>`;
@@ -245,13 +228,12 @@ async function loadPaymentRecords() {
 function renderRecords(records) {
   const list = document.getElementById('recordList');
   let html = "";
-  records.forEach(issue => {
-    const body = issue.body || "";
-    const orderNo = body.match(/订单号：(\S+)/)?.[1] || "未知";
-    const product = body.match(/商品名称：(.+)/)?.[1] || "未知商品";
-    const amount = body.match(/支付金额：(\S+)/)?.[1] || "¥0.00";
-    const time = body.match(/支付时间：(.+)/)?.[1] || "未知";
-    const status = body.match(/订单状态：(.+)/)?.[1] || "未知";
+  records.forEach(o => {
+    const orderNo = o.order_no || "未知";
+    const product = o.product || "未知商品";
+    const amount = "¥" + (String(o.amount || '0').replace(/[^\d.]/g, '') || '0.00');
+    const time = o.created_at ? new Date(o.created_at).toLocaleString('zh-CN') : "未知";
+    const status = YGDb.orderStatusText(o.progress);
 
     let cls = "badge-pending";
     if (status === "已完成") cls = "badge-success";
@@ -271,7 +253,7 @@ function renderRecords(records) {
   <div class="flex flex-col items-end md:items-end gap-2">
     <p class="text-gold font-bold">${amount}</p>
     <span class="text-xs px-2 py-1 rounded-full ${cls}">${status}</span>
-    <a href="logistics.html?orderNo=${orderNo}" class="text-xs text-gold hover:underline mt-1">
+    <a href="logistics.html?orderNo=${encodeURIComponent(orderNo)}" class="text-xs text-gold hover:underline mt-1">
       <i class="fa-solid fa-truck-fast mr-1"></i> 查看物流
     </a>
   </div>
@@ -291,10 +273,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     const s = this.dataset.status;
     if (s === 'all') renderRecords(allRecords);
     else {
-      const f = allRecords.filter(r => {
-          const st = r.body?.match(/订单状态：(.+)/)?.[1];
-          return st === s;
-      });
+      const f = allRecords.filter(r => YGDb.orderStatusText(r.progress) === s);
       renderRecords(f);
     }
   });

@@ -56,14 +56,9 @@
 </head>
 <body>
 
+<script src="db.js"></script>
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "ghp_sVylTqJv"+"8nvK3SK3wS2qidM6AvQAFx1rAvCd"
-};
-
-const currentUser = JSON.parse(localStorage.getItem('currentUser') || null);
+const currentUser = YGDb.currentUser();
 if (!currentUser) {
     alert("请先登录");
     location.href = "login.html";
@@ -81,7 +76,7 @@ function checkLoginNav() {
 }
 
 function logout() {
-    localStorage.removeItem("currentUser");
+    YGDb.clearSession();
     location.href = "login.html";
 }
 
@@ -91,12 +86,7 @@ async function loadCart() {
     const checkoutBox = document.getElementById("checkoutBox");
 
     try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=cart&state=all`, {
-            headers: { Authorization: `token ${GITHUB_CONFIG.token}` }
-        });
-        const all = await res.json();
-        // 只取未删除的（state=open），已关闭的视为已删除
-        cartList = all.filter(i => i.state === 'open' && i.body?.includes(currentUser.phone));
+        cartList = await YGDb.Cart.list(currentUser.phone);
 
         if (cartList.length === 0) {
             listEl.classList.add("hidden");
@@ -109,11 +99,9 @@ async function loadCart() {
         totalPrice = 0;
 
         cartList.forEach(item => {
-            const nameMatch = item.body?.match(/商品：(.+)/);
-            const priceMatch = item.body?.match(/单价：(.+)/);
-            const name = nameMatch ? nameMatch[1].trim() : "未知商品";
-            const price = priceMatch ? priceMatch[1].trim() : "¥0.00";
-            const num = parseFloat(price.replace("¥", "")) || 0;
+            const name = item.name || "未知商品";
+            const price = item.price || "¥0.00";
+            const num = parseFloat(String(price).replace("¥", "")) || 0;
             totalPrice += num;
 
             html += `
@@ -125,7 +113,7 @@ async function loadCart() {
                         <div class="text-gold/80">${price}</div>
                     </div>
                 </div>
-                <button onclick="delCart(${item.number})" class="bg-red-500 hover:bg-red-600 transition-colors text-white px-3 py-1 rounded text-sm">
+                <button onclick="delCart(${item.id})" class="bg-red-500 hover:bg-red-600 transition-colors text-white px-3 py-1 rounded text-sm">
                     <i class="fa-solid fa-trash mr-1"></i>删除
                 </button>
             </div>`;
@@ -139,6 +127,7 @@ async function loadCart() {
         checkoutBox.classList.remove("hidden");
     } catch (e) {
         console.error(e);
+        listEl.innerHTML = `<div class="bg-card p-8 text-center text-red-400">购物车加载失败：${e.message}</div>`;
     }
 }
 
@@ -148,12 +137,7 @@ async function delCart(id) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>删除中';
     try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${id}`, {
-            method: "PATCH",
-            headers: { Authorization: `token ${GITHUB_CONFIG.token}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ state: "closed" })
-        });
-        if (!res.ok) throw new Error("删除失败");
+        await YGDb.Cart.remove(id);
         showToastMsg("已从购物车移除");
     } catch (e) {
         showToastMsg("删除失败，请重试", true);
@@ -210,29 +194,34 @@ async function confirmPay() {
     if (!confirm("确认已支付？")) return;
 
     const orderNo = "YG" + Date.now();
-    const payTime = new Date().toLocaleString("zh-CN");
+    const receiver = document.getElementById('receiverName').value.trim();
+    const receiverPhone = document.getElementById('receiverPhone').value.trim();
+    const address = document.getElementById('receiverAddr').value.trim();
 
-    for (const item of cartList) {
-        const nameMatch = item.body?.match(/商品：(.+)/);
-        const priceMatch = item.body?.match(/单价：(.+)/);
-        const name = nameMatch ? nameMatch[1].trim() : "未知商品";
-        const price = priceMatch ? priceMatch[1].trim() : "¥0.00";
+    try {
+        for (const item of cartList) {
+            await YGDb.Orders.create({
+                order_no: orderNo,
+                phone: currentUser.phone,
+                product: item.name,
+                amount: String(item.price || '').replace(/[^\d.]/g, '') || '0.00',
+                pay_status: '已支付',
+                receiver: receiver,
+                receiver_phone: receiverPhone,
+                address: address,
+                progress: 0,
+                remark: ''
+            });
+        }
+        // 购物车清空
+        await YGDb.Cart.clear(currentUser.phone);
 
-        const newBody = `用户：${currentUser.phone}\n商品：${name}\n单价：${price}\n订单号：${orderNo}\n支付时间：${payTime}\n状态：已支付\n收货人：${document.getElementById('receiverName').value.trim()}\n收货手机：${document.getElementById('receiverPhone').value.trim()}\n收货地址：${document.getElementById('receiverAddr').value.trim()}`;
-
-        await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues/${item.number}`, {
-            method: "PATCH",
-            headers: { Authorization: `token ${GITHUB_CONFIG.token}` },
-            body: JSON.stringify({
-                labels: ["payment-record"],
-                body: newBody
-            })
-        });
+        alert("支付成功！订单已生成");
+        closePay();
+        loadCart();
+    } catch (e) {
+        alert("下单失败：" + e.message);
     }
-
-    alert("支付成功！订单已生成");
-    closePay();
-    loadCart();
 }
 
 function autoRefreshCart() {

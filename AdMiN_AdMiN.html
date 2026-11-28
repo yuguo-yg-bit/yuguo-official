@@ -477,19 +477,12 @@
     </div>
 </div>
 
+<script src="db.js"></script>
 <script src="chat.js"></script>
 <script>
 // ================== 核心配置（完全保留你的原有配置） ==================
 const CONFIG = {
-    owner: 'yuguo-yg-bit',
-    repo: 'yuguo-official',
-    t1: 'ghp_sVylTqJv8nv',
-    t2: 'K3SK3wS2qidM6AvQ',
-    t3: 'AFx1rAvCd',
-    get token() { return this.t1 + this.t2 + this.t3 },
-    adminPwd: '0978004710_27015150111_admin',
-    orderLabel: 'payment-record',
-    userLabel: 'user-register'
+    adminPwd: '0978004710_27015150111_admin'
 };
 
 // 全局变量
@@ -640,10 +633,7 @@ async function loadOrders() {
     const el = document.getElementById('orderList');
     el.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 rounded-xl text-center text-[var(--text-secondary)]"><div class="loading-spinner mx-auto"></div><p class="mt-2">正在加载订单...</p></div>`;
     try {
-        const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.orderLabel}&state=all&per_page=100`, {
-            headers: { Authorization: `token ${CONFIG.token}` }
-        });
-        allOrders = await res.json();
+        allOrders = await YGDb.Orders.listAll();
         renderOrders(allOrders);
         updateOrderStats(allOrders);
         document.getElementById('checkAll').checked = false;
@@ -659,19 +649,18 @@ function updateOrderStats(orders) {
     let today = 0, pending = 0, unpaid = 0, finish = 0, totalAmount = 0;
 
     orders.forEach(o => {
-        const body = o.body;
         // 今日订单
         if (isToday(o.created_at)) today++;
         // 物流进度
-        const p = body.match(/物流进度：(\d+)/) ? +body.match(/物流进度：(\d+)/)[1] : 0;
+        const p = Number(o.progress) || 0;
         if (p >= 1 && p < 7) pending++;
         if (p >= 7) finish++;
         // 未支付
-        const payStatus = body.match(/支付状态：(\S+)/)?.[1] || '已支付';
+        const payStatus = o.pay_status || '已支付';
         if (payStatus === '未支付') unpaid++;
         // 总金额
-        const amount = body.match(/支付金额：¥?(\d+\.?\d*)/)?.[1];
-        if (amount) totalAmount += parseFloat(amount);
+        const amount = String(o.amount || '').replace(/[^\d.]/g, '');
+        if (amount) totalAmount += parseFloat(amount) || 0;
     });
 
     // 更新DOM
@@ -692,20 +681,20 @@ function updateOrderStats(orders) {
     }
 }
 
-// 解析订单信息
-function parseOrderBody(body) {
+// 解析订单信息（数据库行 -> 展示字段）
+function orderInfo(o) {
     return {
-        orderNo: body.match(/订单号：(\S+)/)?.[1] || '',
-        userPhone: body.match(/用户手机号：(.+)/)?.[1] || '',
-        product: body.match(/商品名称：(.+)/)?.[1] || '',
-        amount: body.match(/支付金额：(.+)/)?.[1] || '',
-        receiver: body.match(/收货人：(.+)/)?.[1] || '',
-        receiverPhone: body.match(/联系电话：(.+)/)?.[1] || '',
-        address: body.match(/收货地址：(.+)/)?.[1] || '',
-        payTime: body.match(/支付时间：(.+)/)?.[1] || '',
-        progress: body.match(/物流进度：(\d+)/) ? +body.match(/物流进度：(\d+)/)[1] : 0,
-        payStatus: body.match(/支付状态：(\S+)/)?.[1] || '已支付',
-        remark: body.match(/内部备注：(.+)/)?.[1] || ''
+        orderNo: o.order_no || '',
+        userPhone: o.phone || '',
+        product: o.product || '',
+        amount: '¥' + (String(o.amount || '').replace(/[^\d.]/g, '') || '0.00'),
+        receiver: o.receiver || '',
+        receiverPhone: o.receiver_phone || '',
+        address: o.address || '',
+        payTime: o.created_at ? formatDate(o.created_at) : '',
+        progress: Number(o.progress) || 0,
+        payStatus: o.pay_status || '已支付',
+        remark: o.remark || ''
     };
 }
 
@@ -721,7 +710,7 @@ function renderOrders(orders) {
     if (currentView === 'card') {
         // 卡片视图
         orders.forEach(o => {
-            const info = parseOrderBody(o.body);
+            const info = orderInfo(o);
             const isNew = isToday(o.created_at);
             const isUnpaid = info.payStatus === '未支付';
             const cardClass = `order-card bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border border-[var(--border-color)] ${isNew ? 'new-order' : ''} ${isUnpaid ? 'unpaid' : ''}`;
@@ -729,7 +718,7 @@ function renderOrders(orders) {
             html += `
 <div class="${cardClass}">
     <div class="flex items-start gap-3 mb-3">
-        <input type="checkbox" class="order-check w-4 h-4 mt-1" data-node="${o.node_id}" data-number="${o.number}">
+        <input type="checkbox" class="order-check w-4 h-4 mt-1" data-id="${o.id}">
         <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
             <div>
                 <p><span class="text-[var(--text-secondary)]">订单号：</span>${info.orderNo} ${isNew ? '<span class="text-xs bg-warning/20 text-warning px-1 rounded">新</span>' : ''}</p>
@@ -746,7 +735,7 @@ function renderOrders(orders) {
         </div>
     </div>
     <div class="flex flex-wrap gap-2 border-t border-[var(--border-color)] pt-3">
-        <select class="border border-[var(--border-color)] rounded px-2 py-1 text-sm bg-transparent outline-none" onchange="updateProgress('${o.node_id}', this.value)">
+        <select class="border border-[var(--border-color)] rounded px-2 py-1 text-sm bg-transparent outline-none" onchange="updateProgress('${o.id}', this.value)">
             <option value="0" ${info.progress==0?'selected':''}>0-已提交</option>
             <option value="1" ${info.progress==1?'selected':''}>1-待审核</option>
             <option value="2" ${info.progress==2?'selected':''}>2-已出库</option>
@@ -759,10 +748,10 @@ function renderOrders(orders) {
         <button onclick="copyAddress('${info.receiver}','${info.receiverPhone}','${info.address}')" class="bg-secondary/10 text-secondary px-2 py-1 rounded text-sm">
             <i class="bi bi-clipboard mr-1"></i> 复制地址
         </button>
-        <button onclick="openOrderDetail('${o.node_id}')" class="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
+        <button onclick="openOrderDetail('${o.id}')" class="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
             <i class="bi bi-eye mr-1"></i> 详情/编辑
         </button>
-        <button onclick="delOne('${o.node_id}')" class="bg-danger text-white px-2 py-1 rounded text-sm">
+        <button onclick="delOrder('${o.id}')" class="bg-danger text-white px-2 py-1 rounded text-sm">
             <i class="bi bi-trash mr-1"></i> 彻底删除
         </button>
     </div>
@@ -786,11 +775,11 @@ function renderOrders(orders) {
     </thead>
     <tbody>`;
         orders.forEach(o => {
-            const info = parseOrderBody(o.body);
+            const info = orderInfo(o);
             const isUnpaid = info.payStatus === '未支付';
             html += `
 <tr>
-    <td><input type="checkbox" class="order-check w-4 h-4" data-node="${o.node_id}" data-number="${o.number}"></td>
+    <td><input type="checkbox" class="order-check w-4 h-4" data-id="${o.id}"></td>
     <td class="text-sm">${info.orderNo}</td>
     <td class="text-sm">${info.userPhone}</td>
     <td class="text-sm">${info.product}</td>
@@ -799,8 +788,8 @@ function renderOrders(orders) {
     <td class="text-sm">${info.receiver}</td>
     <td>
         <div class="flex gap-1">
-            <button onclick="openOrderDetail('${o.node_id}')" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">详情</button>
-            <button onclick="delOne('${o.node_id}')" class="text-xs bg-danger text-white px-2 py-1 rounded">删除</button>
+            <button onclick="openOrderDetail('${o.id}')" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">详情</button>
+            <button onclick="delOrder('${o.id}')" class="text-xs bg-danger text-white px-2 py-1 rounded">删除</button>
         </div>
     </td>
 </tr>`;
@@ -836,7 +825,7 @@ function filterOrders() {
     const timeFilter = document.getElementById('timeFilter').value;
 
     const filtered = allOrders.filter(o => {
-        const info = parseOrderBody(o.body);
+        const info = orderInfo(o);
         // 关键词搜索
         const matchKeyword = !keyword || 
             info.orderNo.toLowerCase().includes(keyword) ||
@@ -870,28 +859,16 @@ function copyAddress(receiver, phone, address) {
 }
 
 // 更新物流进度
-async function updateProgress(nodeId, val) {
-    const o = allOrders.find(x => x.node_id === nodeId);
+async function updateProgress(orderId, val) {
+    const o = allOrders.find(x => String(x.id) === String(orderId));
     if (!o) return;
 
-    let body = o.body;
-    body = body.replace(/物流进度：\d+/, `物流进度：${val}`);
-    body = body.replace(/物流状态：.*/, `物流状态：${statusTexts[val]}`);
-    body = body.replace(/订单状态：.*/, `订单状态：${orderStatusTexts[val]}`);
-
     try {
-        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
-            method: 'PATCH',
-            headers: {
-                Authorization: `token ${CONFIG.token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ body })
-        });
+        await YGDb.Orders.update(o.id, { progress: Number(val) });
         showToast('物流状态更新成功', 'success');
         loadOrders();
     } catch (e) {
-        showToast('更新失败', 'error');
+        showToast('更新失败：' + e.message, 'error');
     }
 }
 
@@ -903,41 +880,25 @@ async function batchUpdateStatus() {
     if (!targetStatus) return showToast('请选择要修改的状态', 'warning');
     if (!confirm(`确定要将选中的 ${selected.length} 条订单状态改为 ${statusTexts[targetStatus]}？`)) return;
 
-    let success = 0;
-    for (const item of selected) {
-        const nodeId = item.dataset.node;
-        const o = allOrders.find(x => x.node_id === nodeId);
-        if (!o) continue;
+    const ids = selected.map(item => Number(item.dataset.id)).filter(id => !isNaN(id));
+    if (!ids.length) return showToast('请先选择订单', 'warning');
 
-        let body = o.body;
-        body = body.replace(/物流进度：\d+/, `物流进度：${targetStatus}`);
-        body = body.replace(/物流状态：.*/, `物流状态：${statusTexts[targetStatus]}`);
-        body = body.replace(/订单状态：.*/, `订单状态：${orderStatusTexts[targetStatus]}`);
-
-        try {
-            await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
-                method: 'PATCH',
-                headers: {
-                    Authorization: `token ${CONFIG.token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ body })
-            });
-            success++;
-        } catch (e) {}
+    try {
+        await YGDb.Orders.updateMany(ids, { progress: Number(targetStatus) });
+        showToast(`批量更新完成：成功 ${ids.length} 条`, 'success');
+        loadOrders();
+    } catch (e) {
+        showToast('批量更新失败：' + e.message, 'error');
     }
-
-    showToast(`批量更新完成：成功 ${success} 条`, 'success');
-    loadOrders();
 }
 
 // 订单详情/编辑
 let currentEditOrderNode = '';
-function openOrderDetail(nodeId) {
-    currentEditOrderNode = nodeId;
-    const o = allOrders.find(x => x.node_id === nodeId);
+function openOrderDetail(orderId) {
+    currentEditOrderNode = orderId;
+    const o = allOrders.find(x => String(x.id) === String(orderId));
     if (!o) return;
-    const info = parseOrderBody(o.body);
+    const info = orderInfo(o);
     document.getElementById('modalTitle').innerText = `订单详情 - ${info.orderNo}`;
     document.getElementById('modalContent').innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1004,7 +965,7 @@ function closeOrderModal() {
 }
 
 async function saveOrderEdit() {
-    const o = allOrders.find(x => x.node_id === currentEditOrderNode);
+    const o = allOrders.find(x => String(x.id) === String(currentEditOrderNode));
     if (!o) return;
 
     // 获取表单值
@@ -1019,41 +980,24 @@ async function saveOrderEdit() {
     const progress = document.getElementById('editOrderProgress').value;
     const remark = document.getElementById('editOrderRemark').value.trim();
 
-    // 构建新的body
-    let body = o.body;
-    body = body.replace(/订单号：\S+/, `订单号：${orderNo}`);
-    body = body.replace(/用户手机号：.+/, `用户手机号：${userPhone}`);
-    body = body.replace(/商品名称：.+/, `商品名称：${product}`);
-    body = body.replace(/支付金额：.+/, `支付金额：${amount}`);
-    body = body.replace(/收货人：.+/, `收货人：${receiver}`);
-    body = body.replace(/联系电话：.+/, `联系电话：${receiverPhone}`);
-    body = body.replace(/收货地址：.+/, `收货地址：${address}`);
-    body = body.replace(/支付状态：\S+/, `支付状态：${payStatus}`);
-    body = body.replace(/物流进度：\d+/, `物流进度：${progress}`);
-    body = body.replace(/物流状态：.+/, `物流状态：${statusTexts[progress]}`);
-    body = body.replace(/订单状态：.+/, `订单状态：${orderStatusTexts[progress]}`);
-
-    // 处理备注
-    if (body.match(/内部备注：.+/)) {
-        body = body.replace(/内部备注：.+/, `内部备注：${remark}`);
-    } else if (remark) {
-        body += `\n内部备注：${remark}`;
-    }
-
     try {
-        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${o.number}`, {
-            method: 'PATCH',
-            headers: {
-                Authorization: `token ${CONFIG.token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ body, title: `订单 | ${orderNo}` })
+        await YGDb.Orders.update(o.id, {
+            order_no: orderNo,
+            phone: userPhone,
+            product: product,
+            amount: String(amount).replace(/[^\d.]/g, '') || '0.00',
+            pay_status: payStatus,
+            receiver: receiver,
+            receiver_phone: receiverPhone,
+            address: address,
+            progress: Number(progress),
+            remark: remark
         });
         showToast('订单修改成功', 'success');
         closeOrderModal();
         loadOrders();
     } catch (e) {
-        showToast('修改失败', 'error');
+        showToast('修改失败：' + e.message, 'error');
     }
 }
 
@@ -1083,41 +1027,24 @@ async function createOrder() {
         return showToast('请填写完整订单信息', 'warning');
     }
 
-    const now = new Date();
-    const payTime = `${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-
-    // 构建body
-    const body = `订单号：${orderNo}
-用户手机号：${userPhone}
-商品名称：${product}
-支付金额：${amount}
-支付状态：${payStatus}
-收货人：${receiver}
-联系电话：${receiverPhone}
-收货地址：${address}
-支付时间：${payTime}
-订单状态：待发货
-物流进度：0
-物流状态：已提交`;
-
     try {
-        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues`, {
-            method: 'POST',
-            headers: {
-                Authorization: `token ${CONFIG.token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: `订单 | ${orderNo}`,
-                body: body,
-                labels: [CONFIG.orderLabel]
-            })
+        await YGDb.Orders.create({
+            order_no: orderNo,
+            phone: userPhone,
+            product: product,
+            amount: String(amount).replace(/[^\d.]/g, '') || '0.00',
+            pay_status: payStatus,
+            receiver: receiver,
+            receiver_phone: receiverPhone,
+            address: address,
+            progress: 0,
+            remark: ''
         });
         showToast('订单创建成功', 'success');
         closeCreateOrderModal();
         loadOrders();
     } catch (e) {
-        showToast('创建失败', 'error');
+        showToast('创建失败：' + e.message, 'error');
     }
 }
 
@@ -1126,47 +1053,35 @@ function exportOrders() {
     if (allOrders.length === 0) return showToast('暂无订单可导出', 'warning');
     let content = '订单号,用户手机号,商品名称,金额,支付状态,物流状态,收货人,联系电话,地址,下单时间\n';
     allOrders.forEach(o => {
-        const info = parseOrderBody(o.body);
+        const info = orderInfo(o);
         content += `${info.orderNo},${info.userPhone},${info.product},${info.amount},${info.payStatus},${statusTexts[info.progress]},${info.receiver},${info.receiverPhone},${info.address},${info.payTime}\n`;
     });
     downloadFile(content, `订单列表_${new Date().toLocaleDateString()}.csv`);
     showToast('订单导出成功', 'success');
 }
 
-// ================== 彻底删除（GraphQL 真删除） ==================
-async function deleteNode(nodeId) {
+// ================== 删除（数据库直删） ==================
+// 删除单条订单
+async function delOrder(id) {
+    if (!confirm('确定要永久彻底删除？删除后无法恢复！')) return;
     try {
-        const res = await fetch('https://api.github.com/graphql', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${CONFIG.token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                query: `mutation {
-                    deleteIssue(input: { issueId: "${nodeId}" }) {
-                        clientMutationId
-                    }
-                }`
-            })
-        });
-        const json = await res.json();
-        return !json.errors;
+        await YGDb.Orders.remove(id);
+        showToast('删除成功', 'success');
+        loadOrders();
     } catch (e) {
-        console.error(e);
-        return false;
+        showToast('删除失败：' + e.message, 'error');
     }
 }
 
-// 单条删除
-async function delOne(nodeId) {
-    if (!confirm('确定要永久彻底删除？删除后无法恢复！')) return;
-    const success = await deleteNode(nodeId);
-    if (success) {
+// 删除用户（含其购物车/订单/会话）
+async function delUser(phone) {
+    if (!confirm(`确定永久删除用户 ${phone} 及其全部数据？不可恢复！`)) return;
+    try {
+        await YGDb.Users.remove(phone);
         showToast('删除成功', 'success');
-        currentTab === 'order' ? loadOrders() : loadUsers();
-    } else {
-        showToast('删除失败', 'error');
+        loadUsers();
+    } catch (e) {
+        showToast('删除失败：' + e.message, 'error');
     }
 }
 
@@ -1176,28 +1091,26 @@ async function batchDelete() {
     if (list.length === 0) return showToast('请先选择订单', 'warning');
     if (!confirm(`确定永久删除 ${list.length} 条订单？`)) return;
 
+    const ids = list.map(item => Number(item.dataset.id)).filter(id => !isNaN(id));
     let count = 0;
-    for (const item of list) {
-        const ok = await deleteNode(item.dataset.node);
-        if (ok) count++;
+    for (const id of ids) {
+        try { await YGDb.Orders.remove(id); count++; } catch (e) {}
     }
     showToast(`成功删除 ${count} 条`, 'success');
     loadOrders();
 }
 
-// 清空测试数据
+// 清空全部数据
 async function clearTestData() {
-    if (!confirm('确定清空所有订单与用户？不可恢复！')) return;
-    let count = 0;
-    for (const o of allOrders) {
-        if (await deleteNode(o.node_id)) count++;
+    if (!confirm('确定清空所有用户、购物车、订单与会话？不可恢复！')) return;
+    try {
+        await YGDb.Users.clearAll();
+        showToast('清空完成', 'success');
+        loadOrders();
+        loadUsers();
+    } catch (e) {
+        showToast('清空失败：' + e.message, 'error');
     }
-    for (const u of allUsers) {
-        if (await deleteNode(u.node_id)) count++;
-    }
-    showToast(`清空完成，共删除 ${count} 条数据`, 'success');
-    loadOrders();
-    loadUsers();
 }
 
 // ================== 用户管理 ==================
@@ -1205,12 +1118,7 @@ async function loadUsers() {
     const el = document.getElementById('userList');
     el.innerHTML = `<div class="bg-[var(--bg-panel)] p-6 text-center"><div class="loading-spinner mx-auto"></div><p class="mt-2">加载用户中...</p></div>`;
     try {
-        const res = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.userLabel}&state=all&per_page=100`, {
-            headers: { Authorization: `token ${CONFIG.token}` }
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        allUsers = Array.isArray(data) ? data : [];
+        allUsers = await YGDb.Users.list();
         renderUsers(allUsers);
         updateUserStats(allUsers);
     } catch (e) {
@@ -1226,16 +1134,14 @@ function updateUserStats(users) {
     document.getElementById('todayUser').innerText = today;
 }
 
-function parseUserBody(body, title) {
-    body = body || '';
-    // 兼容注册页写入的 `- 手机号：xxx` 与旧数据的 `• 手机号：xxx`，中英文冒号均可
-    const pick = (key) => body.match(new RegExp(`[-•*]\\s*${key}\\s*[：:]\\s*([^\\s]+)`))?.[1]
-                       || body.match(new RegExp(`${key}\\s*[：:]\\s*([^\\s]+)`))?.[1] || '';
+function userInfo(u) {
     return {
-        phone: pick('手机号') || (title?.match(/(\d{11})/) || [])[1] || title || '',
-        pwdHash: pick('密码哈希值') || pick('密码哈希'),
-        regTime: body.match(/注册时间\s*[：:]\s*(.+)/)?.[1]?.trim() || '',
-        status: pick('账号状态') || '正常'
+        phone: u.phone || '',
+        pwdHash: u.pwd_hash || '',
+        birthday: u.birthday || '',
+        gender: u.gender || '男',
+        regTime: u.created_at ? formatDate(u.created_at) : '',
+        status: u.status || '正常'
     };
 }
 
@@ -1254,7 +1160,7 @@ function renderUsers(users) {
 
     let html = '';
     users.forEach(u => {
-        const info = parseUserBody(u.body, u.title);
+        const info = userInfo(u);
         const days = Math.floor((new Date() - new Date(u.created_at)) / 86400000);
         html += `
 <div class="bg-[var(--bg-panel)] p-4 rounded-xl shadow-sm border">
@@ -1262,12 +1168,13 @@ function renderUsers(users) {
         <div>
             <p class="font-bold text-lg">${info.phone}</p>
             <p class="text-sm text-[var(--text-secondary)]">注册：${info.regTime}（${days}天）</p>
+            <p class="text-sm">生日：${info.birthday || '未填写'} · 性别：${info.gender}</p>
             <p class="text-sm">状态：<span class="${info.status==='正常'?'text-success':'text-danger'}">${info.status}</span></p>
         </div>
         <div class="flex flex-col gap-1">
             <button onclick="showUserOrders('${info.phone}')" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded">查看订单</button>
-            <button onclick="openResetPwdModal('${u.node_id}')" class="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded">重置密码</button>
-            <button onclick="delOne('${u.node_id}')" class="text-xs bg-danger text-white px-2 py-1 rounded">删除</button>
+            <button onclick="openResetPwdModal('${info.phone}')" class="text-xs bg-secondary/10 text-secondary px-2 py-1 rounded">重置密码</button>
+            <button onclick="delUser('${info.phone}')" class="text-xs bg-danger text-white px-2 py-1 rounded">删除</button>
         </div>
     </div>
     <div class="text-xs text-[var(--text-secondary)] mt-2 break-all">
@@ -1280,26 +1187,20 @@ function renderUsers(users) {
 
 function filterUsers() {
     const kw = document.getElementById('userSearch').value.trim();
-    const filtered = allUsers.filter(u => {
-        const info = parseUserBody(u.body, u.title);
-        return !kw || info.phone.includes(kw);
-    });
+    const filtered = allUsers.filter(u => !kw || (u.phone || '').includes(kw));
     renderUsers(filtered);
 }
 
 // 查看用户订单
 function showUserOrders(phone) {
-    const orders = allOrders.filter(o => {
-        const info = parseOrderBody(o.body);
-        return info.userPhone === phone;
-    });
+    const orders = allOrders.filter(o => (o.phone || '') === phone);
     document.getElementById('userOrderTitle').innerText = `${phone} 的订单（${orders.length}单）`;
     let html = '';
     if (orders.length === 0) {
         html = `<div class="p-4 text-center">暂无订单</div>`;
     } else {
         orders.forEach(o => {
-            const info = parseOrderBody(o.body);
+            const info = orderInfo(o);
             html += `
 <div class="p-3 border rounded-lg text-sm">
     <p>订单：${info.orderNo}</p>
@@ -1317,8 +1218,8 @@ function closeUserOrderModal() {
 }
 
 // 重置密码
-function openResetPwdModal(nodeId) {
-    currentResetUserId = nodeId;
+function openResetPwdModal(phone) {
+    currentResetUserId = phone;
     document.getElementById('newPwd').value = '';
     document.getElementById('resetPwdModal').style.display = 'grid';
 }
@@ -1332,36 +1233,26 @@ async function confirmResetPwd() {
     const pwd = document.getElementById('newPwd').value.trim();
     if (!pwd) return showToast('请输入新密码', 'warning');
     const hash = await sha256(pwd);
-    const u = allUsers.find(x => x.node_id === currentResetUserId);
-    if (!u) return;
-
-    let body = u.body;
-    body = body.replace(/•\s*密码哈希值：\S+/, `• 密码哈希值：${hash}`);
+    const phone = currentResetUserId;
+    if (!phone) return;
 
     try {
-        await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues/${u.number}`, {
-            method: 'PATCH',
-            headers: {
-                Authorization: `token ${CONFIG.token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ body })
-        });
+        await YGDb.Users.update(phone, { pwd_hash: hash });
         showToast('密码已重置', 'success');
         closeResetPwdModal();
         loadUsers();
     } catch (e) {
-        showToast('重置失败', 'error');
+        showToast('重置失败：' + e.message, 'error');
     }
 }
 
 // 导出用户
 function exportUsers() {
     if (allUsers.length === 0) return showToast('暂无用户', 'warning');
-    let content = '手机号,密码哈希,注册时间,状态\n';
+    let content = '手机号,密码哈希,生日,性别,注册时间,状态\n';
     allUsers.forEach(u => {
-        const info = parseUserBody(u.body, u.title);
-        content += `${info.phone},${info.pwdHash},${info.regTime},${info.status}\n`;
+        const info = userInfo(u);
+        content += `${info.phone},${info.pwdHash},${info.birthday},${info.gender},${info.regTime},${info.status}\n`;
     });
     downloadFile(content, `用户列表_${new Date().toLocaleDateString()}.csv`);
     showToast('用户导出成功', 'success');
@@ -1377,18 +1268,10 @@ async function searchServiceUser() {
     }
     resultEl.innerHTML = '<div class="loading-spinner mx-auto"></div><p class="mt-2">正在查询...</p>';
     try {
-        const [orderRes, cartRes] = await Promise.all([
-            fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.orderLabel}&state=all&per_page=100`, {
-                headers: { Authorization: `token ${CONFIG.token}` }
-            }),
-            fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=cart&state=all&per_page=50`, {
-                headers: { Authorization: `token ${CONFIG.token}` }
-            })
+        const [userOrders, userCarts] = await Promise.all([
+            YGDb.Orders.list(phone),
+            YGDb.Cart.list(phone)
         ]);
-        const orders = await orderRes.json();
-        const carts = await cartRes.json();
-        const userOrders = orders.filter(o => o.body?.includes(phone));
-        const userCarts = carts.filter(c => c.body?.includes(phone));
         if (userOrders.length === 0 && userCarts.length === 0) {
             resultEl.innerHTML = `<div class="text-[var(--text-secondary)]"><i class="bi bi-person-x text-3xl mb-2 block"></i><p>未找到手机号 ${phone} 的相关记录</p></div>`;
             return;
@@ -1398,15 +1281,14 @@ async function searchServiceUser() {
             html += '<h5 class="text-sm font-bold text-[var(--text-secondary)] mb-2"><i class="bi bi-receipt mr-1"></i>订单记录 (' + userOrders.length + '条)</h5>';
             html += '<div class="space-y-2 mb-4">';
             userOrders.slice(0, 10).forEach(o => {
-                const body = o.body;
-                const orderNo = (body.match(/订单号：(.+)/) || ['', '无'])[1];
-                const product = (body.match(/商品[名称]?[：:](.+)/) || ['', '未知'])[1];
-                const amount = (body.match(/单价[：:](.+)/) || ['', '未知'])[1];
-                const progress = (body.match(/物流进度：(\d+)/) || ['', '0'])[1];
-                const status = CONFIG.statusTexts ? CONFIG.statusTexts[+progress] : ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'][+progress];
+                const orderNo = o.order_no || '无';
+                const product = o.product || '未知';
+                const amount = '¥' + (String(o.amount || '').replace(/[^\d.]/g, '') || '0.00');
+                const progress = Number(o.progress) || 0;
+                const status = statusTexts[progress] || '处理中';
                 html += `<div class="bg-[var(--bg-body)] p-3 rounded-lg text-sm border border-[var(--border-color)]">
                     <p><b>${orderNo}</b> | ${product.trim()} | ${amount}</p>
-                    <p class="text-xs text-[var(--text-secondary)]">状态：${status || '处理中'} | ${o.created_at?formatDate(o.created_at):''}</p>
+                    <p class="text-xs text-[var(--text-secondary)]">状态：${status} | ${o.created_at?formatDate(o.created_at):''}</p>
                 </div>`;
             });
             if (userOrders.length > 10) html += '<p class="text-xs text-[var(--text-secondary)]">...仅显示最近10条</p>';
@@ -1416,8 +1298,8 @@ async function searchServiceUser() {
             html += '<h5 class="text-sm font-bold text-[var(--text-secondary)] mb-2"><i class="bi bi-cart mr-1"></i>购物车记录 (' + userCarts.length + '项)</h5>';
             html += '<div class="space-y-2">';
             userCarts.slice(0, 5).forEach(c => {
-                const product = (c.body.match(/商品[：:](.+)/) || ['', '未知'])[1];
-                const price = (c.body.match(/单价[：:](.+)/) || ['', '未知'])[1];
+                const product = c.name || '未知';
+                const price = c.price || '';
                 html += `<div class="bg-[var(--bg-body)] p-2 rounded-lg text-sm border border-[var(--border-color)] flex justify-between">
                     <span>${product.trim()}</span><span class="font-bold">${price}</span>
                 </div>`;

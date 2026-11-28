@@ -55,13 +55,10 @@
     <a href="register.html" class="order-btn" style="text-decoration:none; display:flex; align-items:center;">注册账号</a>
 </div>
 
+<script src="db.js"></script>
 <script src="chat.js"></script>
 <script>
-// 接口配置统一由 chat.js 提供，此处不再重复硬编码
-const API = YuguoChat.API;
-const HEADERS = YuguoChat.HEADERS;
-
-const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+const currentUser = YGDb.currentUser();
 
 const chatBox = document.getElementById('chatBox');
 const msgInput = document.getElementById('msgInput');
@@ -140,17 +137,13 @@ document.addEventListener('visibilitychange', () => {
 
 document.getElementById('sendOrder').addEventListener('click', async () => {
     try {
-        const res = await fetch(`${API}/issues?labels=payment-record&state=all&per_page=50`, { headers: HEADERS });
-        const all = await res.json();
-        const mine = (Array.isArray(all) ? all : []).filter(i => i.body?.includes(currentUser.phone));
+        const mine = await YGDb.Orders.list(currentUser.phone);
         if (!mine.length) { renderTip('您暂无订单记录'); return; }
         let html = '<b>📋 您的订单：</b>';
         mine.slice(0, 10).forEach(o => {
-            const no = (o.body.match(/订单号：(.+)/) || [''])[1] || '未知';
-            const product = (o.body.match(/商品[名称]?[：:](.+)/) || ['', '未知'])[1];
-            const progress = (o.body.match(/物流进度：(\d+)/) || ['', '0'])[1];
-            const status = ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'][+progress] || '处理中';
-            html += '<div class="order-inline"><p class="on">' + esc(no) + '</p><p>' + esc(product.trim()) + '</p><p>状态：' + status + '</p></div>';
+            const progress = Number(o.progress) || 0;
+            const status = ['已提交','待审核','已出库','运输中','运输中','运输中','运输中','已签收'][progress] || '处理中';
+            html += '<div class="order-inline"><p class="on">' + esc(o.order_no || '未知') + '</p><p>' + esc((o.product || '未知商品').trim()) + '</p><p>状态：' + status + '</p></div>';
         });
         if (mine.length > 10) html += '<p style="font-size:13px;color:#888;">...仅显示最近10条</p>';
         const div = document.createElement('div');

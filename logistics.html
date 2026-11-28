@@ -98,13 +98,8 @@
     </div>
 </div>
 
+<script src="db.js"></script>
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
-};
-
 // 读取订单号
 const params = new URLSearchParams(window.location.search);
 const orderNo = params.get("orderNo");
@@ -127,30 +122,26 @@ const steps = [
 ];
 
 async function loadLogistics() {
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`);
-    const list = await res.json();
-    const issue = list.find(item => item.body.includes(orderNo));
-    if (!issue) {
+    let order;
+    try {
+        order = await YGDb.Orders.findByNo(orderNo);
+    } catch (e) {
+        alert("订单查询失败：" + e.message);
+        return;
+    }
+    if (!order) {
         alert("订单不存在");
         return;
     }
-    const body = issue.body;
-
-    // 解析信息
-    function get(key) {
-        const reg = new RegExp(`${key}：(.+)`);
-        const m = body.match(reg);
-        return m ? m[1].trim() : "无";
-    }
 
     const data = {
-        product: get("商品名称"),
-        amount: get("支付金额"),
-        time: get("支付时间"),
-        receiver: get("收货人"),
-        phone: get("联系电话"),
-        address: get("收货地址"),
-        progress: parseInt(get("物流进度")) || 0
+        product: order.product || "无",
+        amount: "¥" + (String(order.amount || '0').replace(/[^\d.]/g, '') || '0.00'),
+        time: order.created_at ? new Date(order.created_at).toLocaleString('zh-CN') : "无",
+        receiver: order.receiver || "无",
+        phone: order.receiver_phone || "无",
+        address: order.address || "无",
+        progress: Number(order.progress) || 0
     };
 
     // 渲染页面

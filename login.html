@@ -51,13 +51,8 @@
 </head>
 <body>
 
+<script src="db.js"></script>
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
-};
-
 // 密码哈希函数（和注册页一致）
 async function hashPassword(password) {
     const encoder = new TextEncoder();
@@ -79,40 +74,32 @@ async function handleLogin() {
     const pwdHash = await hashPassword(password);
 
     try {
-        // 获取所有注册用户的Issue
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues?labels=user-register&state=all`, {
-            headers: {
-                "Authorization": `token ${GITHUB_CONFIG.token}`,
-                "Accept": "application/vnd.github.v3+json"
-            }
-        });
+        // 数据库中按手机号精确查询
+        const user = await YGDb.Users.find(phone);
 
-        if (response.ok) {
-            const issues = await response.json();
-            // 匹配手机号和密码哈希
-            const user = issues.find(issue => {
-                const body = issue.body || "";
-                const regPhone = body.match(/手机号：(\d+)/)?.[1];
-                const regHash = body.match(/密码哈希值：([a-f0-9]+)/)?.[1];
-                return regPhone === phone && regHash === pwdHash;
-            });
-
-            if (user) {
-                // 登录成功，存储当前用户到localStorage（含生日、性别）
-                const regBirthday = (user.body || "").match(/生日：(\S+)/)?.[1] || '';
-                const regGender = (user.body || "").match(/性别：([男女])/)?.[1] || '男';
-                localStorage.setItem('currentUser', JSON.stringify({ phone, birthday: regBirthday, gender: regGender }));
-                alert('登录成功！');
-                window.location.href = 'index.html';
-            } else {
-                alert('手机号或密码错误！');
-            }
-        } else {
-            const err = await response.json();
-            alert('登录失败：' + err.message);
+        if (!user) {
+            alert('手机号或密码错误！');
+            return;
         }
+        if (user.pwd_hash !== pwdHash) {
+            alert('手机号或密码错误！');
+            return;
+        }
+        if (user.status && user.status !== '正常') {
+            alert('账号状态异常：' + user.status);
+            return;
+        }
+
+        // 登录成功，存储当前用户到 localStorage（含生日、性别）
+        YGDb.setSession({
+            phone: user.phone,
+            birthday: user.birthday || '',
+            gender: user.gender || '男'
+        });
+        alert('登录成功！');
+        window.location.href = 'index.html';
     } catch (e) {
-        alert('网络异常：' + e.message);
+        alert('登录失败：' + e.message);
     }
 }
 </script>
@@ -168,7 +155,7 @@ async function handleLogin() {
 
 <!-- 底部信息栏（和首页完全一致） -->
 <footer class="py-6 text-center text-sm text-gray-500 border-t border-border bg-darker">
-  <p>© 2025 玉国科技 | 所有数据存储于 GitHub Issues</p>
+  <p>© 2025 玉国科技 | 所有数据存储于 Turso 数据库</p>
 </footer>
 
 <script>

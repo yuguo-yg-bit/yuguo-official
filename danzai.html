@@ -65,14 +65,9 @@
 </head>
 <body>
 
+<script src="db.js"></script>
 <script>
-const GITHUB_CONFIG = {
-    username: "yuguo-yg-bit",
-    repo: "yuguo-official",
-    token: "ghp_sVylTqJv8nv"+"K3SK3wS2qidM6AvQAFx1rAvCd"
-};
-
-const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+const currentUser = YGDb.currentUser();
 if (!currentUser) {
     alert('你未登录！请登录！');
     window.location.href = 'login.html';
@@ -90,7 +85,7 @@ function checkLoginNav() {
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
+    YGDb.clearSession();
     window.location.href = 'login.html';
 }
 </script>
@@ -355,54 +350,29 @@ function hidePayModal() {
 
 async function createPaymentRecord() {
     const orderNo = "YG" + new Date().getTime();
-    const payTime = new Date().toLocaleString('zh-CN');
     const productName = "3D打印蛋仔（黑金版）";
     const amount = "3.00";
-    const status = "待发货";
     const userPhone = currentUser?.phone || "未登录用户";
 
-    const issueData = {
-        title: `付款订单 | ${orderNo} | ${userPhone}`,
-        body: `### 订单信息
-- 订单号：${orderNo}
-- 用户手机号：${userPhone}
-- 商品名称：${productName}
-- 支付金额：¥${amount}
-- 支付时间：${payTime}
-- 订单状态：${status}
-
-### 收货信息
-- 收货人：${orderAddress.name}
-- 联系电话：${orderAddress.phone}
-- 收货地址：${orderAddress.detail}
-
-### 物流信息
-- 物流进度：0
-- 物流状态：订单已提交`,
-        labels: ["payment-record"]
-    };
-
     try {
-        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/issues`, {
-            method: "POST",
-            headers: {
-                "Authorization": `token ${GITHUB_CONFIG.token}`,
-                "Content-Type": "application/json",
-                "Accept": "application/vnd.github.v3+json"
-            },
-            body: JSON.stringify(issueData)
+        await YGDb.Orders.create({
+            order_no: orderNo,
+            phone: userPhone,
+            product: productName,
+            amount: amount,
+            pay_status: '已支付',
+            receiver: orderAddress.name,
+            receiver_phone: orderAddress.phone,
+            address: orderAddress.detail,
+            progress: 0,
+            remark: ''
         });
 
-        if (response.ok) {
-            alert("订单记录已成功同步");
-            hidePayModal();
-            window.location.href = "pay-record.html";
-        } else {
-            const err = await response.json();
-            alert("创建订单失败：" + err.message);
-        }
+        alert("订单记录已成功同步");
+        hidePayModal();
+        window.location.href = "pay-record.html";
     } catch (e) {
-        alert("网络异常：" + e.message);
+        alert("创建订单失败：" + e.message);
     }
 }
 
